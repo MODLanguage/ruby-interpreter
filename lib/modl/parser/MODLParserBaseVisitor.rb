@@ -3,7 +3,7 @@
 require 'antlr4/runtime'
 
 
-module MODL::Parser
+module Modl::Parser
 
  class MODLParserBaseVisitor < Antlr4::Runtime::AbstractParseTreeVisitor
 	def visitModl( ctx)

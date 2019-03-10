@@ -1,5 +1,5 @@
 # Generated from MODLParser.g4 by ANTLR 4.7.2
-module MODL::Parser
+module Modl::Parser
 require 'antlr4/runtime'
 
 class MODLParserListener < Antlr4::Runtime::ParseTreeListener

@@ -1,7 +1,7 @@
 # Generated from MODLParser.g4 by ANTLR 4.7.2
 require 'antlr4/runtime'
 
-module MODL::Parser
+module Modl::Parser
 
 class MODLParserVisitor < Antlr4::Runtime::ParseTreeVisitor
 	def visitModl(ctx)

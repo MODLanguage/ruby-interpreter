@@ -1,10 +1,10 @@
 # Generated from MODLParser.g4 by ANTLR 4.7.2
 require 'antlr4/runtime'
-require '../../../../tmp/ruby/MODLParserListener'
+require 'modl/parser/MODLParserListener'
 
-module MODL::Parser
+module Modl::Parser
 
-class MODLParserBaseListener < Antlr4::Runtime::MODLParserListener
+class MODLParserBaseListener < MODLParserListener
 	 def enterModl(ctx)
 	 end
 

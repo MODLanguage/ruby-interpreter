@@ -1,12 +1,12 @@
 # Generated from MODLLexer.g4 by ANTLR 4.7.2
 require 'antlr4/runtime'
 
-module MODL::Parser
+module Modl::Parser
 
 
 class MODLLexer < Antlr4::Runtime::Lexer
 
-	@_shared_context_cache = PredictionContextCache.new
+	@_shared_context_cache = Antlr4::Runtime::PredictionContextCache.new
 		WS=1
 		NULL=2
 		TRUE=3
@@ -71,7 +71,7 @@ class MODLLexer < Antlr4::Runtime::Lexer
 			"GTHAN", "LTHAN", "ASTERISK", "AMP", "PIPE", "EXCLAM", "CCOMMENT", "RCBRAC"
 	]
 
-	@@VOCABULARY =  VocabularyImpl.new(@@_LITERAL_NAMES, @@_SYMBOLIC_NAMES)
+	@@VOCABULARY =  Antlr4::Runtime::VocabularyImpl.new(@@_LITERAL_NAMES, @@_SYMBOLIC_NAMES)
 
 	def getVocabulary
 		@@VOCABULARY
@@ -280,7 +280,7 @@ class MODLLexer < Antlr4::Runtime::Lexer
 	    "\2\t\4\2\t\5\2\t\6\2\t\7\2\t\b\2\t\t\2\t\n\2\t\13\2\t\f\2\t\r\2\t\16",
 	    "\2\t\17\2\t\25\2\t\21\2\t\23\2\t\24\2\6\2\2"].join("")
 
-	@@_ATN = ATNDeserializer.new().deserialize(@@_serializedATN)
+	@@_ATN = Antlr4::Runtime::ATNDeserializer.new().deserialize(@@_serializedATN)
 
 
 	class << self
@@ -292,11 +292,11 @@ class MODLLexer < Antlr4::Runtime::Lexer
 
 		i = 0
 		while i < @@_ATN.number_of_decisions()
-			@@_decisionToDFA[i] = DFA.new(@@_ATN.decision_state(i), i)
+			@@_decisionToDFA[i] = Antlr4::Runtime::DFA.new(@@_ATN.decision_state(i), i)
 			i+=1
 		end
 
-		@_interp = LexerATNSimulator.new(self,@@_ATN,@@_decisionToDFA,@_sharedContextCache)
+		@_interp = Antlr4::Runtime::LexerATNSimulator.new(self,@@_ATN,@@_decisionToDFA,@_sharedContextCache)
 	end
 
 	def getGrammarFileName()

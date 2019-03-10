@@ -1,10 +1,10 @@
 # Generated from MODLParser.g4 by ANTLR 4.7.2
 
 require 'antlr4/runtime'
-require "../../../../tmp/ruby/MODLParserListener"
-require "../../../../tmp/ruby/MODLParserVisitor"
+require "modl/parser/MODLParserListener"
+require "modl/parser/MODLParserVisitor"
 
-module MODL::Parser
+module Modl::Parser
 
 theMODLParserListener = MODLParserListener.new
 theMODLParserVisitor = MODLParserVisitor.new
@@ -16,7 +16,7 @@ class MODLParser < Antlr4::Runtime::Parser
 	class << self
 		@@_decisionToDFA = []
 	end
-	@@_sharedContextCache = PredictionContextCache.new()
+	@@_sharedContextCache = Antlr4::Runtime::PredictionContextCache.new()
 		WS=1
 		NULL=2
 		TRUE=3
@@ -94,7 +94,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			"GTHAN", "LTHAN", "ASTERISK", "AMP", "PIPE", "EXCLAM", "CCOMMENT", "RCBRAC"
 	]
 
-	@@VOCABULARY =  VocabularyImpl.new(@@_LITERAL_NAMES, @@_SYMBOLIC_NAMES)
+	@@VOCABULARY =  Antlr4::Runtime::VocabularyImpl.new(@@_LITERAL_NAMES, @@_SYMBOLIC_NAMES)
 
 	def getVocabulary
 		@@VOCABULARY
@@ -120,11 +120,11 @@ class MODLParser < Antlr4::Runtime::Parser
 		super(input)
 		i = 0
 		while i < @@_ATN.number_of_decisions()
-			@@_decisionToDFA[i] = DFA.new(@@_ATN.decision_state(i), i)
+			@@_decisionToDFA[i] = Antlr4::Runtime::DFA.new(@@_ATN.decision_state(i), i)
 			i+=1
 		end
 
-		@_interp =  ParserATNSimulator.new(self,@@_ATN,@@_decisionToDFA,@@_sharedContextCache)
+		@_interp =  Antlr4::Runtime::ParserATNSimulator.new(self,@@_ATN,@@_decisionToDFA,@@_sharedContextCache)
 	end
 
 	 class ModlContext < Antlr4::Runtime::ParserRuleContext
@@ -3497,7 +3497,7 @@ class MODLParser < Antlr4::Runtime::Parser
 	    "\u0224\u0227\u022f\u0236\u023a\u023e\u0242\u0246\u024a\u0256\u025b",
 	    "\u025f\u0262\u0269\u026f\u0278\u0287\u0292"].join("")
 
-	@@_ATN = ATNDeserializer.new().deserialize(@@_serializedATN)
+	@@_ATN = Antlr4::Runtime::ATNDeserializer.new().deserialize(@@_serializedATN)
 
 end
 
