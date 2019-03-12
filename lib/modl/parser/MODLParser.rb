@@ -6,8 +6,8 @@ require "modl/parser/MODLParserVisitor"
 
 module Modl::Parser
 
-theMODLParserListener = MODLParserListener.new
-theMODLParserVisitor = MODLParserVisitor.new
+@@theMODLParserListener = MODLParserListener.new
+@@theMODLParserVisitor = MODLParserVisitor.new
 
 
 

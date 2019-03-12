@@ -9,7 +9,8 @@ class MODLParserTestListener < Modl::Parser::MODLParserBaseListener
     end
   end
 
-  def exitModl(ctx); end
+  def exitModl(ctx)
+  end
 
   def enterModl_structure(ctx)
     ctx.modl_map.enter_rule(self) unless ctx.modl_map.nil?
