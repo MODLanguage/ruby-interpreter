@@ -1,4 +1,3 @@
-require 'modl/modl_parser_test_listener'
 
 RSpec.describe Modl::Parser do
   it "has a version number" do

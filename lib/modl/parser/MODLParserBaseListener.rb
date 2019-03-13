@@ -1,6 +1,5 @@
 # Generated from MODLParser.g4 by ANTLR 4.7.2
 require 'antlr4/runtime'
-require 'modl/parser/MODLParserListener'
 
 module Modl::Parser
 
