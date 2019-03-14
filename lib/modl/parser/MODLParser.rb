@@ -168,7 +168,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -346,7 +346,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_structure(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -440,7 +440,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_map(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -587,7 +587,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_array(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -762,7 +762,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_nb_array(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -889,7 +889,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_pair(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -1001,7 +1001,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_value_item(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -1094,7 +1094,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_top_level_conditional(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -1270,7 +1270,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_top_level_conditional_return(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -1411,7 +1411,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_map_conditional(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -1587,7 +1587,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_map_conditional_return(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -1718,7 +1718,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_map_item(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -1812,7 +1812,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_array_conditional(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -1988,7 +1988,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_array_conditional_return(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -2111,7 +2111,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_array_item(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -2205,7 +2205,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_value_conditional(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -2426,7 +2426,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_value_conditional_return(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -2531,7 +2531,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_condition_test(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -2658,7 +2658,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_operator(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -2769,7 +2769,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_condition(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -2898,7 +2898,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_condition_group(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -3002,7 +3002,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_value(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end
@@ -3134,7 +3134,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			if ( visitor.is_a? MODLParserVisitor )
 			  return visitor.visitModl_array_value_item(self)
 			else
-			 return visitor.visitChildren(self)
+			 return visitor.visit_children(self)
 			end
 		end
 	end

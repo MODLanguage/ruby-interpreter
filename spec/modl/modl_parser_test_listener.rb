@@ -1,4 +1,3 @@
-require 'modl/parser/MODLParserBaseListener'
 
 class MODLParserTestListener < Modl::Parser::MODLParserBaseListener
   def initialize; end
