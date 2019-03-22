@@ -1,4 +1,5 @@
 require 'modl/parser/MODLParserBaseListener'
+require 'modl/parser/global_parse_context'
 require 'antlr4/runtime/parse_cancellation_exception'
 
 module Modl::Parser
@@ -11,8 +12,11 @@ module Modl::Parser
     end
 
     def enterModl(ctx)
+
+      global = GlobalParseContext.new
+
       ctx.modl_structure.each do |str|
-        structure = ParsedStructure.new
+        structure = ParsedStructure.new global
         str.enter_rule(structure)
         @structures << structure
         extract_classes_from structure
@@ -193,11 +197,15 @@ module Modl::Parser
     class ParsedMap < Modl::Parser::MODLParserBaseListener
       attr_reader :mapItems
 
+      def initialize(global)
+        @global = global
+      end
+
       def enterModl_map(ctx)
         if ctx.modl_map_item != nil
           @mapItems = []
           ctx.modl_map_item.each do |mi|
-            mapItem = ParsedMapItem.new
+            mapItem = ParsedMapItem.new @global
             mi.enter_rule(mapItem)
             @mapItems << mapItem
           end
@@ -222,13 +230,17 @@ module Modl::Parser
       attr_reader :pair
       attr_reader :mapConditional
 
+      def initialize(global)
+        @global = global
+      end
+
       def enterModl_map_item(ctx)
         if ctx.modl_pair() != nil
-          @pair = ParsedPair.new
+          @pair = ParsedPair.new @global
           ctx.modl_pair().enter_rule(@pair)
         end
         if ctx.modl_map_conditional != nil
-          @mapConditional = ParsedMapConditional.new
+          @mapConditional = ParsedMapConditional.new @global
           ctx.modl_map_conditional.enter_rule(@mapConditional)
         end
       end
@@ -248,18 +260,22 @@ module Modl::Parser
       attr_reader :top_level_conditional
       attr_reader :map
 
+      def initialize(global)
+        @global = global
+      end
+
       def enterModl_structure(ctx)
         if !ctx.modl_pair.nil?
-          @pair = ParsedPair.new
+          @pair = ParsedPair.new @global
           ctx.modl_pair.enter_rule(@pair)
         elsif !ctx.modl_top_level_conditional.nil?
-          @top_level_conditional = ParsedTopLevelConditional.new
+          @top_level_conditional = ParsedTopLevelConditional.new @global
           ctx.modl_top_level_conditional.enter_rule(@top_level_conditional)
         elsif !ctx.modl_map.nil?
-          @map = ParsedMap.new
+          @map = ParsedMap.new @global
           ctx.modl_map.enter_rule(@map)
         elsif !ctx.modl_array.nil?
-          @array = ParsedArray.new
+          @array = ParsedArray.new @global
           ctx.modl_array.enter_rule(@array)
         end
       end
@@ -283,9 +299,8 @@ module Modl::Parser
       attr_reader :type # A string set to the type of pair that we have found bases on its key
       attr_reader :text # The simple text value rather than the object
 
-      class << self
-        @@index = []
-        @@pairs = {}
+      def initialize(global)
+        @global = global
       end
 
       def extract_hash
@@ -329,13 +344,13 @@ module Modl::Parser
         raise Antlr4::Runtime::ParseCancellationException, 'Invalid keyword: ' + @key if @type == 'pair' && @key.start_with?('*')
 
         if !ctx.modl_array.nil?
-          @array = ParsedArray.new
+          @array = ParsedArray.new @global
           ctx.modl_array.enter_rule(@array)
         elsif !ctx.modl_map.nil?
-          @map = ParsedMap.new
+          @map = ParsedMap.new @global
           ctx.modl_map.enter_rule(@map)
         elsif !ctx.modl_value_item.nil?
-          @valueItem = ParsedValueItem.new
+          @valueItem = ParsedValueItem.new @global
           ctx.modl_value_item.enter_rule(@valueItem)
         end
 
@@ -369,18 +384,17 @@ module Modl::Parser
             index_key = @text.slice(1, @text.length)
             if (index_key.codepoints[0] >= 48) && (index_key.codepoints[0] <= 57)
               i = index_key.to_i
-              @text = @@index[i].text if i < @@index.length
+              @text = @global.index[i].text if i < @global.index.length
             else
               if @text.include? '>'
-                puts 'NESTED REF : ' + @text
                 ref_key = @text.slice(1, @text.index('>') - 1)
 
-                new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @@pairs[ref_key])
+                new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.pairs[ref_key])
                 @valueItem = new_value
               else
                 puts 'TEXT REF : ' + @text
                 ref_key = @text.slice(1, @text.length)
-                new_value = @@pairs[ref_key]
+                new_value = @global.pairs[ref_key]
               end
 
               if new_value.is_a? ParsedMap
@@ -398,7 +412,7 @@ module Modl::Parser
 
         k = @key unless @key.start_with?('_')
         k = @key.slice(1, @key.length) if @key.start_with?('_')
-        @@pairs[k] = self
+        @global.pairs[k] = self
       end
 
       def nested_value ref, value
@@ -413,9 +427,6 @@ module Modl::Parser
           remainder = ref.slice(ref.index('>') + 1, ref.length)
         end
 
-
-        puts ref + ' : ' + ref_key
-
         the_value_item = value.valueItem
 
         the_map = (value.map) ? value.map : the_value_item.value.map
@@ -429,17 +440,14 @@ module Modl::Parser
           the_pair = the_value_item.value.pair
           if the_pair
             target_key = the_pair.key
-            puts 'target_key = ' + target_key
           end
         end
 
         if ref_key == target_key
           result = the_pair
           if remainder && remainder.length > 0
-            puts 'remainder = ' + remainder
             return nested_value(remainder, result)
           else
-            puts 'result key = ' + result.key
             return result.valueItem
           end
         else
@@ -448,7 +456,7 @@ module Modl::Parser
       end
 
       def extract_value item
-        @text = item.value.text if item.is_a?(ParsedValueItem)
+        @text = item.value.text if item.is_a?(ParsedValueItem) && item.value
         @text = item.valueItem.value.text if item.is_a?(ParsedPair)
       end
 
@@ -456,14 +464,14 @@ module Modl::Parser
         # collect all values from the object - it should be an nb_array
         if (item.is_a? ParsedValueItem)
           if item&.value&.text
-            @@index << item.value.text
+            @global.index << item.value.text
           elsif item&.value&.array
             item.value.array.abstractArrayItems.each do |avi|
-              @@index << avi.arrayValueItem
+              @global.index << avi.arrayValueItem
             end
           elsif item&.value&.nbArray
             item.value.nbArray.arrayItems.each do |avi|
-              @@index << avi.arrayValueItem
+              @global.index << avi.arrayValueItem
             end
           end
         else
@@ -504,6 +512,10 @@ module Modl::Parser
       attr_reader :string
       attr_reader :text # The simple text value rather than the object
 
+      def initialize(global)
+        @global = global
+      end
+
       def extract_hash
         puts 'ParsedArrayValueItem.extract_hash'
 
@@ -522,13 +534,13 @@ module Modl::Parser
           @number = ParsedNumber.new(ctx.NUMBER.text)
           @text = @number.num
         elsif !ctx.modl_map.nil?
-          @map = ParsedMap.new
+          @map = ParsedMap.new @global
           ctx.modl_map.enter_rule(@map)
         elsif !ctx.modl_array.nil?
-          @array = ParsedArray.new
+          @array = ParsedArray.new @global
           ctx.modl_array.enter_rule(@array)
         elsif !ctx.modl_pair.nil?
-          @pair = ParsedPair.new
+          @pair = ParsedPair.new @global
           ctx.modl_pair.enter_rule(@pair)
         elsif !ctx.STRING.nil?
           @text = Parsed.additionalStringProcessing(ctx.STRING.text)
@@ -541,10 +553,10 @@ module Modl::Parser
           @text = 'null'
         elsif !ctx.TRUE.nil?
           @trueVal = ParsedTrue.instance
-          @text = 'true'
+          @text = true
         elsif !ctx.FALSE.nil?
           @falseVal = ParsedFalse.instance
-          @text = 'false'
+          @text = false
         end
 
         # ignoring comments!
@@ -555,13 +567,17 @@ module Modl::Parser
       attr_reader :value
       attr_reader :valueConditional
 
+      def initialize(global)
+        @global = global
+      end
+
       def enterModl_value_item(ctx)
         unless ctx.modl_value_conditional.nil?
-          @valueConditional = ParsedValueConditional.new
+          @valueConditional = ParsedValueConditional.new @global
           ctx.modl_value_conditional.enter_rule(@valueConditional)
         end
         unless ctx.modl_value.nil?
-          @value = ParsedValue.new
+          @value = ParsedValue.new @global
           ctx.modl_value.enter_rule(@value)
         end
       end
@@ -587,6 +603,10 @@ module Modl::Parser
       attr_reader :nilVal
       attr_reader :string
       attr_reader :text # The simple text value rather than the object
+
+      def initialize(global)
+        @global = global
+      end
 
       def extract_hash
         puts 'ParsedValue.extract_hash'
@@ -618,16 +638,16 @@ module Modl::Parser
           @number = ParsedNumber.new(ctx.NUMBER.text)
           @text = @number.num
         elsif !ctx.modl_map.nil?
-          @map = ParsedMap.new
+          @map = ParsedMap.new @global
           ctx.modl_map.enter_rule(@map)
         elsif !ctx.modl_nb_array.nil?
-          @nbArray = ParsedNbArray.new
+          @nbArray = ParsedNbArray.new @global
           ctx.modl_nb_array.enter_rule(@nbArray)
         elsif !ctx.modl_array.nil?
-          @array = ParsedArray.new
+          @array = ParsedArray.new @global
           ctx.modl_array.enter_rule(@array)
         elsif !ctx.modl_pair.nil?
-          @pair = ParsedPair.new
+          @pair = ParsedPair.new @global
           ctx.modl_pair.enter_rule(@pair)
         elsif !ctx.STRING.nil?
           @text = Parsed.additionalStringProcessing(ctx.STRING.text)
@@ -640,10 +660,10 @@ module Modl::Parser
           @text = 'null'
         elsif !ctx.TRUE.nil?
           @trueVal = ParsedTrue.instance
-          @text = 'true'
+          @text = true
         elsif !ctx.FALSE.nil?
           @falseVal = ParsedFalse.instance
-          @text = 'false'
+          @text = false
         end
         # ignoring comments!
       end
@@ -680,8 +700,22 @@ module Modl::Parser
     class ParsedConditionTest < Modl::Parser::MODLParserBaseListener
       attr_reader :subConditionList
 
-      def initialize
+      def initialize(global)
+        @global = global
         @subConditionList = []
+      end
+
+      def evaluate
+        result = false
+        @subConditionList.each do |s|
+          last_operator = s.b.a
+          should_negate = s.b.b
+
+          puts 'last_operator : ' + last_operator.to_s + ', should_negate : ' + should_negate.to_s
+          partial = s.a.evaluate
+          result |= (should_negate) ? !partial : partial
+        end
+        result
       end
 
       def enterModl_condition_test(ctx)
@@ -690,22 +724,34 @@ module Modl::Parser
           shouldNegate = false
           ctx.children.each do |child|
             if child.is_a? MODLParser::Modl_condition_groupContext
-              conditionGroup = ParsedConditionGroup.new
+              conditionGroup = ParsedConditionGroup.new @global
               child.enter_rule(conditionGroup)
 
-              p = OpenStruct.new
-              p.a = lastOperator
-              p.b = shouldNegate
-              @subConditionList << p
+              p2 = OpenStruct.new
+              p2.a = lastOperator
+              p2.b = shouldNegate
+
+              p1 = OpenStruct.new
+              p1.a = conditionGroup
+              p1.b = p2
+
+              @subConditionList << p1
+
               lastOperator = nil
               shouldNegate = false
             elsif child.is_a? MODLParser::Modl_conditionContext
-              condition = ParsedCondition.new
+              condition = ParsedCondition.new @global
               child.enter_rule(condition)
-              p = OpenStruct.new
-              p.a = lastOperator
-              p.b = shouldNegate
-              @subConditionList << p
+              p2 = OpenStruct.new
+              p2.a = lastOperator
+              p2.b = shouldNegate
+
+              p1 = OpenStruct.new
+              p1.a = condition
+              p1.b = p2
+
+              @subConditionList << p1
+
               lastOperator = nil
               shouldNegate = false
             else
@@ -723,8 +769,21 @@ module Modl::Parser
     class ParsedConditionGroup < Modl::Parser::MODLParserBaseListener
       attr_reader :conditionsTestList
 
-      def initialize
+      def initialize(global)
+        @global = global
         @conditionsTestList = []
+      end
+
+      def evaluate
+        result = false
+        @conditionsTestList.each do |s|
+          last_operator = s.b
+
+          puts 'last_operator : ' + last_operator.to_s
+          partial = s.a.evaluate
+          result |= partial
+        end
+        result
       end
 
       def enterModl_condition_group(ctx)
@@ -732,7 +791,7 @@ module Modl::Parser
           lastOperator = nil
           ctx.children.each do |child|
             if child.is_a? MODLParser::Modl_condition_testContext
-              conditionTest = ParsedConditionTest.new
+              conditionTest = ParsedConditionTest.new @global
               child.enter_rule(conditionTest)
               p = OpenStruct.new
               p.a = conditionTest
@@ -755,15 +814,33 @@ module Modl::Parser
       attr_reader :operator
       attr_reader :values
 
-      def initialize
+      def initialize(global)
+        @global = global
         @values = []
+      end
+
+      def evaluate
+        result = false
+        value1 = @global.pairs[@key].text
+        value2 = @values[0].text
+        value2 = @global.pairs[@values[0].text].text if @global.pairs[@values[0].text]
+
+        puts '@operator = ' + @operator
+
+        case @operator
+        when '='
+          puts 'comparing: '+value1.to_s + ' to: '+ value2.to_s
+
+          result = value1 == value2
+        end
+        result
       end
 
       def enterModl_condition(ctx)
         @key = ctx.STRING.text unless ctx.STRING.nil?
         @operator = ctx.modl_operator.text unless ctx.modl_operator.nil?
         ctx.modl_value.each do |v|
-          value = ParsedValue.new
+          value = ParsedValue.new @global
           v.enter_rule(value)
           @values << value
         end
@@ -773,14 +850,15 @@ module Modl::Parser
     class ParsedMapConditionalReturn < Modl::Parser::MODLParserBaseListener
       attr_reader :mapItems
 
-      def initialize
+      def initialize(global)
+        @global = global
         @mapItems = []
       end
 
       def enterModl_map_conditional_return(ctx)
         unless ctx.modl_map_item.empty?
           ctx.modl_map_item.each do |mi|
-            mapItem = ParsedMapItem.new
+            mapItem = ParsedMapItem.new @global
             mi.enter_rule(mapItem)
             @mapItems << mapItem
           end
@@ -791,23 +869,24 @@ module Modl::Parser
     class ParsedMapConditional < Modl::Parser::MODLParserBaseListener
       attr_reader :mapConditionals
 
-      def initialize
+      def initialize(global)
+        @global = global
         @mapConditionals = {}
       end
 
       def enterModl_map_conditional(ctx)
         i = 0
         while i < ctx.modl_condition_test.size
-          conditionTest = ParsedConditionTest.new
+          conditionTest = ParsedConditionTest.new @global
           ctx.modl_condition_test_i(i).enter_rule(conditionTest)
 
-          conditionalReturn = ParsedMapConditionalReturn.new
+          conditionalReturn = ParsedMapConditionalReturn.new @global
           ctx.modl_map_conditional_return_i(i).enter_rule(conditionalReturn)
           @mapConditionals[conditionTest] = conditionalReturn
 
           if ctx.modl_map_conditional_return.size > ctx.modl_condition_test.size
-            conditionTest = ParsedConditionTest.new
-            conditionalReturn = ParsedMapConditionalReturn.new
+            conditionTest = ParsedConditionTest.new @global
+            conditionalReturn = ParsedMapConditionalReturn.new @global
             ctx.modl_map_conditional_return_i(ctx.modl_map_conditional_return.size - 1).enter_rule(conditionalReturn)
             @mapConditionals[conditionTest] = conditionalReturn
           end
@@ -819,7 +898,8 @@ module Modl::Parser
     class ParsedTopLevelConditionalReturn < Modl::Parser::MODLParserBaseListener
       attr_reader :structures
 
-      def initialize
+      def initialize(global)
+        @global = global
         @structures = []
       end
 
@@ -827,7 +907,7 @@ module Modl::Parser
         unless ctx.modl_structure.empty?
           # ctx.modl_structure.forEach(str ->
           ctx.modl_structure.each do |str|
-            structure = ParsedStructure.new
+            structure = ParsedStructure.new @global
             str.enter_rule(structure)
             @structures << structure
           end
@@ -838,23 +918,24 @@ module Modl::Parser
     class ParsedTopLevelConditional < Modl::Parser::MODLParserBaseListener
       attr_reader :topLevelConditionalReturns
 
-      def initialize
+      def initialize(global)
+        @global = global
         @topLevelConditionalReturns = {}
       end
 
       def enterModl_top_level_conditional(ctx)
         i = 0
         while i < ctx.modl_condition_test.size
-          conditionTest = ParsedConditionTest.new
+          conditionTest = ParsedConditionTest.new @global
           ctx.modl_condition_test_i(i).enter_rule(conditionTest)
 
-          conditionalReturn = ParsedTopLevelConditionalReturn.new
+          conditionalReturn = ParsedTopLevelConditionalReturn.new @global
           ctx.modl_top_level_conditional_return_i(i).enter_rule(conditionalReturn)
           @topLevelConditionalReturns[conditionTest] = conditionalReturn
 
           if ctx.modl_top_level_conditional_return.size > ctx.modl_condition_test.size
-            conditionTest = ParsedConditionTest.new
-            conditionalReturn = ParsedTopLevelConditionalReturn.new
+            conditionTest = ParsedConditionTest.new @global
+            conditionalReturn = ParsedTopLevelConditionalReturn.new @global
             ctx.modl_top_level_conditional_return_i(ctx.modl_top_level_conditional_return.size - 1).enter_rule(conditionalReturn)
             @topLevelConditionalReturns[conditionTest] = conditionalReturn
           end
@@ -866,15 +947,20 @@ module Modl::Parser
     class ParsedArrayConditionalReturn < Modl::Parser::MODLParserBaseListener
       attr_reader :arrayItems
 
-      def initialize
+      def initialize(global)
+        @global = global
         @arrayItems = []
+      end
+
+      def extract_hash
+        @arrayItems[0].arrayValueItem.text
       end
 
       def enterModl_array_conditional_return(ctx)
         unless ctx.modl_array_item.empty?
           # ctx.modl_array_item.forEach(ai ->
           ctx.modl_array_item.each do |ai|
-            arrayItem = ParsedArrayItem.new
+            arrayItem = ParsedArrayItem.new @global
             ai.enter_rule(arrayItem)
             @arrayItems << arrayItem
           end
@@ -883,28 +969,40 @@ module Modl::Parser
     end
 
     class ParsedArrayConditional < Modl::Parser::MODLParserBaseListener
+      attr_reader :conditionTest
       attr_reader :arrayConditionalReturns
 
-      def initialize
-        @arrayConditionalReturns = {}
+      def initialize(global)
+        @global = global
+        @conditionTests = []
+        @arrayConditionalReturns = []
+      end
+
+      def extract_hash
+        @conditionTests.each_index do |i|
+          result = @conditionTests[i].evaluate
+          return @arrayConditionalReturns[i].extract_hash if result
+        end
       end
 
       def enterModl_array_conditional(ctx)
         i = 0
         while i < ctx.modl_condition_test.size
-          conditionTest = ParsedConditionTest.new
+          conditionTest = ParsedConditionTest.new @global
           ctx.modl_condition_test_i(i).enter_rule(conditionTest)
 
-          conditionalReturn = ParsedArrayConditionalReturn.new
+          conditionalReturn = ParsedArrayConditionalReturn.new @global
           ctx.modl_array_conditional_return_i(i).enter_rule(conditionalReturn)
-          @arrayConditionalReturns[conditionTest] = conditionalReturn
 
           if ctx.modl_array_conditional_return.size > ctx.modl_condition_test.size
-            conditionTest = ParsedConditionTest.new
-            conditionalReturn = ParsedArrayConditionalReturn.new
+            conditionTest = ParsedConditionTest.new @global
+            conditionalReturn = ParsedArrayConditionalReturn.new @global
             ctx.modl_array_conditional_return_i(ctx.modl_array_conditional_return.size - 1).enter_rule(conditionalReturn)
-            @arrayConditionalReturns[conditionTest] = conditionalReturn
           end
+
+          @conditionTests[i] = conditionTest
+          @arrayConditionalReturns[i] = conditionalReturn
+
           i += 1
         end
       end
@@ -913,15 +1011,20 @@ module Modl::Parser
     class ParsedValueConditionalReturn < Modl::Parser::MODLParserBaseListener
       attr_reader :valueItems
 
-      def initialize
+      def initialize(global)
+        @global = global
         @valueItems = []
+      end
+
+      def extract_hash
+        @valueItems[0].value.text
       end
 
       def enterModl_value_conditional_return(ctx)
         unless ctx.modl_value_item.empty?
           # ctx.modl_value_item.forEach(vi ->
           ctx.modl_value_item.each do |vi|
-            valueItem = ParsedValueItem.new
+            valueItem = ParsedValueItem.new @global
             vi.enter_rule(valueItem)
             @valueItems << valueItem
           end
@@ -930,28 +1033,51 @@ module Modl::Parser
     end
 
     class ParsedValueConditional < Modl::Parser::MODLParserBaseListener
+      attr_reader :conditionTests
       attr_reader :valueConditionalReturns
 
-      def initialize
-        @valueConditionalReturns = {}
+      def initialize(global)
+        @global = global
+        @conditionTests = []
+        @valueConditionalReturns = []
+      end
+
+      def extract_hash
+        puts '@conditionTests.length = ' + @conditionTests.length.to_s
+        puts '@valueConditionalReturns.length = ' + @valueConditionalReturns.length.to_s
+
+        result = @conditionTests[0].evaluate
+
+        puts 'RESULT = ' + result.to_s
+        return result if @valueConditionalReturns.length == 0
+        return @valueConditionalReturns[0].extract_hash if result
+        return @valueConditionalReturns[1].extract_hash
       end
 
       def enterModl_value_conditional(ctx)
         i = 0
         while i < ctx.modl_condition_test.size
-          conditionTest = ParsedConditionTest.new
+          conditionTest = ParsedConditionTest.new @global
           ctx.modl_condition_test_i(i).enter_rule(conditionTest)
 
-          conditionalReturn = ParsedValueConditionalReturn.new
+          @conditionTests[i] = conditionTest
+
+          return if ctx.modl_value_conditional_return_i(i).nil?
+
+          conditionalReturn = ParsedValueConditionalReturn.new @global
+
           ctx.modl_value_conditional_return_i(i).enter_rule(conditionalReturn)
-          @valueConditionalReturns[conditionTest] = conditionalReturn
+
+          @valueConditionalReturns[i] = conditionalReturn
 
           if ctx.modl_value_conditional_return.size > ctx.modl_condition_test.size
-            conditionTest = ParsedConditionTest.new
-            conditionalReturn = ParsedValueConditionalReturn.new
+            conditionTest = ParsedConditionTest.new @global
+            conditionalReturn = ParsedValueConditionalReturn.new @global
             ctx.modl_value_conditional_return_i(ctx.modl_value_conditional_return.size - 1).enter_rule(conditionalReturn)
-            @valueConditionalReturns[conditionTest] = conditionalReturn
+            @conditionTests[i+1] = conditionTest
+            @valueConditionalReturns[i+1] = conditionalReturn
           end
+
           i += 1
         end
       end
@@ -960,7 +1086,8 @@ module Modl::Parser
     class ParsedNbArray < Modl::Parser::MODLParserBaseListener
       attr_reader :arrayItems
 
-      def initialize
+      def initialize(global)
+        @global = global
         @arrayItems = []
       end
 
@@ -969,8 +1096,8 @@ module Modl::Parser
 
         result = []
 
-        @arrayItems.each_index do |i|
-          result << @arrayItems[i].extract_hash
+        @arrayItems.each do |i|
+          result << i.extract_hash
         end
 
         result
@@ -981,7 +1108,7 @@ module Modl::Parser
         previous = nil
         ctx.children.each do |pt|
           if pt.is_a? MODLParser::Modl_array_itemContext
-            arrayItem = ParsedArrayItem.new
+            arrayItem = ParsedArrayItem.new @global
             pt.enter_rule(arrayItem)
             @arrayItems[i] = arrayItem
             i += 1
@@ -1011,8 +1138,8 @@ module Modl::Parser
       # so this currently defaults to the nil value
       #
       # TODO : Is there a way to know the type to create or is nil always acceptable?
-      arrayItem = ParsedArrayItem.new
-      arrayItem.arrayValueItem = ParsedArrayValueItem.new
+      arrayItem = ParsedArrayItem.new @global
+      arrayItem.arrayValueItem = ParsedArrayValueItem.new @global
       arrayItem.arrayValueItem.nilVal = ParsedNull.instance
       arrayItem
     end
@@ -1021,8 +1148,21 @@ module Modl::Parser
       # We now have a list of < array_item | nbArray >
       attr_reader :abstractArrayItems
 
-      def initialize
+      def initialize(global)
+        @global = global
         @abstractArrayItems = []
+      end
+
+      def extract_hash
+        puts 'ParsedArray.extract_hash'
+
+        result = []
+
+        abstractArrayItems.each do |i|
+          result << i.extract_hash
+        end
+
+        result
       end
 
       def enterModl_array(ctx)
@@ -1031,12 +1171,12 @@ module Modl::Parser
         previous = nil
         ctx.children.each do |pt|
           if pt.is_a? MODLParser::Modl_array_itemContext
-            arrayItem = ParsedArrayItem.new
+            arrayItem = ParsedArrayItem.new @global
             pt.enter_rule(arrayItem)
             @abstractArrayItems[i] = arrayItem
             i += 1
           elsif pt.is_a? MODLParser::Modl_nb_arrayContext
-            nbArray = ParsedNbArray.new
+            nbArray = ParsedNbArray.new @global
             pt.enter_rule(nbArray)
             @abstractArrayItems[i] = nbArray
             i += 1
@@ -1076,13 +1216,17 @@ module Modl::Parser
       attr_accessor :arrayValueItem
       attr_accessor :arrayConditional
 
+      def initialize(global)
+        @global = global
+      end
+
       def enterModl_array_item(ctx)
         unless ctx.modl_array_conditional.nil?
-          @arrayConditional = ParsedArrayConditional.new
+          @arrayConditional = ParsedArrayConditional.new @global
           ctx.modl_array_conditional.enter_rule(@arrayConditional)
         end
         unless ctx.modl_array_value_item.nil?
-          @arrayValueItem = ParsedArrayValueItem.new
+          @arrayValueItem = ParsedArrayValueItem.new @global
           ctx.modl_array_value_item.enter_rule(@arrayValueItem)
         end
       end
