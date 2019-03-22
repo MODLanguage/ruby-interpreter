@@ -1,6 +1,7 @@
 require 'modl/parser/MODLParserBaseListener'
 require 'modl/parser/global_parse_context'
 require 'antlr4/runtime/parse_cancellation_exception'
+require 'cgi'
 
 module Modl::Parser
   class Parsed < Modl::Parser::MODLParserBaseListener
@@ -8,15 +9,14 @@ module Modl::Parser
 
     def initialize
       @structures = []
-      @classes = {}
     end
 
     def enterModl(ctx)
 
-      global = GlobalParseContext.new
+      @global = GlobalParseContext.new
 
       ctx.modl_structure.each do |str|
-        structure = ParsedStructure.new global
+        structure = ParsedStructure.new @global
         str.enter_rule(structure)
         @structures << structure
         extract_classes_from structure
@@ -36,16 +36,16 @@ module Modl::Parser
 
         raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
         raise Antlr4::Runtime::ParseCancellationException, 'Missing name for class' if clazz['name'].nil?
-        raise Antlr4::Runtime::ParseCancellationException, 'Missing superclass for class' if clazz['superclass'].nil?
+#        raise Antlr4::Runtime::ParseCancellationException, 'Missing superclass for class' if clazz['superclass'].nil?
 
         # Does the class name or id already exist?
-        raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class name: ' + clazz['name'] unless @classes[clazz['name']].nil?
-        raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class id: ' + clazz['id'] unless @classes[clazz['id']].nil?
+        raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class name: ' + clazz['name'] unless @global.classes[clazz['name']].nil?
+        raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class id: ' + clazz['id'] unless @global.classes[clazz['id']].nil?
 
 
         # store the classes by id and name to make them easier to find later
-        @classes[clazz['id']] = clazz
-        @classes[clazz['name']] = clazz
+        @global.classes[clazz['id']] = clazz
+        @global.classes[clazz['name']] = clazz
       end
       # TODO: Recurse to find all pairs in case they're classes.
     end
@@ -297,10 +297,19 @@ module Modl::Parser
       attr_reader :valueItem
       attr_reader :key_lists
       attr_reader :type # A string set to the type of pair that we have found bases on its key
-      attr_reader :text # The simple text value rather than the object
+      attr_accessor :text # The simple text value rather than the object
 
       def initialize(global)
         @global = global
+      end
+
+      def set_value value
+        puts 'Seting pair: ' + @key + ' to ' + value
+        @map = nil
+        @array = nil
+        @valueItem = ParsedValueItem.new @global
+        @valueItem.value = ParsedString.new(value)
+        @text = value
       end
 
       def extract_hash
@@ -308,6 +317,8 @@ module Modl::Parser
 
         return if @type == 'index'
         return if @type == 'hidden'
+        return if @type == 'version'
+        return if @type == 'class'
 
         value = @array.extract_hash if @array
         value = @valueItem.extract_hash if @valueItem
@@ -365,7 +376,8 @@ module Modl::Parser
         when 'superclass'
           extract_value @valueItem
         when 'keylist'
-          extract_key_list @valueItem
+          extract_key_list @valueItem if @valueItem
+          extract_key_list @array if @array
         when 'version'
           extract_value @valueItem
         when 'method'
@@ -391,6 +403,31 @@ module Modl::Parser
 
                 new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.pairs[ref_key])
                 @valueItem = new_value
+              elsif @text.include? '.'
+                ref_key = @text.slice(1, @text.index('.') - 1)
+                methods = @text.slice(@text.index('.') + 1, @text.length)
+
+                new_value = @global.pairs[ref_key]
+                @valueItem = new_value
+
+                puts 'TEXT REF WITH METHODS : ' + @text + ', ref_key = ' + ref_key + ', methods = ' + methods
+
+                methods.each_char do |m|
+                  case m
+                  when 'u'
+                    set_value(new_value.text.upcase)
+                  when 'd'
+                    set_value(new_value.text.downcase)
+                  when 'i'
+                    set_value(new_value.text.split.map(&:capitalize)*' ')
+                  when 's'
+                    split = new_value.text.split
+                    split[0].capitalize!
+                    set_value(split.join(' '))
+                  when 'e'
+                    set_value(CGI.escape(new_value.text))
+                  end
+                end
               else
                 puts 'TEXT REF : ' + @text
                 ref_key = @text.slice(1, @text.length)
@@ -486,11 +523,23 @@ module Modl::Parser
           item.value.array.abstractArrayItems.each do |avi|
             key_list = []
             avi.arrayValueItem.array.abstractArrayItems.each do |key|
-              key_list << key.arrayValueItem.string.string
+              key_list << key.arrayValueItem.string.string if key.arrayValueItem.string
+              key_list << key.arrayValueItem.number.num if key.arrayValueItem.number
+            end
+            @key_lists << key_list
+          end
+        elsif item.is_a?(ParsedArray)
+          item.abstractArrayItems.each do |avi|
+            key_list = []
+            avi.arrayValueItem.array.abstractArrayItems.each do |key|
+              key_list << key.arrayValueItem.string.string if key.arrayValueItem.string
+              key_list << key.arrayValueItem.number.num if key.arrayValueItem.number
             end
             @key_lists << key_list
           end
         else
+          puts item.class
+
           raise Antlr4::Runtime::ParseCancellationException, 'Array of arrays expected for: ' + @key
         end
       end
@@ -564,7 +613,7 @@ module Modl::Parser
     end
 
     class ParsedValueItem < Modl::Parser::MODLParserBaseListener
-      attr_reader :value
+      attr_accessor :value
       attr_reader :valueConditional
 
       def initialize(global)
@@ -674,6 +723,10 @@ module Modl::Parser
 
       def initialize(string)
         @string = string
+      end
+
+      def text
+        @string
       end
 
       def extract_hash
@@ -829,7 +882,7 @@ module Modl::Parser
 
         case @operator
         when '='
-          puts 'comparing: '+value1.to_s + ' to: '+ value2.to_s
+          puts 'comparing: ' + value1.to_s + ' to: ' + value2.to_s
 
           result = value1 == value2
         end
@@ -1074,8 +1127,8 @@ module Modl::Parser
             conditionTest = ParsedConditionTest.new @global
             conditionalReturn = ParsedValueConditionalReturn.new @global
             ctx.modl_value_conditional_return_i(ctx.modl_value_conditional_return.size - 1).enter_rule(conditionalReturn)
-            @conditionTests[i+1] = conditionTest
-            @valueConditionalReturns[i+1] = conditionalReturn
+            @conditionTests[i + 1] = conditionTest
+            @valueConditionalReturns[i + 1] = conditionalReturn
           end
 
           i += 1

@@ -3,10 +3,12 @@ module Modl::Parser
 
     attr_accessor :index
     attr_accessor :pairs
+    attr_accessor :classes
 
     def initialize
       @index = []
       @pairs = {}
+      @classes = {}
     end
 
   end

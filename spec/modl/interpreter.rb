@@ -12,6 +12,9 @@ require 'json'
 file = File.open "../../../grammar/tests/base_tests.json"
 data = JSON.parse(file.read)
 
+success = 0
+failed = 0
+
 data.each_index do |i|
   test_case = data[i]
 
@@ -53,10 +56,13 @@ data.each_index do |i|
     puts 'Test ' + i.to_s + ' passed.'
     puts 'Expected: ' + expected
     puts 'Found   : ' + result
+    success += 1
   else
     puts 'Test ' + i.to_s + ' failed.'
     puts 'Expected: ' + expected
     puts 'Found   : ' + result
-    break
+    failed += 1
   end
 end
+
+puts success.to_s + ' tests PASSED and ' + failed.to_s + ' tests FAILED out of a total of ' + data.length.to_s + ' tests.'
