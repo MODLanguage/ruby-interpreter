@@ -1,4 +1,5 @@
 require 'modl/parser/throwing_error_listener'
+require 'modl/parser/parsed'
 
 module Modl::Parser
 
@@ -17,6 +18,7 @@ module Modl::Parser
       parsed = Parsed.new
 
       parser.modl.enter_rule(parsed)
+
       return parsed
     end
   end
