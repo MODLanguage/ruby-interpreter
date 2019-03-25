@@ -11,5 +11,7 @@ module Modl::Parser
       @classes = {}
     end
 
+    def process_classes obj
+    end
   end
 end

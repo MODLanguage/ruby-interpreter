@@ -6,6 +6,7 @@ require 'cgi'
 module Modl::Parser
   class Parsed < Modl::Parser::MODLParserBaseListener
     attr_reader :structures
+    attr_reader :global
 
     def initialize
       @structures = []
@@ -19,35 +20,9 @@ module Modl::Parser
         structure = ParsedStructure.new @global
         str.enter_rule(structure)
         @structures << structure
-        extract_classes_from structure
       end
-    end
 
-    def extract_classes_from structure
-      if structure&.pair&.type == 'class'
-        clazz = {}
-        map = structure.pair.map
-        map.mapItems.each do |item|
-          clazz['id'] = item&.pair&.valueItem&.value&.string&.string if item&.pair&.type == 'id'
-          clazz['name'] = item&.pair&.valueItem&.value&.string&.string if item&.pair&.type == 'name'
-          clazz['superclass'] = item&.pair&.valueItem&.value&.string&.string if item&.pair&.type == 'superclass'
-          clazz['keylist'] = item&.pair&.key_lists if item&.pair&.type == 'keylist'
-        end
-
-        raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
-        raise Antlr4::Runtime::ParseCancellationException, 'Missing name for class' if clazz['name'].nil?
-#        raise Antlr4::Runtime::ParseCancellationException, 'Missing superclass for class' if clazz['superclass'].nil?
-
-        # Does the class name or id already exist?
-        raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class name: ' + clazz['name'] unless @global.classes[clazz['name']].nil?
-        raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class id: ' + clazz['id'] unless @global.classes[clazz['id']].nil?
-
-
-        # store the classes by id and name to make them easier to find later
-        @global.classes[clazz['id']] = clazz
-        @global.classes[clazz['name']] = clazz
-      end
-      # TODO: Recurse to find all pairs in case they're classes.
+      @global
     end
 
     def exitModl(ctx)
@@ -213,7 +188,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedMap.extract_hash'
         result = []
         mapItems.each do |i|
           result << i.extract_hash
@@ -246,8 +220,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedMapItem.extract_hash'
-
         return @pair.extract_hash if @pair
         return @mapConditional.extract_hash if @mapConditional
       end
@@ -281,8 +253,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedStructure.extract_hash'
-
         return @array.extract_hash if @array
         return @pair.extract_hash if @pair
         return @top_level_conditional.extract_hash if @top_level_conditional
@@ -291,12 +261,12 @@ module Modl::Parser
     end
 
     class ParsedPair < Modl::Parser::MODLParserBaseListener
-      attr_reader :key
-      attr_reader :map
-      attr_reader :array
-      attr_reader :valueItem
-      attr_reader :key_lists
-      attr_reader :type # A string set to the type of pair that we have found bases on its key
+      attr_accessor :key
+      attr_accessor :map
+      attr_accessor :array
+      attr_accessor :valueItem
+      attr_accessor :key_lists
+      attr_accessor :type # A string set to the type of pair that we have found bases on its key
       attr_accessor :text # The simple text value rather than the object
 
       def initialize(global)
@@ -304,7 +274,6 @@ module Modl::Parser
       end
 
       def set_value value
-        puts 'Seting pair: ' + @key + ' to ' + value
         @map = nil
         @array = nil
         @valueItem = ParsedValueItem.new @global
@@ -313,7 +282,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedPair.extract_hash for key = ' + @key
 
         return if @type == 'index'
         return if @type == 'hidden'
@@ -368,7 +336,7 @@ module Modl::Parser
         # Type-specific processing
         case @type
         when 'class'
-          # Nothing to do - classes are handled at the top level.
+          extract_class
         when 'id'
           extract_value @valueItem
         when 'name'
@@ -410,8 +378,6 @@ module Modl::Parser
                 new_value = @global.pairs[ref_key]
                 @valueItem = new_value
 
-                puts 'TEXT REF WITH METHODS : ' + @text + ', ref_key = ' + ref_key + ', methods = ' + methods
-
                 methods.each_char do |m|
                   case m
                   when 'u'
@@ -419,7 +385,7 @@ module Modl::Parser
                   when 'd'
                     set_value(new_value.text.downcase)
                   when 'i'
-                    set_value(new_value.text.split.map(&:capitalize)*' ')
+                    set_value(new_value.text.split.map(&:capitalize) * ' ')
                   when 's'
                     split = new_value.text.split
                     split[0].capitalize!
@@ -429,7 +395,6 @@ module Modl::Parser
                   end
                 end
               else
-                puts 'TEXT REF : ' + @text
                 ref_key = @text.slice(1, @text.length)
                 new_value = @global.pairs[ref_key]
               end
@@ -450,6 +415,46 @@ module Modl::Parser
         k = @key unless @key.start_with?('_')
         k = @key.slice(1, @key.length) if @key.start_with?('_')
         @global.pairs[k] = self
+      end
+
+      def extract_class
+        if @type == 'class'
+          clazz = {}
+          map = @map if @map
+          map = @valueItem&.value&.map if @valueItem&.value&.map
+
+          map.mapItems.each do |item|
+            if item&.pair&.type
+              case item&.pair&.type
+              when 'id'
+                clazz['id'] = item.pair.valueItem.value.string.string
+              when 'name'
+                clazz['name'] = item.pair.valueItem.value.string.string
+              when 'superclass'
+                clazz['superclass'] = item.pair.valueItem.value.string.string
+              when 'keylist'
+                clazz['keylist'] = item.pair.key_lists
+              else
+                clazz[item.pair.key] = item.pair.array if item.pair.array
+                clazz[item.pair.key] = item.pair.map if item.pair.map
+                clazz[item.pair.key] = item.pair.valueItem.value if item.pair.valueItem.value
+              end
+            end
+          end
+
+          raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
+          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for class' if clazz['name'].nil?
+#        raise Antlr4::Runtime::ParseCancellationException, 'Missing superclass for class' if clazz['superclass'].nil?
+
+# Does the class name or id already exist?
+          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class name: ' + clazz['name'] unless @global.classes[clazz['name']].nil?
+          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class id: ' + clazz['id'] unless @global.classes[clazz['id']].nil?
+
+
+# store the classes by id and name to make them easier to find later
+          @global.classes[clazz['id']] = clazz
+          @global.classes[clazz['name']] = clazz
+        end
       end
 
       def nested_value ref, value
@@ -538,8 +543,6 @@ module Modl::Parser
             @key_lists << key_list
           end
         else
-          puts item.class
-
           raise Antlr4::Runtime::ParseCancellationException, 'Array of arrays expected for: ' + @key
         end
       end
@@ -566,8 +569,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedArrayValueItem.extract_hash'
-
         return @map.extract_hash if @map
         return @array.extract_hash if @array
         return @nbArray.extract_hash if @nbArray
@@ -632,8 +633,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedValueItem.extract_hash'
-
         return @value.extract_hash if @value
         return @valueConditional.extract_hash if @valueConditional
       end
@@ -658,8 +657,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedValue.extract_hash'
-
         return @map.extract_hash if @map
         return @array.extract_hash if @array
         return @nbArray.extract_hash if @nbArray
@@ -764,7 +761,6 @@ module Modl::Parser
           last_operator = s.b.a
           should_negate = s.b.b
 
-          puts 'last_operator : ' + last_operator.to_s + ', should_negate : ' + should_negate.to_s
           partial = s.a.evaluate
           result |= (should_negate) ? !partial : partial
         end
@@ -832,7 +828,6 @@ module Modl::Parser
         @conditionsTestList.each do |s|
           last_operator = s.b
 
-          puts 'last_operator : ' + last_operator.to_s
           partial = s.a.evaluate
           result |= partial
         end
@@ -878,12 +873,8 @@ module Modl::Parser
         value2 = @values[0].text
         value2 = @global.pairs[@values[0].text].text if @global.pairs[@values[0].text]
 
-        puts '@operator = ' + @operator
-
         case @operator
         when '='
-          puts 'comparing: ' + value1.to_s + ' to: ' + value2.to_s
-
           result = value1 == value2
         end
         result
@@ -1096,12 +1087,8 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts '@conditionTests.length = ' + @conditionTests.length.to_s
-        puts '@valueConditionalReturns.length = ' + @valueConditionalReturns.length.to_s
-
         result = @conditionTests[0].evaluate
 
-        puts 'RESULT = ' + result.to_s
         return result if @valueConditionalReturns.length == 0
         return @valueConditionalReturns[0].extract_hash if result
         return @valueConditionalReturns[1].extract_hash
@@ -1145,8 +1132,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedNbArray.extract_hash'
-
         result = []
 
         @arrayItems.each do |i|
@@ -1207,8 +1192,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedArray.extract_hash'
-
         result = []
 
         abstractArrayItems.each do |i|
@@ -1285,8 +1268,6 @@ module Modl::Parser
       end
 
       def extract_hash
-        puts 'ParsedArrayItem.extract_hash'
-
         return @arrayValueItem.extract_hash if @arrayValueItem
         return @arrayConditional.extract_hash if @arrayConditional
       end
