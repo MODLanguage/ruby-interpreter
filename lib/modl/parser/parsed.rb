@@ -1,6 +1,7 @@
 require 'modl/parser/MODLParserBaseListener'
 require 'modl/parser/global_parse_context'
 require 'modl/parser/ref_processor'
+require 'modl/parser/substitutions'
 require 'antlr4/runtime/parse_cancellation_exception'
 require 'cgi'
 
@@ -162,6 +163,7 @@ module Modl::Parser
     end
 
     def self.additionalStringProcessing(text)
+      text = Substitutions.instance.process text
       # Special case for a possibly empty graved string ``
       unless text.nil?
         matchData = /^`([^`]*)`$/.match text

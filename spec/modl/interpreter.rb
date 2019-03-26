@@ -105,7 +105,7 @@ g(
        s=%0
        gt=Standard Generalized %1.s %2.s
        a=%0
-       ab=ISO 8879\:1986
+       ab=ISO 8879\\:1986
        gd=A meta-%1 %2, used to create %1 %2s such as DocBook.
          :[GML;XML]
        gs=%1
@@ -137,7 +137,46 @@ class_test_case['expected_output'] = %Q{{
  }
 }
 }
-#data.unshift class_test_case
+
+def mangle(str)
+  loop do
+    break unless str.sub!('": ', '":')
+  end
+
+  loop do
+    break unless str.sub!('" : ', '":')
+  end
+
+  loop do
+    break unless str.sub!("\n", '')
+  end
+
+  loop do
+    break unless str.sub!('[ ', '[')
+  end
+
+  loop do
+    break unless str.sub!(' ]', ']')
+  end
+
+  loop do
+    break unless str.sub!(' }', '}')
+  end
+
+  loop do
+    break unless str.sub!('] ', ']')
+  end
+
+  loop do
+    break unless str.sub!('{ ', '{')
+  end
+
+  loop do
+    break unless str.sub!(', ', ',')
+  end
+end
+
+data.unshift class_test_case
 
 data.each_index do |i|
   test_case = data[i]
@@ -148,41 +187,8 @@ data.each_index do |i|
 
   expected = test_case['expected_output']
 
-  loop do
-    break unless expected.sub!('": ', '":')
-  end
-
-  loop do
-    break unless expected.sub!('" : ', '":')
-  end
-
-  loop do
-    break unless expected.sub!("\n", '')
-  end
-
-  loop do
-    break unless expected.sub!('[ ', '[')
-  end
-
-  loop do
-    break unless expected.sub!(' ]', ']')
-  end
-
-  loop do
-    break unless expected.sub!(' }', '}')
-  end
-
-  loop do
-    break unless expected.sub!('] ', ']')
-  end
-
-  loop do
-    break unless expected.sub!('{ ', '{')
-  end
-
-  loop do
-    break unless expected.sub!(', ', ',')
-  end
+  mangle(expected)
+  mangle(result)
 
   if result == expected
     puts 'Test ' + i.to_s + ' passed.'
