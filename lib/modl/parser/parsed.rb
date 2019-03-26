@@ -1,5 +1,6 @@
 require 'modl/parser/MODLParserBaseListener'
 require 'modl/parser/global_parse_context'
+require 'modl/parser/ref_processor'
 require 'antlr4/runtime/parse_cancellation_exception'
 require 'cgi'
 
@@ -360,54 +361,24 @@ module Modl::Parser
           extract_value @valueItem
         else
           extract_value @valueItem
-          if !@text.nil? && @text.is_a?(String) && @text.start_with?('%')
-            index_key = @text.slice(1, @text.length)
-            if (index_key.codepoints[0] >= 48) && (index_key.codepoints[0] <= 57)
-              i = index_key.to_i
-              @text = @global.index[i].text if i < @global.index.length
+          if !@text.nil? && @text.is_a?(String) && @text.include?('%')
+            if @text.include? '>'
+              ref_key = @text.slice(1, @text.index('>') - 1)
+
+              new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.pairs[ref_key])
+              @valueItem = new_value
             else
-              if @text.include? '>'
-                ref_key = @text.slice(1, @text.index('>') - 1)
+              @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
+            end
 
-                new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.pairs[ref_key])
-                @valueItem = new_value
-              elsif @text.include? '.'
-                ref_key = @text.slice(1, @text.index('.') - 1)
-                methods = @text.slice(@text.index('.') + 1, @text.length)
-
-                new_value = @global.pairs[ref_key]
-                @valueItem = new_value
-
-                methods.each_char do |m|
-                  case m
-                  when 'u'
-                    set_value(new_value.text.upcase)
-                  when 'd'
-                    set_value(new_value.text.downcase)
-                  when 'i'
-                    set_value(new_value.text.split.map(&:capitalize) * ' ')
-                  when 's'
-                    split = new_value.text.split
-                    split[0].capitalize!
-                    set_value(split.join(' '))
-                  when 'e'
-                    set_value(CGI.escape(new_value.text))
-                  end
-                end
-              else
-                ref_key = @text.slice(1, @text.length)
-                new_value = @global.pairs[ref_key]
-              end
-
-              if new_value.is_a? ParsedMap
-                @map = new_value
-              elsif new_value.is_a? ParsedArray
-                @array = new_value
-              elsif new_value.is_a? ParsedValueItem
-                @valueItem = new_value
-              else
-                @text = extract_value new_value
-              end
+            if new_value.is_a? ParsedMap
+              @map = new_value
+            elsif new_value.is_a? ParsedArray
+              @array = new_value
+            elsif new_value.is_a? ParsedValueItem
+              @valueItem = new_value
+            elsif !new_value.nil?
+              #@text = extract_value new_value
             end
           end
         end

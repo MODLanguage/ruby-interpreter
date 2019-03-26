@@ -1,6 +1,5 @@
 require "bundler/setup"
 require "modl/parser"
-require 'modl/modl_parser_test_listener'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
