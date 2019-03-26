@@ -9,10 +9,12 @@ module Modl::Parser
     def deref str, values_array, pairs_hash
 
       puts 'De-reffing: ' + str
-      if str.include?('%')
+      count = str.count('%')
+      while count > 0
         str, new_value = split_by_ref_tokens str, values_array, pairs_hash
+        count -= 1
       end
-      puts 'De-reffing result: ' + str
+      puts 'De-reffing result: ' + str + ', new_value = ' + new_value.to_s
       [str, new_value]
     end
 
@@ -60,6 +62,8 @@ module Modl::Parser
           parts[1] = pairs_hash[best_match].text
           parts[2] = tmp.slice(best_match.length, tmp.length)
           new_value = pairs_hash[best_match]
+        else
+          parts[1] = '%' + key
         end
 
       end

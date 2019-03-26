@@ -377,8 +377,8 @@ module Modl::Parser
               @array = new_value
             elsif new_value.is_a? ParsedValueItem
               @valueItem = new_value
-            elsif !new_value.nil?
-              #@text = extract_value new_value
+            elsif new_value.nil?
+              set_value @text
             end
           end
         end
@@ -565,9 +565,11 @@ module Modl::Parser
           ctx.modl_pair.enter_rule(@pair)
         elsif !ctx.STRING.nil?
           @text = Parsed.additionalStringProcessing(ctx.STRING.text)
+          @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
           @string = ParsedString.new(@text)
         elsif !ctx.QUOTED.nil?
           @text = additionalStringProcessing(ctx.QUOTED.text)
+          @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
           @quoted = ParsedQuoted.new(@text)
         elsif !ctx.Null.nil?
           @nilVal = ParsedNull.instance

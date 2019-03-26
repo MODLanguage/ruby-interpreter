@@ -137,7 +137,7 @@ class_test_case['expected_output'] = %Q{{
  }
 }
 }
-data.unshift class_test_case
+#data.unshift class_test_case
 
 data.each_index do |i|
   test_case = data[i]
