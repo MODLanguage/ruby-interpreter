@@ -16,7 +16,7 @@ success = 0
 failed = 0
 
 class_test_case = {}
-class_test_case['input'] = %Q{_branch="alex.";_root=d;namespace=`%branch`blah.`%root`}
+class_test_case['input'] = %Q{namespace=`%branch`blah.`%root`}
 class_test_case['expected_output'] = %Q{{"namespace":"alex.blah.d"}}
 #data.unshift class_test_case
 
@@ -81,12 +81,10 @@ data.each_index do |i|
       puts 'Expected: ' + expected
       puts 'Found   : ' + result
       failed += 1
-      break
     end
   rescue StandardError => e
     puts e.to_s
     failed += 1
-    break
   end
 end
 

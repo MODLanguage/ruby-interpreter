@@ -48,13 +48,14 @@ module Modl::Parser
           if graved
             parts << tmp.slice(1, tmp.length)
           else
-          parts << tmp
+            parts << tmp
           end
         else
-          if graved
-            parts[1] = '`%' + key
-          else
+          if key.length > 0
             parts[1] = '%' + key
+          else
+            parts[1] = '%' + parts[1]
+            parts[1].sub!('`', '') if graved
           end
         end
       else
@@ -70,14 +71,14 @@ module Modl::Parser
         if best_match.length > 0
           tmp = parts[1]
           parts[1] = pairs_hash[best_match].text
-          skip = (graved) ? 1 : 0
-          parts[2] = tmp.slice(best_match.length + skip, tmp.length)
+          parts[2] = tmp.slice(best_match.length, tmp.length)
           new_value = pairs_hash[best_match] if str.start_with?('`%') || str.start_with?('%')
         else
-          if graved
-            parts[1] = '`%' + key
-          else
+          if key.length > 0
             parts[1] = '%' + key
+          else
+            parts[1] = '%' + parts[1]
+            parts[1].sub!('`', '') if graved
           end
         end
 
@@ -91,8 +92,8 @@ module Modl::Parser
           parts[2] = parts[2].slice(1, parts[2].length)
           parts[1] = run_method method, parts[1]
         end
-        parts[2] = parts[2].slice(1, parts[2].length) if graved
       end
+      parts[2] = parts[2].slice(1, parts[2].length) if graved && parts[2]
 
       # Join the parts and return the result.
       [parts.join, new_value]
