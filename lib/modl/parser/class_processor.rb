@@ -70,7 +70,7 @@ module Modl::Parser
             end
           end
         end
-
+        new_value = v if new_value.empty?
       else
         new_value = v
       end

@@ -55,9 +55,12 @@ module Modl::Parser
     end
 
     def process(str)
+      prev = ''
       @subs.each do |s|
         loop do
-          break unless str.sub!(s[0], s[1])
+          prev = str
+          str = str.sub(s[0], s[1])
+          break unless str && str != prev
         end
       end
       str
