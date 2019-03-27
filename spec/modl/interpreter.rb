@@ -16,9 +16,9 @@ success = 0
 failed = 0
 
 class_test_case = {}
-class_test_case['input'] = %Q{}
-
-class_test_case['expected_output'] = %Q{}
+class_test_case['input'] = %Q{_branch="alex.";_root=d;namespace=`%branch`blah.`%root`}
+class_test_case['expected_output'] = %Q{{"namespace":"alex.blah.d"}}
+#data.unshift class_test_case
 
 def mangle(str)
   loop do
@@ -57,8 +57,6 @@ def mangle(str)
     break unless str.sub!(', ', ',')
   end
 end
-
-#data.unshift class_test_case
 
 data.each_index do |i|
   begin

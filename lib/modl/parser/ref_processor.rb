@@ -20,16 +20,18 @@ module Modl::Parser
 
     def split_by_ref_tokens str, values_array, pairs_hash
       parts = []
-      percent = str.index '%'
-
-      parts << str.slice(0, percent)
-      skip = 1
-      graved = false
-      if str[percent + 1] == '`'
-        skip += 1
+      idx = str.index '`%'
+      if idx.nil?
+        idx = str.index '%'
+        graved = false
+      else
         graved = true
       end
-      parts << str.slice(percent + skip, str.length)
+
+      parts << str.slice(0, idx)
+      skip = (graved) ? 2 : 1
+
+      parts << str.slice(idx + skip, str.length)
 
       # Check for a numeric key
       key = ''
@@ -43,9 +45,17 @@ module Modl::Parser
         tmp = parts[1]
         if index < values_array.length
           parts[1] = values_array[index].extract_hash
+          if graved
+            parts << tmp.slice(1, tmp.length)
+          else
           parts << tmp
+          end
         else
-          parts[1] = '%' + key
+          if graved
+            parts[1] = '`%' + key
+          else
+            parts[1] = '%' + key
+          end
         end
       else
         #no numeric key so try a text key
@@ -60,10 +70,15 @@ module Modl::Parser
         if best_match.length > 0
           tmp = parts[1]
           parts[1] = pairs_hash[best_match].text
-          parts[2] = tmp.slice(best_match.length, tmp.length)
-          new_value = pairs_hash[best_match]
+          skip = (graved) ? 1 : 0
+          parts[2] = tmp.slice(best_match.length + skip, tmp.length)
+          new_value = pairs_hash[best_match] if str.start_with?('`%') || str.start_with?('%')
         else
-          parts[1] = '%' + key
+          if graved
+            parts[1] = '`%' + key
+          else
+            parts[1] = '%' + key
+          end
         end
 
       end

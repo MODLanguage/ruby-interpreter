@@ -570,7 +570,8 @@ module Modl::Parser
           @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
           @string = ParsedString.new(@text)
         elsif !ctx.QUOTED.nil?
-          @text = additionalStringProcessing(ctx.QUOTED.text)
+          @text = ctx.QUOTED.text.slice(1, ctx.QUOTED.text.length - 2) # remove the quotes
+          @text = additionalStringProcessing(@text)
           @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
           @quoted = ParsedQuoted.new(@text)
         elsif !ctx.Null.nil?
@@ -674,7 +675,8 @@ module Modl::Parser
           @text = Parsed.additionalStringProcessing(ctx.STRING.text)
           @string = ParsedString.new(@text)
         elsif !ctx.QUOTED.nil?
-          @text = Parsed.additionalStringProcessing(ctx.QUOTED.text)
+          @text = ctx.QUOTED.text.slice(1, ctx.QUOTED.text.length - 2) # remove the quotes
+          @text = Parsed.additionalStringProcessing(@text)
           @quoted = ParsedQuoted.new(@text)
         elsif !ctx.NULL.nil?
           @nilVal = ParsedNull.instance
