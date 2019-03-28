@@ -16,9 +16,18 @@ success = 0
 failed = 0
 
 class_test_case = {}
-class_test_case['input'] = %Q{namespace=`%branch`blah.`%root`}
-class_test_case['expected_output'] = %Q{{"namespace":"alex.blah.d"}}
-#data.unshift class_test_case
+class_test_case['input'] = %Q{*c(
+ *i=m
+ *n=message
+ *s=map
+ *a=[
+   [direction;date_time;message]
+ ]
+ method=sms
+)
+m=in:2018-03-22:hi}
+class_test_case['expected_output'] = %Q{{"message":{"direction":"in","date_time":"2018-03-22","message":"hi","method":"sms"}}}
+data.unshift class_test_case
 
 def mangle(str)
   loop do
@@ -81,10 +90,13 @@ data.each_index do |i|
       puts 'Expected: ' + expected
       puts 'Found   : ' + result
       failed += 1
+      break
     end
   rescue StandardError => e
     puts e.to_s
+    puts e.backtrace
     failed += 1
+    break
   end
 end
 

@@ -85,13 +85,34 @@ module Modl::Parser
       end
 
       # Are there any methods to run?
-      if parts.length == 3 && parts[2][0] == '.'
-        parts[2] = parts[2].slice(1, parts[2].length)
-        while parts[2].length > 0 && 'udise'.include?(parts[2][0])
-          method = parts[2][0]
-          parts[2] = parts[2].slice(1, parts[2].length)
-          parts[1] = run_method method, parts[1]
+      next_part = 2
+      while parts.length == 3 && parts[next_part][0] == '.'
+        method, remainder = get_method parts[next_part]
+
+        case method
+        when '.u'
+          parts[1] = parts[1].upcase
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+        when '.d'
+          parts[1] = parts[1].downcase
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+        when '.i'
+          parts[1] = parts[1].split.map(&:capitalize) * ' '
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+        when '.s'
+          split = parts[1].split
+          split[0].capitalize!
+          parts[1] = split.join(' ')
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+        when '.e'
+          parts[1] = CGI.escape(parts[1])
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+        else
+          parts[next_part] = method
+          next_part += 1
+          parts[next_part] = remainder
         end
+
       end
       parts[2] = parts[2].slice(1, parts[2].length) if graved && parts[2]
 
@@ -99,28 +120,30 @@ module Modl::Parser
       [parts.join, new_value]
     end
 
-    def run_method(m, str)
-      case m
-      when 'u'
-        return str.upcase
-      when 'd'
-        return str.downcase
-      when 'i'
-        return str.split.map(&:capitalize) * ' '
-      when 's'
-        split = str.split
-        split[0].capitalize!
-        return split.join(' ')
-      when 'e'
-        return CGI.escape(str)
-      else
-        str
+    def get_method(str)
+      one_char_method_name = (str.length == 2 || (str.length > 2 && not_alpha(str[2])))
+      if one_char_method_name
+        'udise'.each_char do |m|
+          method_name = '.' + m
+          if str.start_with?(method_name)
+            remainder = str.slice(2, str.length)
+            return [method_name, remainder]
+          end
+        end
       end
     end
 
     def is_digit c
-      (c.codepoints[0] >= 48) && (c.codepoints[0] <= 57)
+      cp = c.codepoints[0]
+      (cp >= 48) && (cp <= 57)
     end
 
+    def not_alpha s
+      c = s.codepoints[0]
+      return true if c < 65
+      return true if c > 122
+      return true if c > 90 && c < 97
+      false
+    end
   end
 end
