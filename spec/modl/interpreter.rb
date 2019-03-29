@@ -53,9 +53,9 @@ data = JSON.parse(file.read)
 success = 0
 failed = 0
 
-#data.unshift data[31]
+data.unshift data[44]
 
-exit_on_fail = true
+exit_on_fail = false
 
 data.each_index do |i|
   begin

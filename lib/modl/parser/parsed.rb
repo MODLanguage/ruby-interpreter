@@ -191,11 +191,16 @@ module Modl::Parser
       end
 
       def extract_hash
-        result = []
+        result = {}
         mapItems.each do |i|
-          result << i.extract_hash
+          i_hash = i.extract_hash
+          if i_hash.is_a? Hash
+            i_hash.keys.each do |k|
+              result[k] = i_hash[k]
+            end
+          end
         end
-        if result.length == 1
+        if result.is_a?(Array) && result.length == 1
           return result[0]
         end
         result
@@ -361,28 +366,10 @@ module Modl::Parser
           extract_index @valueItem
         when 'hidden'
           extract_value @valueItem
+          invoke_deref
         else
           extract_value @valueItem
-          if !@text.nil? && @text.is_a?(String) && @text.include?('%')
-            if @text.include? '>'
-              ref_key = @text.slice(1, @text.index('>') - 1)
-
-              new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.pairs[ref_key])
-              @valueItem = new_value
-            else
-              @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
-            end
-
-            if new_value.is_a? ParsedMap
-              @map = new_value
-            elsif new_value.is_a? ParsedArray
-              @array = new_value
-            elsif new_value.is_a? ParsedValueItem
-              @valueItem = new_value
-            elsif new_value.nil?
-              set_value @text
-            end
-          end
+          invoke_deref
         end
 
         k = @key unless @key.start_with?('_')
@@ -523,6 +510,33 @@ module Modl::Parser
       def extract_transform item
         @transform = item.value.string.string
       end
+
+      private
+
+      def invoke_deref
+        if !@text.nil? && @text.is_a?(String) && @text.include?('%')
+          if @text.include? '>'
+            ref_key = @text.slice(1, @text.index('>') - 1)
+
+            new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.pairs[ref_key])
+            @valueItem = new_value
+          else
+            @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
+          end
+
+          if new_value.is_a? ParsedMap
+            @map = new_value
+          elsif new_value.is_a? ParsedArray
+            @array = new_value
+          elsif new_value.is_a? ParsedValueItem
+            @valueItem = new_value
+          elsif new_value.nil?
+            set_value @text
+          elsif new_value.is_a? ParsedPair
+            set_value @text
+          end
+        end
+      end
     end
 
     class ParsedArrayValueItem < Modl::Parser::MODLParserBaseListener
@@ -641,6 +655,12 @@ module Modl::Parser
         @text
       end
 
+      def evaluate
+        return false if @nilVal
+        return false if @falseVal
+        true
+      end
+
       def value_obj
         return @map if @map
         return @array if @array
@@ -680,7 +700,7 @@ module Modl::Parser
           @quoted = ParsedQuoted.new(@text)
         elsif !ctx.NULL.nil?
           @nilVal = ParsedNull.instance
-          @text = 'null'
+          @text = nil
         elsif !ctx.TRUE.nil?
           @trueVal = ParsedTrue.instance
           @text = true
@@ -846,13 +866,17 @@ module Modl::Parser
 
       def evaluate
         result = false
-        value1 = @global.pairs[@key].text
-        value2 = @values[0].text
-        value2 = @global.pairs[@values[0].text].text if @global.pairs[@values[0].text]
+        if @key
+          value1 = @global.pairs[@key].text
+          value2 = @values[0].text
+          value2 = @global.pairs[@values[0].text].text if @global.pairs[@values[0].text]
 
-        case @operator
-        when '='
-          result = value1 == value2
+          case @operator
+          when '='
+            result = value1 == value2
+          end
+        elsif @values.length == 1
+          result = @values[0].evaluate
         end
         result
       end
@@ -924,6 +948,18 @@ module Modl::Parser
         @structures = []
       end
 
+      def extract_hash
+        if @structures.length == 1
+          return @structures[0].extract_hash
+        else
+          result = []
+          @structures.each do |s|
+            result << s.extract_hash
+          end
+          result
+        end
+      end
+
       def enterModl_top_level_conditional_return(ctx)
         unless ctx.modl_structure.empty?
           # ctx.modl_structure.forEach(str ->
@@ -942,6 +978,15 @@ module Modl::Parser
       def initialize(global)
         @global = global
         @topLevelConditionalReturns = {}
+      end
+
+      def extract_hash
+        @topLevelConditionalReturns.keys.each do |condition|
+          if condition.evaluate
+            return @topLevelConditionalReturns[condition].extract_hash
+          end
+        end
+        {}
       end
 
       def enterModl_top_level_conditional(ctx)
