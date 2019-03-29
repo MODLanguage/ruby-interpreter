@@ -103,6 +103,19 @@ module Modl::Parser
         when '.e'
           parts[1] = CGI.escape(parts[1])
           parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+        when '.r'
+          s1,s2 = get_subst_parts parts[next_part]
+          parts[1] = parts[1].sub(s1,s2)
+          # Consume the subst clause
+          close_bracket = parts[next_part].index(')')
+          parts[next_part] = parts[next_part].slice(close_bracket+1, parts[next_part].length)
+        when '.t'
+          s1 = get_trunc_part parts[next_part]
+          i = parts[1].index(s1)
+          parts[1] = parts[1].slice(0,i)
+          # Consume the trunc clause
+          close_bracket = parts[next_part].index(')')
+          parts[next_part] = parts[next_part].slice(close_bracket+1, parts[next_part].length)
         else
           parts[next_part] = method
           next_part += 1
@@ -110,16 +123,30 @@ module Modl::Parser
         end
 
       end
-      parts[2] = parts[2].slice(1, parts[2].length) if graved && parts[2]
+      parts[next_part] = parts[next_part].slice(1, parts[next_part].length) if graved && parts[next_part]
 
       # Join the parts and return the result.
       [parts.join, new_value]
     end
 
+    def get_subst_parts(s)
+      # should be of the form .r(s1,s2)
+      open_bracket = s.index '('
+      close_bracket = s.index ')'
+      s.slice(open_bracket+1, close_bracket-open_bracket-1).split(',')
+    end
+
+    def get_trunc_part(s)
+      # should be of the form .r(s1,s2)
+      open_bracket = s.index '('
+      close_bracket = s.index ')'
+      s.slice(open_bracket+1, close_bracket-open_bracket-1)
+    end
+
     def get_method(str)
       one_char_method_name = (str.length == 2 || (str.length > 2 && not_alpha(str[2])))
       if one_char_method_name
-        'udise'.each_char do |m|
+        'udisert'.each_char do |m|
           method_name = '.' + m
           if str.start_with?(method_name)
             remainder = str.slice(2, str.length)

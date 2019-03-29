@@ -17,9 +17,15 @@ success = 0
 failed = 0
 
 class_test_case = {}
-class_test_case['input'] = %Q{?=one:two
-test=Blah `%0.r(o,huzzah)` `%1.t(w)`}
-class_test_case['expected_output'] = %Q{}
+class_test_case['input'] = %Q{_test="123"
+object(
+ print_test = %test.test
+)}
+class_test_case['expected_output'] = %Q{{
+ "object" : {
+   "print_test" : "123.test"
+ }
+}}
 data.unshift class_test_case
 
 exit_on_fail = true
