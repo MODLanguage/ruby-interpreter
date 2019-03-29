@@ -86,7 +86,6 @@ module Modl::Parser
           end
         end
       end
-
       [clazz['name'], new_value]
     end
   end

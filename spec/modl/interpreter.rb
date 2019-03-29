@@ -7,6 +7,7 @@ module Modl
 end
 
 require '../../lib/modl/parser/interpreter'
+require '../../lib/modl/util/json_utilities'
 require 'json'
 
 file = File.open "../../../grammar/tests/base_tests.json"
@@ -16,56 +17,12 @@ success = 0
 failed = 0
 
 class_test_case = {}
-class_test_case['input'] = %Q{*c(
- *i=m
- *n=message
- *s=map
- *a=[
-   [direction;date_time;message]
- ]
- method=sms
-)
-m=in:2018-03-22:hi}
-class_test_case['expected_output'] = %Q{{"message":{"direction":"in","date_time":"2018-03-22","message":"hi","method":"sms"}}}
+class_test_case['input'] = %Q{?=one:two
+test=Blah `%0.r(o,huzzah)` `%1.t(w)`}
+class_test_case['expected_output'] = %Q{}
 data.unshift class_test_case
 
-def mangle(str)
-  loop do
-    break unless str.sub!('": ', '":')
-  end
-
-  loop do
-    break unless str.sub!('" : ', '":')
-  end
-
-  loop do
-    break unless str.sub!("\n", '')
-  end
-
-  loop do
-    break unless str.sub!('[ ', '[')
-  end
-
-  loop do
-    break unless str.sub!(' ]', ']')
-  end
-
-  loop do
-    break unless str.sub!(' }', '}')
-  end
-
-  loop do
-    break unless str.sub!('] ', ']')
-  end
-
-  loop do
-    break unless str.sub!('{ ', '{')
-  end
-
-  loop do
-    break unless str.sub!(', ', ',')
-  end
-end
+exit_on_fail = true
 
 data.each_index do |i|
   begin
@@ -77,10 +34,7 @@ data.each_index do |i|
 
     expected = test_case['expected_output']
 
-    mangle(expected)
-    mangle(result)
-
-    if result == expected
+    if JsonUtilities.compare_json result, expected
       puts 'Test ' + i.to_s + ' passed.'
       puts 'Expected: ' + expected
       puts 'Found   : ' + result
@@ -90,13 +44,13 @@ data.each_index do |i|
       puts 'Expected: ' + expected
       puts 'Found   : ' + result
       failed += 1
-      break
+      break if exit_on_fail
     end
   rescue StandardError => e
     puts e.to_s
     puts e.backtrace
     failed += 1
-    break
+    break if exit_on_fail
   end
 end
 

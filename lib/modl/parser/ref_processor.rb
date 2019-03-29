@@ -45,11 +45,7 @@ module Modl::Parser
         tmp = parts[1]
         if index < values_array.length
           parts[1] = values_array[index].extract_hash
-          if graved
-            parts << tmp.slice(1, tmp.length)
-          else
-            parts << tmp
-          end
+          parts << tmp
         else
           if key.length > 0
             parts[1] = '%' + key
