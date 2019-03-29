@@ -7,8 +7,45 @@ module Modl
 end
 
 require '../../lib/modl/parser/interpreter'
-require '../../lib/modl/util/json_utilities'
 require 'json'
+
+def mangle(str)
+  loop do
+    break unless str.sub!('": ', '":')
+  end
+
+  loop do
+    break unless str.sub!('" : ', '":')
+  end
+
+  loop do
+    break unless str.sub!("\n", '')
+  end
+
+  loop do
+    break unless str.sub!('[ ', '[')
+  end
+
+  loop do
+    break unless str.sub!(' ]', ']')
+  end
+
+  loop do
+    break unless str.sub!(' }', '}')
+  end
+
+  loop do
+    break unless str.sub!('] ', ']')
+  end
+
+  loop do
+    break unless str.sub!('{ ', '{')
+  end
+
+  loop do
+    break unless str.sub!(', ', ',')
+  end
+end
 
 file = File.open "../../../grammar/tests/base_tests.json"
 data = JSON.parse(file.read)
@@ -16,17 +53,7 @@ data = JSON.parse(file.read)
 success = 0
 failed = 0
 
-class_test_case = {}
-class_test_case['input'] = %Q{_test="123"
-object(
- print_test = %test.test
-)}
-class_test_case['expected_output'] = %Q{{
- "object" : {
-   "print_test" : "123.test"
- }
-}}
-data.unshift class_test_case
+#data.unshift data[31]
 
 exit_on_fail = true
 
@@ -40,7 +67,9 @@ data.each_index do |i|
 
     expected = test_case['expected_output']
 
-    if JsonUtilities.compare_json result, expected
+    mangle(result)
+    mangle(expected)
+    if result == expected
       puts 'Test ' + i.to_s + ' passed.'
       puts 'Expected: ' + expected
       puts 'Found   : ' + result

@@ -104,18 +104,18 @@ module Modl::Parser
           parts[1] = CGI.escape(parts[1])
           parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
         when '.r'
-          s1,s2 = get_subst_parts parts[next_part]
-          parts[1] = parts[1].sub(s1,s2)
+          s1, s2 = get_subst_parts parts[next_part]
+          parts[1] = parts[1].sub(s1, s2)
           # Consume the subst clause
           close_bracket = parts[next_part].index(')')
-          parts[next_part] = parts[next_part].slice(close_bracket+1, parts[next_part].length)
+          parts[next_part] = parts[next_part].slice(close_bracket + 1, parts[next_part].length)
         when '.t'
           s1 = get_trunc_part parts[next_part]
           i = parts[1].index(s1)
-          parts[1] = parts[1].slice(0,i)
+          parts[1] = parts[1].slice(0, i)
           # Consume the trunc clause
           close_bracket = parts[next_part].index(')')
-          parts[next_part] = parts[next_part].slice(close_bracket+1, parts[next_part].length)
+          parts[next_part] = parts[next_part].slice(close_bracket + 1, parts[next_part].length)
         else
           parts[next_part] = method
           next_part += 1
@@ -133,18 +133,18 @@ module Modl::Parser
       # should be of the form .r(s1,s2)
       open_bracket = s.index '('
       close_bracket = s.index ')'
-      s.slice(open_bracket+1, close_bracket-open_bracket-1).split(',')
+      s.slice(open_bracket + 1, close_bracket - open_bracket - 1).split(',')
     end
 
     def get_trunc_part(s)
       # should be of the form .r(s1,s2)
       open_bracket = s.index '('
       close_bracket = s.index ')'
-      s.slice(open_bracket+1, close_bracket-open_bracket-1)
+      s.slice(open_bracket + 1, close_bracket - open_bracket - 1)
     end
 
     def get_method(str)
-      one_char_method_name = (str.length == 2 || (str.length > 2 && not_alpha(str[2])))
+      one_char_method_name = (str.length == 2 || (str.length > 2 && !is_alpha(str[2])))
       if one_char_method_name
         'udisert'.each_char do |m|
           method_name = '.' + m
@@ -152,6 +152,19 @@ module Modl::Parser
             remainder = str.slice(2, str.length)
             return [method_name, remainder]
           end
+        end
+      else
+        # longer name - possibly a method
+        method_name = '.'
+        i = 1
+        while i < str.length && is_alpha(str[i])
+          method_name << str[i]
+          i += 1
+        end
+
+        if method_name.length > 1
+          remainder = str.slice(method_name.length + 1, str.length)
+          return [method_name, remainder]
         end
       end
     end
@@ -161,12 +174,12 @@ module Modl::Parser
       (cp >= 48) && (cp <= 57)
     end
 
-    def not_alpha s
+    def is_alpha s
       c = s.codepoints[0]
-      return true if c < 65
-      return true if c > 122
-      return true if c > 90 && c < 97
-      false
+      return false if c < 65
+      return false if c > 122
+      return false if c > 90 && c < 97
+      true
     end
   end
 end

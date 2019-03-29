@@ -81,8 +81,11 @@ module Modl::Parser
 
           if clazz2
             new_k, new_v = process_class global, nk, new_value[nk]
-            new_value.delete nk
-            new_value[new_k] = new_v
+
+            if new_value[new_k] != new_v
+              new_value.delete nk
+              new_value[new_k] = new_v
+            end
           end
         end
       end
