@@ -14,7 +14,7 @@ module Modl::Parser
         str, new_value = split_by_ref_tokens str, values_array, pairs_hash
         count -= 1
       end
-      puts 'De-reffing result: ' + str + ', new_value = ' + new_value.to_s
+      puts 'De-reffing result: ' + str.to_s + ', new_value = ' + new_value.to_s
       [str, new_value]
     end
 
@@ -126,7 +126,11 @@ module Modl::Parser
       parts[next_part] = parts[next_part].slice(1, parts[next_part].length) if graved && parts[next_part]
 
       # Join the parts and return the result.
+      if parts[1].is_a? String
       [parts.join, new_value]
+      else
+        [parts[1], new_value]
+      end
     end
 
     def get_subst_parts(s)

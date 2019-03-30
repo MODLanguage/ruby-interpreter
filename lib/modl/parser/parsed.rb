@@ -279,9 +279,26 @@ module Modl::Parser
 
       def initialize(global)
         @global = global
+        @needs_defref = true
       end
 
       def set_value value
+        if value.is_a? Array
+          @map = nil
+          @array = ParsedArray.new @global
+          @array.abstractArrayItems = []
+          value.each do |item|
+            arrayItem = ParsedArrayItem.new @global
+            arrayItem.arrayValueItem = ParsedArrayValueItem.new @global
+            arrayItem.arrayValueItem.string = ParsedString.new(item)
+            arrayItem.arrayValueItem.text = item
+            @array.abstractArrayItems << arrayItem
+          end
+          @valueItem = nil
+          @text = @array.extract_hash
+          return
+        end
+        value = value.extract_hash unless value.is_a?(String) || value.is_a?(Fixnum)
         @map = nil
         @array = nil
         @valueItem = ParsedValueItem.new @global
@@ -372,9 +389,11 @@ module Modl::Parser
           invoke_deref
         end
 
-        k = @key unless @key.start_with?('_')
-        k = @key.slice(1, @key.length) if @key.start_with?('_')
-        @global.pairs[k] = self
+        if @key.start_with? '_'
+          k = @key.slice(1, @key.length)
+          @global.pairs[k] = self
+        end
+        @global.pairs[@key] = self
       end
 
       def extract_class
@@ -418,11 +437,21 @@ module Modl::Parser
       end
 
       def nested_value ref, value
+        if ref.start_with? '%'
+          ref, new_value = RefProcessor.instance.deref ref, @global.index, @global.pairs
+        end
         unless ref.include? '>'
-          if value.valueItem && value.valueItem.value.value_obj.is_a?(ParsedPair)
-            return value.valueItem.value.value_obj.valueItem.value.value_obj
+          if value.is_a? ParsedPair
+            if value.valueItem && value.valueItem.value.value_obj.is_a?(ParsedPair)
+              return value.valueItem.value.value_obj.valueItem.value.value_obj
+            elsif value.map
+              map_hash = value.map.extract_hash
+              return map_hash[ref]
+            end
+          elsif value.is_a? ParsedArrayValueItem
+            num_ref = ref.to_i
+            return value.array.abstractArrayItems[num_ref]
           end
-
           ref_key = ref
         else
           ref_key = ref.slice(0, ref.index('>'))
@@ -460,6 +489,7 @@ module Modl::Parser
       def extract_value item
         @text = item.value.text if item.is_a?(ParsedValueItem) && item.value
         @text = item.valueItem.value.text if item.is_a?(ParsedPair)
+        invoke_deref
       end
 
       def extract_index item
@@ -514,12 +544,18 @@ module Modl::Parser
       private
 
       def invoke_deref
-        if !@text.nil? && @text.is_a?(String) && @text.include?('%')
+        if @needs_defref && !@text.nil? && @text.is_a?(String) && @text.include?('%')
+          @needs_defref = false
           if @text.include? '>'
             ref_key = @text.slice(1, @text.index('>') - 1)
 
-            new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.pairs[ref_key])
-            @valueItem = new_value
+            num_ref_key = ref_key.to_i
+            if num_ref_key.to_s == ref_key
+              new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.index[num_ref_key])
+            else
+              new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.pairs[ref_key])
+            end
+            set_value new_value
           else
             @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
           end
@@ -548,8 +584,8 @@ module Modl::Parser
       attr_reader :trueVal
       attr_reader :falseVal
       attr_accessor :nilVal
-      attr_reader :string
-      attr_reader :text # The simple text value rather than the object
+      attr_accessor :string
+      attr_accessor :text # The simple text value rather than the object
 
       def initialize(global)
         @global = global
@@ -1045,10 +1081,9 @@ module Modl::Parser
       end
 
       def extract_hash
-        @conditionTests.each_index do |i|
-          result = @conditionTests[i].evaluate
-          return @arrayConditionalReturns[i].extract_hash if result
-        end
+        result = @conditionTests[0].evaluate
+        return @arrayConditionalReturns[0].extract_hash if result
+        @arrayConditionalReturns[1].extract_hash
       end
 
       def enterModl_array_conditional(ctx)
@@ -1059,15 +1094,18 @@ module Modl::Parser
 
           conditionalReturn = ParsedArrayConditionalReturn.new @global
           ctx.modl_array_conditional_return_i(i).enter_rule(conditionalReturn)
+          @conditionTests[i] = conditionTest
+          @arrayConditionalReturns[i] = conditionalReturn
 
           if ctx.modl_array_conditional_return.size > ctx.modl_condition_test.size
+            i += 1
             conditionTest = ParsedConditionTest.new @global
             conditionalReturn = ParsedArrayConditionalReturn.new @global
             ctx.modl_array_conditional_return_i(ctx.modl_array_conditional_return.size - 1).enter_rule(conditionalReturn)
+            @conditionTests[i] = conditionTest
+            @arrayConditionalReturns[i] = conditionalReturn
           end
 
-          @conditionTests[i] = conditionTest
-          @arrayConditionalReturns[i] = conditionalReturn
 
           i += 1
         end
@@ -1206,7 +1244,7 @@ module Modl::Parser
 
     class ParsedArray < Modl::Parser::MODLParserBaseListener
       # We now have a list of < array_item | nbArray >
-      attr_reader :abstractArrayItems
+      attr_accessor :abstractArrayItems
 
       def initialize(global)
         @global = global
