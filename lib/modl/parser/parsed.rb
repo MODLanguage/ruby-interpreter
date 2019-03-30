@@ -298,6 +298,20 @@ module Modl::Parser
           @text = @array.extract_hash
           return
         end
+        if value.is_a?(TrueClass) || value.is_a?(FalseClass)
+          @map = nil
+          @array = nil
+          @valueItem = ParsedValueItem.new @global
+          @valueItem.value = ParsedValue.new @global
+          if value
+            @valueItem.value.trueVal = ParsedTrue.instance
+          else
+            @valueItem.value.falseVal = ParsedFalse.instance
+          end
+          @valueItem.value.text = value
+          @text = value
+          return
+        end
         value = value.extract_hash unless value.is_a?(String) || value.is_a?(Fixnum)
         @map = nil
         @array = nil
@@ -672,11 +686,11 @@ module Modl::Parser
       attr_reader :pair
       attr_reader :quoted
       attr_reader :number
-      attr_reader :trueVal
-      attr_reader :falseVal
+      attr_accessor :trueVal
+      attr_accessor :falseVal
       attr_reader :nilVal
       attr_reader :string
-      attr_reader :text # The simple text value rather than the object
+      attr_accessor :text # The simple text value rather than the object
 
       def initialize(global)
         @global = global
@@ -912,7 +926,19 @@ module Modl::Parser
             result = value1 == value2
           end
         elsif @values.length == 1
-          result = @values[0].evaluate
+          the_pair = @global.pairs[@values[0].text]
+          if the_pair
+            result = the_pair.valueItem.value.evaluate
+          else
+            if @values[0].trueVal
+               return true
+            elsif @values[0].falseVal
+              return false
+            elsif @values[0].string
+              return false
+            end
+            result = @values[0].evaluate
+          end
         end
         result
       end
@@ -1009,18 +1035,19 @@ module Modl::Parser
     end
 
     class ParsedTopLevelConditional < Modl::Parser::MODLParserBaseListener
+      attr_reader :conditionTest
       attr_reader :topLevelConditionalReturns
 
       def initialize(global)
         @global = global
-        @topLevelConditionalReturns = {}
+        @topLevelConditionalReturns = []
       end
 
       def extract_hash
-        @topLevelConditionalReturns.keys.each do |condition|
-          if condition.evaluate
-            return @topLevelConditionalReturns[condition].extract_hash
-          end
+        if @conditionTest.evaluate
+          return @topLevelConditionalReturns[0].extract_hash
+        elsif @topLevelConditionalReturns.length == 2
+          return @topLevelConditionalReturns[1].extract_hash
         end
         {}
       end
@@ -1028,18 +1055,18 @@ module Modl::Parser
       def enterModl_top_level_conditional(ctx)
         i = 0
         while i < ctx.modl_condition_test.size
-          conditionTest = ParsedConditionTest.new @global
-          ctx.modl_condition_test_i(i).enter_rule(conditionTest)
+          @conditionTest = ParsedConditionTest.new @global
+          ctx.modl_condition_test_i(i).enter_rule(@conditionTest)
 
           conditionalReturn = ParsedTopLevelConditionalReturn.new @global
           ctx.modl_top_level_conditional_return_i(i).enter_rule(conditionalReturn)
-          @topLevelConditionalReturns[conditionTest] = conditionalReturn
+          @topLevelConditionalReturns[i] = conditionalReturn
 
           if ctx.modl_top_level_conditional_return.size > ctx.modl_condition_test.size
-            conditionTest = ParsedConditionTest.new @global
+            i += 1
             conditionalReturn = ParsedTopLevelConditionalReturn.new @global
             ctx.modl_top_level_conditional_return_i(ctx.modl_top_level_conditional_return.size - 1).enter_rule(conditionalReturn)
-            @topLevelConditionalReturns[conditionTest] = conditionalReturn
+            @topLevelConditionalReturns[i] = conditionalReturn
           end
           i += 1
         end
