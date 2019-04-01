@@ -322,20 +322,21 @@ module Modl::Parser
 
       def extract_hash
 
+        value = @array.extract_hash if @array
+        value = @valueItem.extract_hash if @valueItem
+        value = @map.extract_hash if @map
+
+        unless value.is_a?(String) && value.start_with?('%')
+          @text = value
+          {@key => value}
+        end
+
         return if @type == 'index'
         return if @type == 'hidden'
         return if @type == 'version'
         return if @type == 'class'
 
-        value = @array.extract_hash if @array
-        value = @valueItem.extract_hash if @valueItem
-        value = @map.extract_hash if @map
-
-        if value.is_a?(String) && value.start_with?('%')
-          {@key => @text}
-        else
-          {@key => value}
-        end
+        {@key => @text}
       end
 
       def enterModl_pair(ctx)
@@ -394,7 +395,7 @@ module Modl::Parser
         when 'import'
           extract_value @valueItem
         when 'index'
-          extract_index @valueItem
+          extract_index
         when 'hidden'
           extract_value @valueItem
           invoke_deref
@@ -506,9 +507,12 @@ module Modl::Parser
         invoke_deref
       end
 
-      def extract_index item
-        # collect all values from the object - it should be an nb_array
-        if (item.is_a? ParsedValueItem)
+      def extract_index
+        item = @valueItem if @valueItem
+        item = @array if @array
+
+        # collect all values from the object
+        if item.is_a? ParsedValueItem
           if item&.value&.text
             @global.index << item.value.text
           elsif item&.value&.array
@@ -520,9 +524,16 @@ module Modl::Parser
               @global.index << avi.arrayValueItem
             end
           end
+          return
+        elsif item.is_a? ParsedArray
+          item.abstractArrayItems.each do |avi|
+            @global.index << avi.arrayValueItem
+          end
+          return
         else
-          raise Antlr4::Runtime::ParseCancellationException, 'The index should have one or more values'
+          return
         end
+        raise Antlr4::Runtime::ParseCancellationException, 'The index should have one or more values'
       end
 
       def extract_key_list item
@@ -917,7 +928,8 @@ module Modl::Parser
       def evaluate
         result = false
         if @key
-          value1 = @global.pairs[@key].text
+          key = (@key.start_with?('%')) ? @key.slice(1, @key.length) : @key
+          value1 = @global.pairs[key].text
           value2 = @values[0].text
           value2 = @global.pairs[@values[0].text].text if @global.pairs[@values[0].text]
 
@@ -928,10 +940,10 @@ module Modl::Parser
         elsif @values.length == 1
           the_pair = @global.pairs[@values[0].text]
           if the_pair
-            result = the_pair.valueItem.value.evaluate
+            result = the_pair.text
           else
             if @values[0].trueVal
-               return true
+              return true
             elsif @values[0].falseVal
               return false
             elsif @values[0].string
