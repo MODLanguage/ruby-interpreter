@@ -1091,39 +1091,42 @@ module Modl::Parser
     end
 
     class ParsedTopLevelConditional < Modl::Parser::MODLParserBaseListener
-      attr_reader :conditionTest
+      attr_reader :conditionTests
       attr_reader :topLevelConditionalReturns
 
       def initialize(global)
         @global = global
         @topLevelConditionalReturns = []
+        @conditionTests = []
       end
 
       def extract_hash
-        if @conditionTest.evaluate
-          return @topLevelConditionalReturns[0].extract_hash
-        elsif @topLevelConditionalReturns.length == 2
-          return @topLevelConditionalReturns[1].extract_hash
+        @conditionTests.each_index do |i|
+          if @conditionTests[i].evaluate
+            return @topLevelConditionalReturns[i].extract_hash
+          end
+        end
+        if @topLevelConditionalReturns.length > @conditionTests.length
+          return @topLevelConditionalReturns[-1].extract_hash
         end
       end
 
       def enterModl_top_level_conditional(ctx)
         i = 0
         while i < ctx.modl_condition_test.size
-          @conditionTest = ParsedConditionTest.new @global
-          ctx.modl_condition_test_i(i).enter_rule(@conditionTest)
+          conditionTest = ParsedConditionTest.new @global
+          ctx.modl_condition_test_i(i).enter_rule(conditionTest)
 
           conditionalReturn = ParsedTopLevelConditionalReturn.new @global
           ctx.modl_top_level_conditional_return_i(i).enter_rule(conditionalReturn)
+          @conditionTests[i] = conditionTest
           @topLevelConditionalReturns[i] = conditionalReturn
-
-          if ctx.modl_top_level_conditional_return.size > ctx.modl_condition_test.size
-            i += 1
-            conditionalReturn = ParsedTopLevelConditionalReturn.new @global
-            ctx.modl_top_level_conditional_return_i(ctx.modl_top_level_conditional_return.size - 1).enter_rule(conditionalReturn)
-            @topLevelConditionalReturns[i] = conditionalReturn
-          end
           i += 1
+        end
+        if ctx.modl_top_level_conditional_return.size > ctx.modl_condition_test.size
+          conditionalReturn = ParsedTopLevelConditionalReturn.new @global
+          ctx.modl_top_level_conditional_return_i(ctx.modl_top_level_conditional_return.size - 1).enter_rule(conditionalReturn)
+          @topLevelConditionalReturns[i] = conditionalReturn
         end
       end
     end
@@ -1203,7 +1206,8 @@ module Modl::Parser
       end
 
       def extract_hash
-        @valueItems[0].value.text
+        return @valueItems[0].value.text if @valueItems[0].value.text
+        return @valueItems[0].value.extract_hash
       end
 
       def enterModl_value_conditional_return(ctx)

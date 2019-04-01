@@ -57,7 +57,7 @@ exit_on_fail = false
 
 data.each_index do |i|
   begin
-    #next if i < 99
+    #next if i < 112
     test_case = data[i]
 
     puts 'Test Input: ' + test_case['input']
