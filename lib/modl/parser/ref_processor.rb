@@ -6,19 +6,19 @@ module Modl::Parser
 
     include Singleton
 
-    def deref str, values_array, pairs_hash
+    def deref str, values_array, pairs_hash, methods_hash
 
       puts 'De-reffing: ' + str
       count = str.count('%')
       while count > 0
-        str, new_value = split_by_ref_tokens str, values_array, pairs_hash
+        str, new_value = split_by_ref_tokens str, values_array, pairs_hash, methods_hash
         count -= 1
       end
       puts 'De-reffing result: ' + str.to_s + ', new_value = ' + new_value.to_s
       [str, new_value]
     end
 
-    def split_by_ref_tokens str, values_array, pairs_hash
+    def split_by_ref_tokens str, values_array, pairs_hash, methods_hash
       parts = []
       idx = str.index '`%'
       if idx.nil?
@@ -123,9 +123,18 @@ module Modl::Parser
           close_bracket = parts[next_part].index(')')
           parts[next_part] = parts[next_part].slice(close_bracket + 1, parts[next_part].length)
         else
-          parts[next_part] = method
-          next_part += 1
-          parts[next_part] = remainder
+          # TODO: Check for user-defined methods and execute them
+          m = methods_hash[method.slice(1, method.length)]
+
+          if m
+            puts 'Running method: ' + m['name']
+            parts[1] = run_method m['transform'], parts[1]
+            parts[next_part] = ''
+          else
+            parts[next_part] = method
+            next_part += 1
+            parts[next_part] = remainder
+          end
         end
 
       end
@@ -190,6 +199,40 @@ module Modl::Parser
       return false if c > 122
       return false if c > 90 && c < 97
       true
+    end
+
+    def run_method(transform, str)
+      while transform && transform.length > 0
+        if transform.start_with? 'replace'
+          s1, s2 = get_subst_parts transform
+          s2 = '' if s2.nil?
+          str = str.sub(s1, s2)
+          # Consume the subst clause
+          close_bracket = transform.index(')')
+          transform = transform.slice(close_bracket + 2, transform.length)
+        elsif transform.start_with? 'trim'
+          s1 = get_trunc_part transform
+          i = str.index(s1)
+          str = str.slice(0, i)
+          # Consume the trunc clause
+          close_bracket = transform.index(')')
+          transform = transform.slice(close_bracket + 2, transform.length)
+        elsif transform.start_with? 'initcap'
+          str = str.split.map(&:capitalize) * ' '
+          transform = transform.slice(8, transform.length)
+        elsif transform.start_with? 'upcase'
+          raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+        elsif transform.start_with? 'downcase'
+          raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+        elsif transform.start_with? 'sentence'
+          raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+        elsif transform.start_with? 'urlencode'
+          raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+        else
+          raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+        end
+      end
+      str
     end
   end
 end

@@ -4,6 +4,7 @@ require 'modl/parser/ref_processor'
 require 'modl/parser/substitutions'
 require 'antlr4/runtime/parse_cancellation_exception'
 require 'cgi'
+require 'net/http'
 
 module Modl::Parser
   class Parsed < Modl::Parser::MODLParserBaseListener
@@ -335,6 +336,8 @@ module Modl::Parser
         return if @type == 'hidden'
         return if @type == 'version'
         return if @type == 'class'
+        return if @type == 'method'
+        return if @type == 'import'
 
         {@key => @text}
       end
@@ -378,29 +381,29 @@ module Modl::Parser
         when 'class'
           extract_class
         when 'id'
-          extract_value @valueItem
+          extract_value
         when 'name'
-          extract_value @valueItem
+          extract_value
         when 'superclass'
-          extract_value @valueItem
+          extract_value
         when 'keylist'
           extract_key_list @valueItem if @valueItem
           extract_key_list @array if @array
         when 'version'
-          extract_value @valueItem
+          extract_value
         when 'method'
-          extract_value @valueItem
+          extract_method
         when 'transform'
           extract_transform @valueItem
         when 'import'
-          extract_value @valueItem
+          import_file
         when 'index'
           extract_index
         when 'hidden'
-          extract_value @valueItem
+          extract_value
           invoke_deref
         else
-          extract_value @valueItem
+          extract_value
           invoke_deref
         end
 
@@ -441,8 +444,8 @@ module Modl::Parser
 #        raise Antlr4::Runtime::ParseCancellationException, 'Missing superclass for class' if clazz['superclass'].nil?
 
 # Does the class name or id already exist?
-          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class name: ' + clazz['name'] unless @global.classes[clazz['name']].nil?
-          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class id: ' + clazz['id'] unless @global.classes[clazz['id']].nil?
+#          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class name: ' + clazz['name'] unless @global.classes[clazz['name']].nil?
+#          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class id: ' + clazz['id'] unless @global.classes[clazz['id']].nil?
 
 
 # store the classes by id and name to make them easier to find later
@@ -451,9 +454,63 @@ module Modl::Parser
         end
       end
 
+      def import_file
+        file_names = []
+        file_names << @valueItem.value.text if @valueItem.value.text
+        file_names.each do |file_name|
+          force = file_name.end_with?('!')
+          file_name = file_name.slice(0, file_name.length - 1) if force
+          file_name << '.modl' unless file_name.end_with?('.txt') || file_name.end_with?('.modl')
+          puts 'Processing file : ' + file_name
+          uri = URI(file_name)
+          txt = Net::HTTP.get(uri)
+
+          # Parse the downloaded file ands extract the classes
+          parsed = Modl::Parser::Parser.parse txt
+          parsed.global.classes.keys.each do |k|
+            @global.classes[k] = parsed.global.classes[k]
+          end
+        end
+      end
+
+      def extract_method
+        if @type == 'method'
+          mthd = {}
+          map = @map if @map
+          map = @valueItem&.value&.map if @valueItem&.value&.map
+
+          map.mapItems.each do |item|
+            if item&.pair&.type
+              case item&.pair&.type
+              when 'id'
+                mthd['id'] = item.pair.valueItem.value.string.string
+              when 'transform'
+                mthd['transform'] = item.pair.valueItem.value.string.string
+              when 'name'
+                mthd['name'] = item.pair.valueItem.value.string.string
+              else
+                raise Antlr4::Runtime::ParseCancellationException, 'Invalid *method - only *id, *name, and *transform fields expected'
+              end
+            end
+          end
+
+          raise Antlr4::Runtime::ParseCancellationException, 'Missing id for method' if mthd['id'].nil?
+          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for method' if mthd['name'].nil?
+
+# Does the method name or id already exist?
+          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method name: ' + mthd['name'] unless @global.methods_hash[mthd['name']].nil?
+          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method id: ' + mthd['id'] unless @global.methods_hash[mthd['id']].nil?
+
+
+# store the methods by id and name to make them easier to find later
+          @global.methods_hash[mthd['id']] = mthd
+          @global.methods_hash[mthd['name']] = mthd
+        end
+      end
+
       def nested_value ref, value
         if ref.start_with? '%'
-          ref, new_value = RefProcessor.instance.deref ref, @global.index, @global.pairs
+          ref, new_value = RefProcessor.instance.deref ref, @global.index, @global.pairs, @global.methods_hash
         end
         unless ref.include? '>'
           if value.is_a? ParsedPair
@@ -507,7 +564,8 @@ module Modl::Parser
         end
       end
 
-      def extract_value item
+      def extract_value
+        item = @valueItem
         @text = item.value.text if item.is_a?(ParsedValueItem) && item.value
         @text = item.valueItem.value.text if item.is_a?(ParsedPair)
         invoke_deref
@@ -588,7 +646,7 @@ module Modl::Parser
             end
             set_value new_value
           else
-            @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
+            @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs, @global.methods_hash
           end
 
           if new_value.is_a? ParsedMap
@@ -648,12 +706,12 @@ module Modl::Parser
           ctx.modl_pair.enter_rule(@pair)
         elsif !ctx.STRING.nil?
           @text = Parsed.additionalStringProcessing(ctx.STRING.text)
-          @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
+          @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs, @global.methods_hash
           @string = ParsedString.new(@text)
         elsif !ctx.QUOTED.nil?
           @text = ctx.QUOTED.text.slice(1, ctx.QUOTED.text.length - 2) # remove the quotes
           @text = Parsed.additionalStringProcessing(@text)
-          @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
+          @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs, @global.methods_hash
           @quoted = ParsedQuoted.new(@text)
         elsif !ctx.Null.nil?
           @nilVal = ParsedNull.instance
@@ -947,20 +1005,37 @@ module Modl::Parser
             return false unless pair
             value1 = pair.text
           end
-          value2 = @values[0].text
-          value2 = @global.pairs[@values[0].text].text if @global.pairs[@values[0].text]
 
-          case @operator
-          when '='
-            result = value1 == value2
-          when '>'
-            result = value1 > value2
-          when '<'
-            result = value1 < value2
-          when '>='
-            result = value1 >= value2
-          when '<='
-            result = value1 <= value2
+          @values.each do |value|
+            value2 = value.text
+            value2 = @global.pairs[value.text].text if @global.pairs[value.text]
+
+            case @operator
+            when '='
+              wild = (value2.is_a?(String) && value2.include?('*')) ? true : false
+              if wild
+                regex = '^'
+                value2.each_char do |c|
+                  if c == '*'
+                    regex << '.*'
+                  else
+                    regex << c
+                  end
+                end
+                result |= !(value1.match(regex).nil?)
+              else
+                result |= value1 == value2
+              end
+            when '>'
+              result |= value1 > value2
+            when '<'
+              result |= value1 < value2
+            when '>='
+              result |= value1 >= value2
+            when '<='
+              result |= value1 <= value2
+            end
+            break if result # shortcut if we have a matching value
           end
         elsif @values.length == 1
           key = @values[0].text
