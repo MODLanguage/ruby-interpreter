@@ -473,17 +473,23 @@ module Modl::Parser
           remainder = ref.slice(ref.index('>') + 1, ref.length)
         end
 
-        the_value_item = value.valueItem
-
-        the_map = (value.map) ? value.map : the_value_item.value.map
+        if value.map
+          the_map = value.map
+        elsif value.valueItem && value.valueItem.value.map
+          the_map = value.valueItem.value.map
+        elsif value.array
+          the_array = value.array
+        end
 
         if the_map
           map_items = the_map.mapItems
           map_item = map_items[0]
           the_pair = map_item.pair
           target_key = the_pair.key
+        elsif the_array
+          return the_array.abstractArrayItems[ref_key.to_i]
         else
-          the_pair = the_value_item.value.pair
+          the_pair = value.valueItem.value.pair
           if the_pair
             target_key = the_pair.key
           end
@@ -793,7 +799,11 @@ module Modl::Parser
       attr_reader :num
 
       def initialize(string)
-        @num = string.to_i
+        if string.include? '.'
+          @num = string.to_f
+        else
+          @num = string.to_i
+        end
       end
     end
 
@@ -929,7 +939,12 @@ module Modl::Parser
         result = false
         if @key
           key = (@key.start_with?('%')) ? @key.slice(1, @key.length) : @key
-          value1 = @global.pairs[key].text
+          ikey = key.to_i
+          if ikey.to_s == key
+            value1 = @global.index[ikey].text
+          else
+            value1 = @global.pairs[key].text
+          end
           value2 = @values[0].text
           value2 = @global.pairs[@values[0].text].text if @global.pairs[@values[0].text]
 
@@ -938,7 +953,11 @@ module Modl::Parser
             result = value1 == value2
           end
         elsif @values.length == 1
-          the_pair = @global.pairs[@values[0].text]
+          key = @values[0].text
+          if key.is_a?(String)
+            key = (key.start_with?('%')) ? key.slice(1, key.length) : key
+          end
+          the_pair = @global.pairs[key]
           if the_pair
             result = the_pair.text
           else
@@ -974,6 +993,10 @@ module Modl::Parser
         @mapItems = []
       end
 
+      def extract_hash
+        @mapItems[0].extract_hash
+      end
+
       def enterModl_map_conditional_return(ctx)
         unless ctx.modl_map_item.empty?
           ctx.modl_map_item.each do |mi|
@@ -986,11 +1009,19 @@ module Modl::Parser
     end
 
     class ParsedMapConditional < Modl::Parser::MODLParserBaseListener
-      attr_reader :mapConditionals
+      attr_reader :conditionTests
+      attr_reader :mapConditionalReturns
 
       def initialize(global)
         @global = global
-        @mapConditionals = {}
+        @conditionTests = []
+        @mapConditionalReturns = []
+      end
+
+      def extract_hash
+        result = @conditionTests[0].evaluate
+        return @mapConditionalReturns[0].extract_hash if result
+        @mapConditionalReturns[1].extract_hash
       end
 
       def enterModl_map_conditional(ctx)
@@ -1001,13 +1032,14 @@ module Modl::Parser
 
           conditionalReturn = ParsedMapConditionalReturn.new @global
           ctx.modl_map_conditional_return_i(i).enter_rule(conditionalReturn)
-          @mapConditionals[conditionTest] = conditionalReturn
+          @conditionTests[i] = conditionTest
+          @mapConditionalReturns[i] = conditionalReturn
 
           if ctx.modl_map_conditional_return.size > ctx.modl_condition_test.size
-            conditionTest = ParsedConditionTest.new @global
+            i += 1
             conditionalReturn = ParsedMapConditionalReturn.new @global
             ctx.modl_map_conditional_return_i(ctx.modl_map_conditional_return.size - 1).enter_rule(conditionalReturn)
-            @mapConditionals[conditionTest] = conditionalReturn
+            @mapConditionalReturns[i] = conditionalReturn
           end
           i += 1
         end

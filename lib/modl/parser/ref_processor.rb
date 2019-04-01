@@ -68,7 +68,13 @@ module Modl::Parser
           tmp = parts[1]
           parts[1] = pairs_hash[best_match].text
           parts[2] = tmp.slice(best_match.length, tmp.length)
-          new_value = pairs_hash[best_match] if str.start_with?('`%') || str.start_with?('%')
+          if str.start_with?('`%') || str.start_with?('%')
+            pair = pairs_hash[best_match]
+            if pair.array
+              new_value = pair.array
+              parts[1] = new_value.extract_hash
+            end
+          end
         else
           if key.length > 0
             parts[1] = '%' + key
@@ -127,7 +133,7 @@ module Modl::Parser
 
       # Join the parts and return the result.
       if parts[1].is_a? String
-      [parts.join, new_value]
+        [parts.join, new_value]
       else
         [parts[1], new_value]
       end
