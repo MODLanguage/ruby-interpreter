@@ -652,7 +652,7 @@ module Modl::Parser
           @string = ParsedString.new(@text)
         elsif !ctx.QUOTED.nil?
           @text = ctx.QUOTED.text.slice(1, ctx.QUOTED.text.length - 2) # remove the quotes
-          @text = additionalStringProcessing(@text)
+          @text = Parsed.additionalStringProcessing(@text)
           @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs
           @quoted = ParsedQuoted.new(@text)
         elsif !ctx.Null.nil?
@@ -943,7 +943,9 @@ module Modl::Parser
           if ikey.to_s == key
             value1 = @global.index[ikey].text
           else
-            value1 = @global.pairs[key].text
+            pair = @global.pairs[key]
+            return false unless pair
+            value1 = pair.text
           end
           value2 = @values[0].text
           value2 = @global.pairs[@values[0].text].text if @global.pairs[@values[0].text]
@@ -951,6 +953,14 @@ module Modl::Parser
           case @operator
           when '='
             result = value1 == value2
+          when '>'
+            result = value1 > value2
+          when '<'
+            result = value1 < value2
+          when '>='
+            result = value1 >= value2
+          when '<='
+            result = value1 <= value2
           end
         elsif @values.length == 1
           key = @values[0].text
@@ -1060,9 +1070,11 @@ module Modl::Parser
         else
           result = []
           @structures.each do |s|
-            result << s.extract_hash
+            hash = s.extract_hash
+            result << hash unless hash.nil?
           end
-          result
+          return result unless result.length == 1
+          return result[0] if result.length == 1
         end
       end
 
@@ -1093,7 +1105,6 @@ module Modl::Parser
         elsif @topLevelConditionalReturns.length == 2
           return @topLevelConditionalReturns[1].extract_hash
         end
-        {}
       end
 
       def enterModl_top_level_conditional(ctx)
@@ -1427,9 +1438,8 @@ module Modl::Parser
       else
         result = {}
       end
-      if result.length == 1
-        return result[0]
-      end
+      return '' if result.length == 0
+      return result[0] if result.length == 1
       result
     end
   end

@@ -12,6 +12,7 @@ module Modl::Parser
       parsed = Modl::Parser::Parser.parse str
       interpreted = parsed.extract_json
       ClassProcessor.instance.process(parsed.global, interpreted)
+      return interpreted if interpreted.is_a? String
       JSON.generate interpreted
     end
   end
