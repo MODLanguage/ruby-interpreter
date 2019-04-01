@@ -4,7 +4,7 @@ require 'modl/parser/parsed'
 module Modl::Parser
 
   class Parser
-    def self.parse(str)
+    def self.parse(str, global = nil)
       lexer = Modl::Parser::MODLLexer.new(Antlr4::Runtime::CharStreams.from_string(str, 'String'))
       lexer.remove_error_listeners
       lexer.add_error_listener ThrowingErrorListener.instance
@@ -15,7 +15,7 @@ module Modl::Parser
       parser.remove_error_listeners
       parser.add_error_listener ThrowingErrorListener.instance
 
-      parsed = Parsed.new
+      parsed = Parsed.new(global)
 
       parser.modl.enter_rule(parsed)
 

@@ -23,6 +23,7 @@ module Modl::Parser
       idx = str.index '`%'
       if idx.nil?
         idx = str.index '%'
+        return [str, nil] if idx.nil?
         graved = false
       else
         graved = true
@@ -141,7 +142,9 @@ module Modl::Parser
       parts[next_part] = parts[next_part].slice(1, parts[next_part].length) if graved && parts[next_part]
 
       # Join the parts and return the result.
-      if parts[1].is_a? String
+      if parts[0].empty? && parts[2] && parts[2].empty?
+        [parts[1], new_value]
+      elsif !parts[0].empty? || !(parts[2] && parts[2].empty?)
         [parts.join, new_value]
       else
         [parts[1], new_value]

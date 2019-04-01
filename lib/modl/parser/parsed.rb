@@ -11,13 +11,14 @@ module Modl::Parser
     attr_reader :structures
     attr_reader :global
 
-    def initialize
+    def initialize(global)
+      @global = global
       @structures = []
     end
 
     def enterModl(ctx)
 
-      @global = GlobalParseContext.new
+      @global = GlobalParseContext.new if @global.nil?
 
       ctx.modl_structure.each do |str|
         structure = ParsedStructure.new @global
@@ -456,20 +457,34 @@ module Modl::Parser
 
       def import_file
         file_names = []
-        file_names << @valueItem.value.text if @valueItem.value.text
+        files = @valueItem.extract_hash if @valueItem
+        files = @array.extract_hash if @array
+        file_names += files if files.is_a? Array
+        file_names << files if files.is_a? String
         file_names.each do |file_name|
           force = file_name.end_with?('!')
           file_name = file_name.slice(0, file_name.length - 1) if force
           file_name << '.modl' unless file_name.end_with?('.txt') || file_name.end_with?('.modl')
+
+          if file_name.include?('%')
+            file_name, new_val = RefProcessor.instance.deref file_name, @global.index, @global.pairs, @global.methods_hash
+          end
           puts 'Processing file : ' + file_name
-          uri = URI(file_name)
-          txt = Net::HTTP.get(uri)
+          begin
+            uri = URI(file_name)
+            txt = Net::HTTP.get(uri)
+          rescue
+            begin
+              txt = File.readlines(file_name).join
+            rescue
+              raise Antlr4::Runtime::ParseCancellationException, "File not found: " + file_name
+            end
+          end
 
           # Parse the downloaded file ands extract the classes
-          parsed = Modl::Parser::Parser.parse txt
-          parsed.global.classes.keys.each do |k|
-            @global.classes[k] = parsed.global.classes[k]
-          end
+          parsed = Modl::Parser::Parser.parse txt, @global
+          @global.classes.merge!(parsed.global.classes)
+          @global.pairs.merge!(parsed.global.pairs)
         end
       end
 

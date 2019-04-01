@@ -47,7 +47,7 @@ def mangle(str)
   end
 end
 
-file = File.open "../../../grammar/tests/base_tests.json"
+file = File.open "./grammar_tests/base_tests.json"
 data = JSON.parse(file.read)
 
 success = 0
@@ -57,7 +57,7 @@ exit_on_fail = false
 
 data.each_index do |i|
   begin
-    #next if i < 125
+    #next if i < 132
     test_case = data[i]
 
     puts 'Test Input: ' + test_case['input']
