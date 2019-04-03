@@ -77,7 +77,12 @@ module Modl::Parser
           index = key.to_i
           tmp = parts[1]
           if index < global.index.length
-            parts[1] = global.index[index].extract_hash
+            index_val = global.index[index]
+            if index_val.is_a?(Fixnum) || index_val.is_a?(String)
+              parts[1] = index_val
+            else
+              parts[1] = index_val.extract_hash
+            end
             parts << tmp
           else
             if key.length > 0
@@ -205,7 +210,7 @@ module Modl::Parser
         elsif value.is_a? Parsed::ParsedArrayItem
           num_ref = ref.to_i
           return value.arrayValueItem.array.abstractArrayItems[num_ref] if value.arrayValueItem.array
-          return nil
+          return value.arrayValueItem.text+'>'+ref
         elsif value.is_a? Parsed::ParsedNbArray
           num_ref = ref.to_i
           return value.arrayItems[num_ref]

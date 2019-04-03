@@ -28,7 +28,7 @@
     "expected_output":   "{\"object\":{\"print_test\":\"123.test\"}}"},
   {"input":  "?=[[a;b]];letters2=%0>0>0",
     "minimised_modl":  "?=[[a;b]];letters2=%0>0>0",
-    "expected_output":   "{\"letters2\": \"a\"}"},
+    "expected_output":   "{\"letters2\": \"a>0\"}"},
   {"input":  "_test=[[a;b]];letters2=%test>0>0",
     "minimised_modl":  "_test=[[a;b]];letters2=%test>0>0",
     "expected_output":   "{\"letters2\": \"a\"}"},
