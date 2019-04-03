@@ -57,7 +57,7 @@ exit_on_fail = true
 
 data.each_index do |i|
   begin
-    #next if i < 164
+    next if i < 7
 
     test_case = data[i]
 
@@ -78,6 +78,10 @@ data.each_index do |i|
       break if exit_on_fail
     end
   rescue StandardError => e
+    puts 'Test ' + i.to_s + ' failed.'
+    puts 'Test Input: ' + test_case['input'].to_s
+    puts 'Expected  : ' + expected.to_s
+    puts 'Found     : ' + result.to_s
     puts e.to_s
     puts e.backtrace
     failed += 1

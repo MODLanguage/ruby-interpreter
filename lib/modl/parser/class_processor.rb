@@ -72,7 +72,11 @@ module Modl::Parser
         end
         new_value = v if new_value.empty?
       else
-        new_value = v
+        if top_class(clazz, global) == 'str'
+          new_value = v.to_s
+        else
+          new_value = v
+        end
       end
 
       if new_value.is_a? Hash
@@ -90,6 +94,20 @@ module Modl::Parser
         end
       end
       [clazz['name'], new_value]
+    end
+
+    def top_class clazz, global
+      superclass = clazz['superclass']
+      if superclass
+        c = global.classes[superclass]
+        if c
+          return top_class(c, global)
+        else
+          return superclass
+        end
+      else
+        # superclass is assumed
+      end
     end
   end
 end

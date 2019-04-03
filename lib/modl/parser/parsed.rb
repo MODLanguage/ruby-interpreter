@@ -360,7 +360,7 @@ module Modl::Parser
         @type = 'version' if @key == '*V' || @key == '*VERSION'
         @type = 'method' if @key == '*m' || @key == '*method'
         @type = 'transform' if @key == '*t' || @key == '*transform'
-        @type = 'import' if @key == '*I' || @key == '*IMPORT'
+        @type = 'import' if @key == '*L' || @key == '*LOAD'
         @type = 'index' if @key == '?'
         @type = 'hidden' if @key.start_with? '_'
 
@@ -443,7 +443,7 @@ module Modl::Parser
           end
 
           raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
-          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for class' if clazz['name'].nil?
+#          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for class' if clazz['name'].nil?
 #        raise Antlr4::Runtime::ParseCancellationException, 'Missing superclass for class' if clazz['superclass'].nil?
 
 # Does the class name or id already exist?
