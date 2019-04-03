@@ -34,6 +34,15 @@ module Modl::Parser
 
       parts << str.slice(idx + skip, str.length)
 
+      # Are there any methods?
+      dot_index = parts[1].index('.')
+      grave_index = parts[1].index('`')
+      if grave_index.nil?
+        grave_index = parts[1].length
+      end
+      if dot_index && (dot_index < grave_index)
+        method_str = parts[1].slice(dot_index, parts[1].length)
+      end
       # Handle nested refs
       if parts[1].include? '>'
         ref_key = parts[1].slice(0, parts[1].index('>'))
@@ -48,11 +57,15 @@ module Modl::Parser
         if new_value
           tmp = parts[1]
           if new_value.is_a?(Fixnum)
+            puts 'Nested result = ' + new_value.to_s
             parts[1] = new_value
           elsif new_value.is_a? String
+            puts 'Nested result = ' + new_value.to_s
             parts[1] = new_value
           else
-            parts[1] = new_value.extract_hash
+            txt_value = new_value.extract_hash
+            puts 'Nested result = ' + txt_value.to_s
+            parts[1] = txt_value
           end
           parts[2] = tmp.slice(tmp.index('`'), tmp.length) if graved
           new_value = nil
@@ -113,27 +126,28 @@ module Modl::Parser
 
       # Are there any methods to run?
       next_part = 2
-      while parts.length == 3 && parts[next_part][0] == '.'
-        method, remainder = get_method parts[next_part]
+      remainder = method_str
+      while parts.length == 3 && remainder && remainder[0] == '.'
+        method, remainder = get_method remainder
 
         case method
         when '.u'
           parts[1] = parts[1].upcase
-          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
         when '.d'
           parts[1] = parts[1].downcase
-          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
         when '.i'
           parts[1] = parts[1].split.map(&:capitalize) * ' '
-          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
         when '.s'
           split = parts[1].split
           split[0].capitalize!
           parts[1] = split.join(' ')
-          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
         when '.e'
           parts[1] = CGI.escape(parts[1])
-          parts[next_part] = parts[next_part].slice(2, parts[next_part].length)
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
         when '.r'
           s1, s2 = get_subst_parts parts[next_part]
           parts[1] = parts[1].sub(s1, s2)
@@ -149,16 +163,18 @@ module Modl::Parser
           parts[next_part] = parts[next_part].slice(close_bracket + 1, parts[next_part].length)
         else
           # Check for user-defined methods and execute them
-          m = global.methods_hash[method.slice(1, method.length)]
+          if method
+            m = global.methods_hash[method.slice(1, method.length)]
 
-          if m
-            puts 'Running method: ' + m['name']
-            parts[1] = run_method m['transform'], parts[1]
-            parts[next_part] = ''
-          else
-            parts[next_part] = method
-            next_part += 1
-            parts[next_part] = remainder
+            if m
+              puts 'Running method: ' + m['name']
+              parts[1] = run_method m['transform'], parts[1]
+              parts[next_part] = ''
+            else
+              parts[next_part] = method
+              next_part += 1
+              parts[next_part] = remainder
+            end
           end
         end
 
@@ -178,6 +194,7 @@ module Modl::Parser
     end
 
     def nested_value ref, value, global
+      puts 'Processing nested: ' + ref.to_s
       if ref.start_with? '%'
         ref, new_value = RefProcessor.instance.deref ref, global
       end
@@ -195,8 +212,27 @@ module Modl::Parser
         end
         ref_key = ref
       else
-        ref_key = ref.slice(0, ref.index('>'))
-        remainder = ref.slice(ref.index('>') + 1, ref.length)
+        end_index = ref.index('`')
+        if end_index.nil?
+          end_index = ref.length
+        end
+        gt_index = ref.index('>')
+        if gt_index < end_index
+          ref_key = ref.slice(0, gt_index)
+          remainder = ref.slice(gt_index + 1, ref.length)
+        else
+          ref_key = ref.slice(0, end_index)
+        end
+      end
+
+      if ref_key.include?('`')
+        g_index = ref_key.index('`')
+        ref_key = ref_key.slice(0, g_index)
+      end
+
+      if ref_key.include?('.')
+        dot_index = ref_key.index('.')
+        ref_key = ref_key.slice(0, dot_index)
       end
 
       if value.map
@@ -207,15 +243,30 @@ module Modl::Parser
         the_array = value.array
       elsif value.valueItem.value.array
         the_array = value.valueItem.value.array
+      elsif value.valueItem.value.nbArray
+        the_nbarray = value.valueItem.value.nbArray
       end
+
+      target_key = nil
+      the_pair = nil
 
       if the_map
         map_items = the_map.mapItems
-        map_item = map_items[0]
-        the_pair = map_item.pair
-        target_key = the_pair.key
+        map_items.each do |item|
+          if ref_key == item.pair.key
+            the_pair = item.pair
+            target_key = ref_key
+          end
+        end
       elsif the_array
         result = the_array.abstractArrayItems[ref_key.to_i]
+        if remainder && remainder.length > 0
+          return nested_value(remainder, result.arrayValueItem, global)
+        else
+          return result
+        end
+      elsif the_nbarray
+        result = the_nbarray.arrayItems[ref_key.to_i]
         if remainder && remainder.length > 0
           return nested_value(remainder, result.arrayValueItem, global)
         else
@@ -226,11 +277,6 @@ module Modl::Parser
         if the_pair
           target_key = the_pair.key
         end
-      end
-
-      if ref_key.include?('`')
-        g_index = ref_key.index('`')
-        ref_key = ref_key.slice(0, g_index)
       end
 
       if ref_key == target_key
@@ -269,6 +315,7 @@ module Modl::Parser
             return [method_name, remainder]
           end
         end
+        return
       else
         # longer name - possibly a method
         method_name = '.'
