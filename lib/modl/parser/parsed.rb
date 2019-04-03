@@ -360,7 +360,7 @@ module Modl::Parser
         @type = 'version' if @key == '*V' || @key == '*VERSION'
         @type = 'method' if @key == '*m' || @key == '*method'
         @type = 'transform' if @key == '*t' || @key == '*transform'
-        @type = 'import' if @key == '*I' || @key == '*IMPORT'
+        @type = 'import' if @key == '*L' || @key == '*LOAD'
         @type = 'index' if @key == '?'
         @type = 'hidden' if @key.start_with? '_'
 

@@ -57,7 +57,7 @@ exit_on_fail = true
 
 data.each_index do |i|
   begin
-    #next if i < 7
+    next if i < 7
 
     test_case = data[i]
 

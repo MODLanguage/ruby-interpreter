@@ -242,9 +242,9 @@
   "minimised_modl": "{!test?result=test is not defined/?result=test is defined}",
   "expected_output": "{\n \"result\" : \"test is not defined\"\n}\n"
 }, {
-  "input": "_colour = green\n_test = { colour=green? true /? false } \n\n{\n !test?\n   result=it’s not green\n /?\n   result=it’s green\n}",
-  "minimised_modl": "_colour=green;_test={colour=green?01/?00};{!test?result=it’s not green/?result=it’s green}",
-  "expected_output": "{\n \"result\" : \"it’s green\"\n}\n"
+  "input": "_colour = green\n_test = { colour=green? true /? false } \n\n{\n !test?\n   result=it's not green\n /?\n   result=it's green\n}",
+  "minimised_modl": "_colour=green;_test={colour=green?01/?00};{!test?result=it's not green/?result=it's green}",
+  "expected_output": "{\n \"result\" : \"it's green\"\n}\n"
 }, {
   "input": "_test=1\nresult={\n %test=1?\n   yes\n /?\n   no\n}",
   "minimised_modl": "_test=1;result={%test=1?yes/?no}",
