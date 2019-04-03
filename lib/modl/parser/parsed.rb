@@ -443,7 +443,7 @@ module Modl::Parser
           end
 
           raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
-          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for class' if clazz['name'].nil?
+#          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for class' if clazz['name'].nil?
 #        raise Antlr4::Runtime::ParseCancellationException, 'Missing superclass for class' if clazz['superclass'].nil?
 
 # Does the class name or id already exist?

@@ -204,7 +204,8 @@ module Modl::Parser
           return value.array.abstractArrayItems[num_ref]
         elsif value.is_a? Parsed::ParsedArrayItem
           num_ref = ref.to_i
-          return value.arrayValueItem.array.abstractArrayItems[num_ref]
+          return value.arrayValueItem.array.abstractArrayItems[num_ref] if value.arrayValueItem.array
+          return nil
         elsif value.is_a? Parsed::ParsedNbArray
           num_ref = ref.to_i
           return value.arrayItems[num_ref]
@@ -236,7 +237,7 @@ module Modl::Parser
 
       if value.map
         the_map = value.map
-      elsif value.valueItem && value.valueItem.value.map
+      elsif value.methods.include?(:valueItem) && value.valueItem && value.valueItem.value.map
         the_map = value.valueItem.value.map
       elsif value.array
         the_array = value.array
