@@ -408,6 +408,8 @@ module Modl::Parser
           invoke_deref
         end
 
+        return if @global.conditional > 0 # Don't store pairs in conditionals until we evaluate the conditions
+
         if @key.start_with? '_'
           k = @key.slice(1, @key.length)
           @global.pairs[k] = self
@@ -483,6 +485,7 @@ module Modl::Parser
 
           # Parse the downloaded file ands extract the classes
           parsed = Modl::Parser::Parser.parse txt, @global
+          interpreted = parsed.extract_json
           @global.classes.merge!(parsed.global.classes)
           @global.pairs.merge!(parsed.global.pairs)
         end
@@ -551,6 +554,8 @@ module Modl::Parser
           the_map = value.valueItem.value.map
         elsif value.array
           the_array = value.array
+        elsif value.valueItem.value.array
+          the_array = value.valueItem.value.array
         end
 
         if the_map
@@ -559,7 +564,12 @@ module Modl::Parser
           the_pair = map_item.pair
           target_key = the_pair.key
         elsif the_array
-          return the_array.abstractArrayItems[ref_key.to_i]
+          result = the_array.abstractArrayItems[ref_key.to_i]
+          if remainder && remainder.length > 0
+            return nested_value(remainder, result.arrayValueItem)
+          else
+            return result
+          end
         else
           the_pair = value.valueItem.value.pair
           if the_pair
@@ -1193,15 +1203,28 @@ module Modl::Parser
       def extract_hash
         @conditionTests.each_index do |i|
           if @conditionTests[i].evaluate
-            return @topLevelConditionalReturns[i].extract_hash
+            item = @topLevelConditionalReturns[i]
+            if item.structures[0].pair
+              key = item.structures[0].pair.key
+              key = key.slice(1, key.length) if key[0] == '_'
+              @global.pairs[key] = item.structures[0].pair
+            end
+            return item.extract_hash
           end
         end
         if @topLevelConditionalReturns.length > @conditionTests.length
-          return @topLevelConditionalReturns[-1].extract_hash
+          last_item = @topLevelConditionalReturns[-1]
+          if last_item.structures[0].pair
+            key = last_item.structures[0].pair.key
+            key = key.slice(1, key.length) if key[0] == '_'
+            @global.pairs[key] = last_item.structures[0].pair
+          end
+          return last_item.extract_hash
         end
       end
 
       def enterModl_top_level_conditional(ctx)
+        @global.conditional +=1
         i = 0
         while i < ctx.modl_condition_test.size
           conditionTest = ParsedConditionTest.new @global
@@ -1218,6 +1241,7 @@ module Modl::Parser
           ctx.modl_top_level_conditional_return_i(ctx.modl_top_level_conditional_return.size - 1).enter_rule(conditionalReturn)
           @topLevelConditionalReturns[i] = conditionalReturn
         end
+        @global.conditional -=1
       end
     end
 

@@ -53,11 +53,11 @@ data = JSON.parse(file.read)
 success = 0
 failed = 0
 
-exit_on_fail = false
+exit_on_fail = true
 
 data.each_index do |i|
   begin
-    #next if i < 132
+    next if i < 165
     test_case = data[i]
 
     puts 'Test Input: ' + test_case['input']
