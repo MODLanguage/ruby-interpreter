@@ -4,14 +4,14 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "modl/parser/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "modl-parser"
+  spec.name          = "modl"
   spec.version       = Modl::Parser::VERSION
   spec.authors       = ["Tony Walmsley"]
   spec.email         = ["tony@aosd.co.uk"]
 
   spec.summary       = %q{The ANTLR4 Lexer and Parser for MODL generated using the Ruby language target.}
   spec.description   = %q{Contains the base Lexer, Parser, and supporting classes for a MODL parser.}
-  spec.homepage      = "https://github.com/twalmsley/modl-parser-ruby"
+  spec.homepage      = "https://github.com/MODLanguage/ruby-interpreter"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
@@ -20,8 +20,8 @@ Gem::Specification.new do |spec|
     spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
 
     spec.metadata["homepage_uri"] = spec.homepage
-    spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
-    spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
+    spec.metadata["source_code_uri"] = "https://github.com/MODLanguage/ruby-interpreter"
+    spec.metadata["changelog_uri"] = "https://github.com/MODLanguage/ruby-interpreter/blob/master/CHANGELOG.md"
   else
     raise "RubyGems 2.0 or newer is required to protect against " \
       "public gem pushes."

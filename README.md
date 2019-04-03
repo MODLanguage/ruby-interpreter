@@ -6,7 +6,7 @@ This Ruby gem can be used as the base for a MODL interpreter. It contains the Le
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'modl-parser'
+gem 'modl'
 ```
 
 And then execute:
@@ -15,11 +15,16 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install modl-parser
+    $ gem install modl
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+require 'modl/parser/interpreter'
+
+result = Modl::Parser::Interpreter.interpret str
+```
+where `str` is the modl to be interpreted. The result will be a JSON string.
 
 ## Development
 

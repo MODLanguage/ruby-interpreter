@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    modl-parser (0.1.0)
+    modl (0.1.0)
       antlr4-runtime (>= 0.0.1)
 
 GEM
@@ -36,7 +36,7 @@ DEPENDENCIES
   antlr4-runtime (>= 0.0.1)
   bundler (~> 2.0)
   debase
-  modl-parser!
+  modl!
   rake (~> 10.0)
   rspec (~> 3.0)
   ruby-debug-ide
