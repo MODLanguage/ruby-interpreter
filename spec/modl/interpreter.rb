@@ -61,8 +61,6 @@ data.each_index do |i|
 
     test_case = data[i]
 
-    puts 'Test Input: ' + test_case['input']
-
     result = Modl::Parser::Interpreter.interpret test_case['input']
 
     expected = test_case['expected_output']
@@ -70,14 +68,12 @@ data.each_index do |i|
     mangle(result)
     mangle(expected)
     if result == expected
-      puts 'Test ' + i.to_s + ' passed.'
-      puts 'Expected: ' + expected
-      puts 'Found   : ' + result
       success += 1
     else
       puts 'Test ' + i.to_s + ' failed.'
-      puts 'Expected: ' + expected
-      puts 'Found   : ' + result
+      puts 'Test Input: ' + test_case['input']
+      puts 'Expected  : ' + expected
+      puts 'Found     : ' + result
       failed += 1
       break if exit_on_fail
     end

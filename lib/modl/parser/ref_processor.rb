@@ -8,13 +8,11 @@ module Modl::Parser
 
     def deref str, global
 
-      puts 'De-reffing: ' + str
       count = str.count('%')
       while count > 0
         str, new_value = split_by_ref_tokens str, global
         count -= 1
       end
-      puts 'De-reffing result: ' + str.to_s + ', new_value = ' + new_value.to_s
       [str, new_value]
     end
 
@@ -57,14 +55,11 @@ module Modl::Parser
         if new_value
           tmp = parts[1]
           if new_value.is_a?(Fixnum)
-            puts 'Nested result = ' + new_value.to_s
             parts[1] = new_value
           elsif new_value.is_a? String
-            puts 'Nested result = ' + new_value.to_s
             parts[1] = new_value
           else
             txt_value = new_value.extract_hash
-            puts 'Nested result = ' + txt_value.to_s
             parts[1] = txt_value
           end
           parts[2] = tmp.slice(tmp.index('`'), tmp.length) if graved
@@ -167,7 +162,6 @@ module Modl::Parser
             m = global.methods_hash[method.slice(1, method.length)]
 
             if m
-              puts 'Running method: ' + m['name']
               parts[1] = run_method m['transform'], parts[1]
               parts[next_part] = ''
             else
@@ -194,7 +188,6 @@ module Modl::Parser
     end
 
     def nested_value ref, value, global
-      puts 'Processing nested: ' + ref.to_s
       if ref.start_with? '%'
         ref, new_value = RefProcessor.instance.deref ref, global
       end

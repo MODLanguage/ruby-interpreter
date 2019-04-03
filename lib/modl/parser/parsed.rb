@@ -471,7 +471,7 @@ module Modl::Parser
           if file_name.include?('%')
             file_name, new_val = RefProcessor.instance.deref file_name, @global
           end
-          puts 'Processing file : ' + file_name
+
           begin
             uri = URI(file_name)
             txt = Net::HTTP.get(uri)
