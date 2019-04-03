@@ -209,6 +209,12 @@ module Modl::Parser
         elsif value.is_a? Parsed::ParsedArrayValueItem
           num_ref = ref.to_i
           return value.array.abstractArrayItems[num_ref]
+        elsif value.is_a? Parsed::ParsedArrayItem
+          num_ref = ref.to_i
+          return value.arrayValueItem.array.abstractArrayItems[num_ref]
+        elsif value.is_a? Parsed::ParsedNbArray
+          num_ref = ref.to_i
+          return value.arrayItems[num_ref]
         end
         ref_key = ref
       else
@@ -261,7 +267,7 @@ module Modl::Parser
       elsif the_array
         result = the_array.abstractArrayItems[ref_key.to_i]
         if remainder && remainder.length > 0
-          return nested_value(remainder, result.arrayValueItem, global)
+          return nested_value(remainder, result, global)
         else
           return result
         end
