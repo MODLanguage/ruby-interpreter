@@ -6,19 +6,19 @@ module Modl::Parser
 
     include Singleton
 
-    def deref str, values_array, pairs_hash, methods_hash
+    def deref str, global
 
       puts 'De-reffing: ' + str
       count = str.count('%')
       while count > 0
-        str, new_value = split_by_ref_tokens str, values_array, pairs_hash, methods_hash
+        str, new_value = split_by_ref_tokens str, global
         count -= 1
       end
       puts 'De-reffing result: ' + str.to_s + ', new_value = ' + new_value.to_s
       [str, new_value]
     end
 
-    def split_by_ref_tokens str, values_array, pairs_hash, methods_hash
+    def split_by_ref_tokens str, global
       parts = []
       idx = str.index '`%'
       if idx.nil?
@@ -34,57 +34,81 @@ module Modl::Parser
 
       parts << str.slice(idx + skip, str.length)
 
-      # Check for a numeric key
-      key = ''
-      while parts[1].length > 0 && is_digit(parts[1][0])
-        key << parts[1][0]
-        parts[1] = parts[1].slice(1, parts[1].length)
-      end
+      # Handle nested refs
+      if parts[1].include? '>'
+        ref_key = parts[1].slice(0, parts[1].index('>'))
 
-      if key.length > 0
-        index = key.to_i
-        tmp = parts[1]
-        if index < values_array.length
-          parts[1] = values_array[index].extract_hash
-          parts << tmp
+        num_ref_key = ref_key.to_i
+        if num_ref_key.to_s == ref_key
+          new_value = nested_value(parts[1].slice(parts[1].index('>') + 1, parts[1].length), global.index[num_ref_key], global)
         else
-          if key.length > 0
-            parts[1] = '%' + key
+          new_value = nested_value(parts[1].slice(parts[1].index('>') + 1, parts[1].length), global.pairs[ref_key], global)
+        end
+
+        if new_value
+          tmp = parts[1]
+          if new_value.is_a?(Fixnum)
+            parts[1] = new_value
+          elsif new_value.is_a? String
+            parts[1] = new_value
           else
-            parts[1] = '%' + parts[1]
-            parts[1].sub!('`', '') if graved
+            parts[1] = new_value.extract_hash
           end
+          parts[2] = tmp.slice(tmp.index('`'), tmp.length) if graved
+          new_value = nil
         end
       else
-        #no numeric key so try a text key
-        best_match = ''
-
-        pairs_hash.keys.each do |k|
-          if parts[1].start_with?(k) && k.length > best_match.length
-            best_match = k
-          end
+        # Check for a numeric key
+        key = ''
+        while parts[1].length > 0 && is_digit(parts[1][0])
+          key << parts[1][0]
+          parts[1] = parts[1].slice(1, parts[1].length)
         end
 
-        if best_match.length > 0
+        if key.length > 0
+          index = key.to_i
           tmp = parts[1]
-          parts[1] = pairs_hash[best_match].text
-          parts[2] = tmp.slice(best_match.length, tmp.length)
-          if str.start_with?('`%') || str.start_with?('%')
-            pair = pairs_hash[best_match]
-            if pair.array
-              new_value = pair.array
-              parts[1] = new_value.extract_hash
+          if index < global.index.length
+            parts[1] = global.index[index].extract_hash
+            parts << tmp
+          else
+            if key.length > 0
+              parts[1] = '%' + key
+            else
+              parts[1] = '%' + parts[1]
+              parts[1].sub!('`', '') if graved
             end
           end
         else
-          if key.length > 0
-            parts[1] = '%' + key
+          #no numeric key so try a text key
+          best_match = ''
+
+          global.pairs.keys.each do |k|
+            if parts[1].start_with?(k) && k.length > best_match.length
+              best_match = k
+            end
+          end
+
+          if best_match.length > 0
+            tmp = parts[1]
+            parts[1] = global.pairs[best_match].text
+            parts[2] = tmp.slice(best_match.length, tmp.length)
+            if str.start_with?('`%') || str.start_with?('%')
+              pair = global.pairs[best_match]
+              if pair.array
+                new_value = pair.array
+                parts[1] = new_value.extract_hash
+              end
+            end
           else
-            parts[1] = '%' + parts[1]
-            parts[1].sub!('`', '') if graved
+            if key.length > 0
+              parts[1] = '%' + key
+            else
+              parts[1] = '%' + parts[1]
+              parts[1].sub!('`', '') if graved
+            end
           end
         end
-
       end
 
       # Are there any methods to run?
@@ -124,8 +148,8 @@ module Modl::Parser
           close_bracket = parts[next_part].index(')')
           parts[next_part] = parts[next_part].slice(close_bracket + 1, parts[next_part].length)
         else
-          # TODO: Check for user-defined methods and execute them
-          m = methods_hash[method.slice(1, method.length)]
+          # Check for user-defined methods and execute them
+          m = global.methods_hash[method.slice(1, method.length)]
 
           if m
             puts 'Running method: ' + m['name']
@@ -144,10 +168,80 @@ module Modl::Parser
       # Join the parts and return the result.
       if parts[0].empty? && parts[2] && parts[2].empty?
         [parts[1], new_value]
+      elsif parts[0].empty? && !(parts[2])
+        [parts[1], new_value]
       elsif !parts[0].empty? || !(parts[2] && parts[2].empty?)
         [parts.join, new_value]
       else
         [parts[1], new_value]
+      end
+    end
+
+    def nested_value ref, value, global
+      if ref.start_with? '%'
+        ref, new_value = RefProcessor.instance.deref ref, global
+      end
+      unless ref.include? '>'
+        if value.is_a? Parsed::ParsedPair
+          if value.valueItem && value.valueItem.value.value_obj.is_a?(Parsed::ParsedPair)
+            return value.valueItem.value.value_obj.valueItem.value.value_obj
+          elsif value.map
+            map_hash = value.map.extract_hash
+            return map_hash[ref]
+          end
+        elsif value.is_a? Parsed::ParsedArrayValueItem
+          num_ref = ref.to_i
+          return value.array.abstractArrayItems[num_ref]
+        end
+        ref_key = ref
+      else
+        ref_key = ref.slice(0, ref.index('>'))
+        remainder = ref.slice(ref.index('>') + 1, ref.length)
+      end
+
+      if value.map
+        the_map = value.map
+      elsif value.valueItem && value.valueItem.value.map
+        the_map = value.valueItem.value.map
+      elsif value.array
+        the_array = value.array
+      elsif value.valueItem.value.array
+        the_array = value.valueItem.value.array
+      end
+
+      if the_map
+        map_items = the_map.mapItems
+        map_item = map_items[0]
+        the_pair = map_item.pair
+        target_key = the_pair.key
+      elsif the_array
+        result = the_array.abstractArrayItems[ref_key.to_i]
+        if remainder && remainder.length > 0
+          return nested_value(remainder, result.arrayValueItem, global)
+        else
+          return result
+        end
+      else
+        the_pair = value.valueItem.value.pair
+        if the_pair
+          target_key = the_pair.key
+        end
+      end
+
+      if ref_key.include?('`')
+        g_index = ref_key.index('`')
+        ref_key = ref_key.slice(0, g_index)
+      end
+
+      if ref_key == target_key
+        result = the_pair
+        if remainder && remainder.length > 0
+          return nested_value(remainder, result, global)
+        else
+          return result.valueItem
+        end
+      else
+        raise Antlr4::Runtime::ParseCancellationException, ref_key + ' item not found for reference ' + ref
       end
     end
 

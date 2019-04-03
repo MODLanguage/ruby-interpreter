@@ -469,7 +469,7 @@ module Modl::Parser
           file_name << '.modl' unless file_name.end_with?('.txt') || file_name.end_with?('.modl')
 
           if file_name.include?('%')
-            file_name, new_val = RefProcessor.instance.deref file_name, @global.index, @global.pairs, @global.methods_hash
+            file_name, new_val = RefProcessor.instance.deref file_name, @global
           end
           puts 'Processing file : ' + file_name
           begin
@@ -523,69 +523,6 @@ module Modl::Parser
 # store the methods by id and name to make them easier to find later
           @global.methods_hash[mthd['id']] = mthd
           @global.methods_hash[mthd['name']] = mthd
-        end
-      end
-
-      def nested_value ref, value
-        if ref.start_with? '%'
-          ref, new_value = RefProcessor.instance.deref ref, @global.index, @global.pairs, @global.methods_hash
-        end
-        unless ref.include? '>'
-          if value.is_a? ParsedPair
-            if value.valueItem && value.valueItem.value.value_obj.is_a?(ParsedPair)
-              return value.valueItem.value.value_obj.valueItem.value.value_obj
-            elsif value.map
-              map_hash = value.map.extract_hash
-              return map_hash[ref]
-            end
-          elsif value.is_a? ParsedArrayValueItem
-            num_ref = ref.to_i
-            return value.array.abstractArrayItems[num_ref]
-          end
-          ref_key = ref
-        else
-          ref_key = ref.slice(0, ref.index('>'))
-          remainder = ref.slice(ref.index('>') + 1, ref.length)
-        end
-
-        if value.map
-          the_map = value.map
-        elsif value.valueItem && value.valueItem.value.map
-          the_map = value.valueItem.value.map
-        elsif value.array
-          the_array = value.array
-        elsif value.valueItem.value.array
-          the_array = value.valueItem.value.array
-        end
-
-        if the_map
-          map_items = the_map.mapItems
-          map_item = map_items[0]
-          the_pair = map_item.pair
-          target_key = the_pair.key
-        elsif the_array
-          result = the_array.abstractArrayItems[ref_key.to_i]
-          if remainder && remainder.length > 0
-            return nested_value(remainder, result.arrayValueItem)
-          else
-            return result
-          end
-        else
-          the_pair = value.valueItem.value.pair
-          if the_pair
-            target_key = the_pair.key
-          end
-        end
-
-        if ref_key == target_key
-          result = the_pair
-          if remainder && remainder.length > 0
-            return nested_value(remainder, result)
-          else
-            return result.valueItem
-          end
-        else
-          raise Antlr4::Runtime::ParseCancellationException, ref_key + ' item not found for reference ' + ref
         end
       end
 
@@ -660,19 +597,8 @@ module Modl::Parser
       def invoke_deref
         if @needs_defref && !@text.nil? && @text.is_a?(String) && @text.include?('%')
           @needs_defref = false
-          if @text.include? '>'
-            ref_key = @text.slice(1, @text.index('>') - 1)
 
-            num_ref_key = ref_key.to_i
-            if num_ref_key.to_s == ref_key
-              new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.index[num_ref_key])
-            else
-              new_value = nested_value(@text.slice(@text.index('>') + 1, @text.length), @global.pairs[ref_key])
-            end
-            set_value new_value
-          else
-            @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs, @global.methods_hash
-          end
+          @text, new_value = RefProcessor.instance.deref @text, @global
 
           if new_value.is_a? ParsedMap
             @map = new_value
@@ -731,12 +657,12 @@ module Modl::Parser
           ctx.modl_pair.enter_rule(@pair)
         elsif !ctx.STRING.nil?
           @text = Parsed.additionalStringProcessing(ctx.STRING.text)
-          @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs, @global.methods_hash
+          @text, new_value = RefProcessor.instance.deref @text, @global
           @string = ParsedString.new(@text)
         elsif !ctx.QUOTED.nil?
           @text = ctx.QUOTED.text.slice(1, ctx.QUOTED.text.length - 2) # remove the quotes
           @text = Parsed.additionalStringProcessing(@text)
-          @text, new_value = RefProcessor.instance.deref @text, @global.index, @global.pairs, @global.methods_hash
+          @text, new_value = RefProcessor.instance.deref @text, @global
           @quoted = ParsedQuoted.new(@text)
         elsif !ctx.Null.nil?
           @nilVal = ParsedNull.instance
@@ -1224,7 +1150,7 @@ module Modl::Parser
       end
 
       def enterModl_top_level_conditional(ctx)
-        @global.conditional +=1
+        @global.conditional += 1
         i = 0
         while i < ctx.modl_condition_test.size
           conditionTest = ParsedConditionTest.new @global
@@ -1241,7 +1167,7 @@ module Modl::Parser
           ctx.modl_top_level_conditional_return_i(ctx.modl_top_level_conditional_return.size - 1).enter_rule(conditionalReturn)
           @topLevelConditionalReturns[i] = conditionalReturn
         end
-        @global.conditional -=1
+        @global.conditional -= 1
       end
     end
 
