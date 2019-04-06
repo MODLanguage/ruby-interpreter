@@ -43,7 +43,7 @@ def mangle(str)
 end
 
 def tests_that_should_pass
-  file = File.open "./grammar_tests/base_tests.json"
+  file = File.open("./grammar_tests/base_tests.json", "r:UTF-8")
   data = JSON.parse(file.read)
 
   success = 0
