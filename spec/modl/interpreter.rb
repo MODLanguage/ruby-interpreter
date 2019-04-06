@@ -49,7 +49,7 @@ def tests_that_should_pass
   success = 0
   failed = 0
 
-  exit_on_fail = false
+  exit_on_fail = true
 
   data.each_index do |i|
     begin

@@ -1,5 +1,6 @@
 require 'singleton'
 require 'modl/parser/parsed'
+require 'punycode'
 
 module Modl::Parser
   class RefProcessor
@@ -161,6 +162,11 @@ module Modl::Parser
           # Consume the trunc clause
           close_bracket = parts[next_part].index(')')
           parts[next_part] = parts[next_part].slice(close_bracket + 1, parts[next_part].length)
+        when '.p'
+          encoded = parts[1]
+          decoded = Punycode.decode(encoded)
+          parts[1] = decoded
+          parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
         else
           # Check for user-defined methods and execute them
           if method
@@ -210,7 +216,7 @@ module Modl::Parser
         elsif value.is_a? Parsed::ParsedArrayItem
           num_ref = ref.to_i
           return value.arrayValueItem.array.abstractArrayItems[num_ref] if value.arrayValueItem.array
-          return value.arrayValueItem.text+'>'+ref
+          return value.arrayValueItem.text + '>' + ref
         elsif value.is_a? Parsed::ParsedNbArray
           num_ref = ref.to_i
           return value.arrayItems[num_ref]
@@ -313,7 +319,7 @@ module Modl::Parser
     def get_method(str)
       one_char_method_name = (str.length == 2 || (str.length > 2 && !is_alpha(str[2])))
       if one_char_method_name
-        'udisert'.each_char do |m|
+        'udisertp'.each_char do |m|
           method_name = '.' + m
           if str.start_with?(method_name)
             remainder = str.slice(2, str.length)

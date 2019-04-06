@@ -450,13 +450,6 @@ module Modl::Parser
             raise Antlr4::Runtime::ParseCancellationException, 'Invalid superclass'
           end
           raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
-#          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for class' if clazz['name'].nil?
-#        raise Antlr4::Runtime::ParseCancellationException, 'Missing superclass for class' if clazz['superclass'].nil?
-
-# Does the class name or id already exist?
-#          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class name: ' + clazz['name'] unless @global.classes[clazz['name']].nil?
-#          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate class id: ' + clazz['id'] unless @global.classes[clazz['id']].nil?
-
 
 # store the classes by id and name to make them easier to find later
           @global.classes[clazz['id']] = clazz
