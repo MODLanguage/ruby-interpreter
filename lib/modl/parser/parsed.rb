@@ -442,6 +442,10 @@ module Modl::Parser
             end
           end
 
+          superclass = clazz['superclass']
+          if superclass && !(superclass == 'map' || superclass == 'str' || superclass == 'arr' || superclass == 'num') && !@global.classes.keys.include?(superclass)
+            raise Antlr4::Runtime::ParseCancellationException, 'Invalid superclass'
+          end
           raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
 #          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for class' if clazz['name'].nil?
 #        raise Antlr4::Runtime::ParseCancellationException, 'Missing superclass for class' if clazz['superclass'].nil?
