@@ -12,7 +12,7 @@ module Modl::Parser
     attr_reader :structures
     attr_reader :global
 
-    def initialize(global=nil)
+    def initialize(global = nil)
       @global = global
       @structures = []
     end
@@ -354,14 +354,18 @@ module Modl::Parser
         end
 
         @type = 'class' if @key == '*c' || @key == '*class'
+        @type = 'class' if @key == '*C' || @key == '*CLASS'
         @type = 'id' if @key == '*i' || @key == '*id'
         @type = 'name' if @key == '*n' || @key == '*name'
+        @type = 'name' if @key == '*N' || @key == '*NAME'
+        @type = 'superclass' if @key == '*S' || @key == '*SUPERCLASS'
         @type = 'superclass' if @key == '*s' || @key == '*superclass'
         @type = 'keylist' if @key == '*a' || @key == '*assign'
         @type = 'version' if @key == '*V' || @key == '*VERSION'
         @type = 'method' if @key == '*m' || @key == '*method'
         @type = 'transform' if @key == '*t' || @key == '*transform'
         @type = 'import' if @key == '*L' || @key == '*LOAD'
+        @type = 'import' if @key == '*l' || @key == '*load'
         @type = 'index' if @key == '?'
         @type = 'hidden' if @key.start_with? '_'
 
@@ -447,7 +451,7 @@ module Modl::Parser
 
           superclass = clazz['superclass']
           if superclass && !(superclass == 'map' || superclass == 'str' || superclass == 'arr' || superclass == 'num') && !@global.classes.keys.include?(superclass)
-            raise Antlr4::Runtime::ParseCancellationException, 'Invalid superclass'
+            raise Antlr4::Runtime::ParseCancellationException, 'Invalid superclass: ' + superclass.to_s
           end
           raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
 
