@@ -21,7 +21,7 @@ RSpec.describe Modl::Parser do
       parser = Modl::Parser::MODLParser.new(tokens)
       expect(parser).not_to be nil
 
-      listener = Parsed.new
+      listener = Modl::Parser::Parsed.new
 
       tracer = Antlr4::Runtime::Parser::TraceListener.new(parser, tokens)
       parser.add_parse_listener(tracer)

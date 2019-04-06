@@ -8,7 +8,8 @@ RSpec.describe Modl::Parser do
     new_values['name'] = 'the_name'
     test_string = 'Some text with refs:%1.u also%`name.s`s as well.'
 
-    result = Modl::Parser::RefProcessor.instance.split_by_ref_tokens test_string, new_values
+    global = Modl::Parser::GlobalParseContext.new
+    result = Modl::Parser::RefProcessor.instance.split_by_ref_tokens test_string, global
     puts result.to_s
   end
 end

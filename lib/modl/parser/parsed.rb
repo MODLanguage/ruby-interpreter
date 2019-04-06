@@ -2,6 +2,7 @@ require 'modl/parser/MODLParserBaseListener'
 require 'modl/parser/global_parse_context'
 require 'modl/parser/ref_processor'
 require 'modl/parser/substitutions'
+require 'modl/parser/file_importer'
 require 'antlr4/runtime/parse_cancellation_exception'
 require 'cgi'
 require 'net/http'
@@ -11,7 +12,7 @@ module Modl::Parser
     attr_reader :structures
     attr_reader :global
 
-    def initialize(global)
+    def initialize(global=nil)
       @global = global
       @structures = []
     end
@@ -397,7 +398,9 @@ module Modl::Parser
         when 'transform'
           extract_transform @valueItem
         when 'import'
-          import_file
+          files = @valueItem.extract_hash if @valueItem
+          files = @array.extract_hash if @array
+          FileImporter.instance.import_files files, @global
         when 'index'
           extract_index
         when 'hidden'
@@ -458,40 +461,6 @@ module Modl::Parser
 # store the classes by id and name to make them easier to find later
           @global.classes[clazz['id']] = clazz
           @global.classes[clazz['name']] = clazz
-        end
-      end
-
-      def import_file
-        file_names = []
-        files = @valueItem.extract_hash if @valueItem
-        files = @array.extract_hash if @array
-        file_names += files if files.is_a? Array
-        file_names << files if files.is_a? String
-        file_names.each do |file_name|
-          force = file_name.end_with?('!')
-          file_name = file_name.slice(0, file_name.length - 1) if force
-          file_name << '.modl' unless file_name.end_with?('.txt') || file_name.end_with?('.modl')
-
-          if file_name.include?('%')
-            file_name, new_val = RefProcessor.instance.deref file_name, @global
-          end
-
-          begin
-            uri = URI(file_name)
-            txt = Net::HTTP.get(uri)
-          rescue
-            begin
-              txt = File.readlines(file_name).join
-            rescue
-              raise Antlr4::Runtime::ParseCancellationException, "File not found: " + file_name
-            end
-          end
-
-          # Parse the downloaded file ands extract the classes
-          parsed = Modl::Parser::Parser.parse txt, @global
-          interpreted = parsed.extract_json
-          @global.classes.merge!(parsed.global.classes)
-          @global.pairs.merge!(parsed.global.pairs)
         end
       end
 
