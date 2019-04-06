@@ -371,6 +371,8 @@ module Modl::Parser
 
         raise Antlr4::Runtime::ParseCancellationException, 'Invalid keyword: ' + @key if @type == 'pair' && @key.start_with?('*')
 
+        validate_key if @type == 'pair' || @type == 'hidden'
+
         if !ctx.modl_array.nil?
           @array = ParsedArray.new @global
           ctx.modl_array.enter_rule(@array)
@@ -562,7 +564,19 @@ module Modl::Parser
         @transform = item.value.string.string
       end
 
-      private
+      def validate_key
+        invalid_chars = "!$@-+'*#^&"
+        invalid_chars.each_char do |c|
+          raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + c + '" character not allowed: ' + @key if @key.include?(c)
+        end
+
+        key = (@key.start_with?('_')) ? @key.slice(1, @key.length) : @key
+
+        if key == key.to_i.to_s
+          raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + key + '" - entirely numeric keys are not allowed: ' + @key
+        end
+
+      end
 
       def invoke_deref
         if @needs_defref && !@text.nil? && @text.is_a?(String) && @text.include?('%')

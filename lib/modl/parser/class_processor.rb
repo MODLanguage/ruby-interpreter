@@ -72,8 +72,11 @@ module Modl::Parser
         end
         new_value = v if new_value.empty?
       else
-        if top_class(clazz, global) == 'str'
+        tc = top_class(clazz, global)
+        if tc == 'str'
           new_value = v.to_s
+        elsif tc == 'num' && !v.is_a?(Numeric)
+          raise Antlr4::Runtime::ParseCancellationException, 'Superclass of "' + clazz['id'] + '" is num - cannot assign String value "' + v.to_s + '"'
         else
           new_value = v
         end
