@@ -53,5 +53,10 @@
   "*class(*name=num)",
   "*class(*name=map)",
   "*class(*name=str)",
-  "IMMUTABLE=true;IMMUTABLE=false"
+  "IMMUTABLE=true;IMMUTABLE=false",
+  "*VERSION=test",
+  "*V=test",
+  "*VERSION=0",
+  "*VERSION=0.1",
+  "a=b;*VERSION=1"
 ]

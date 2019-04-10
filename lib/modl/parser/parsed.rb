@@ -413,6 +413,18 @@ module Modl::Parser
           extract_key_list @array if @array
         when 'version'
           extract_value
+          if @valueItem.value.number.nil?
+            raise Antlr4::Runtime::ParseCancellationException, "Invalid MODL version: nil"
+          end
+          if @valueItem.value.number.num.is_a? Float
+            raise Antlr4::Runtime::ParseCancellationException, "Invalid MODL version: " + @valueItem.value.number.num.to_s
+          end
+          if @valueItem.value.number.num == 0
+            raise Antlr4::Runtime::ParseCancellationException, "Invalid MODL version: " + @valueItem.value.number.num.to_s
+          end
+          if @global.pairs.length > 0
+            raise Antlr4::Runtime::ParseCancellationException, "MODL version should be on the first line if specified."
+          end
         when 'method'
           extract_method
         when 'transform'
