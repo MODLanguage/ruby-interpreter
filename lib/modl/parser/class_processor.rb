@@ -49,6 +49,8 @@ module Modl::Parser
             keys.each_index do |i|
               new_value[keys[i]] = v[i]
             end
+          else
+            raise Antlr4::Runtime::ParseCancellationException, 'No key list of the correct length in class ' + clazz['id'] + ' - looking for one of length ' + v.length.to_s if v.is_a? Array
           end
           new_value.keys do |nk|
             process_obj global, new_value[nk]

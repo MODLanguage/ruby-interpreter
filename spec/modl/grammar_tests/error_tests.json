@@ -1,5 +1,6 @@
 [
   "*class(*id=t;*name=test;*assign=[[a;b];[a]])",
+  "*class(*id=t;*name=test;*assign=[[a;b]]);test=1:2:3",
   "*class(*id=t;*name=test);*class(*id=tt;*name=test)",
   "*class(*id=test;*name=t);*class(*id=tt;*name=test)",
   "*class(*id=test;*name=t);*class(*id=test;*name=tt)",
