@@ -491,10 +491,17 @@ module Modl::Parser
             raise Antlr4::Runtime::ParseCancellationException, 'Invalid superclass: ' + superclass.to_s
           end
           raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
+# Make sure the class name isn't redefining an existing class
+          if @global.classes[clazz['id']].nil? && @global.classes[clazz['name']].nil?
 
 # store the classes by id and name to make them easier to find later
-          @global.classes[clazz['id']] = clazz
-          @global.classes[clazz['name']] = clazz
+            @global.classes[clazz['id']] = clazz
+            @global.classes[clazz['name']] = clazz
+          else
+            id = (clazz['id'].nil?) ? 'undefined' : clazz['id']
+            name = (clazz['name'].nil?) ? 'undefined' : clazz['name']
+            raise Antlr4::Runtime::ParseCancellationException, 'Class name or id already defined - cannot redefine: ' + id + ", " + name
+          end
         end
       end
 
