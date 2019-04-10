@@ -123,10 +123,10 @@ def tests_that_should_fail
   end
 end
 
-puts 'Running tests that should pass.'
-tests_that_should_pass
-
 puts 'Running tests that should fail.'
 tests_that_should_fail
+
+puts 'Running tests that should pass.'
+tests_that_should_pass
 
 puts 'Testing complete.'

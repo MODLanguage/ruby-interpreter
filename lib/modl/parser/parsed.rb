@@ -355,11 +355,14 @@ module Modl::Parser
           @key = key.slice(1, key.length - 2) # remove the quotes
         end
 
+        if @key.upcase == @key
+          @final = true
+        end
+
         @type = 'class' if @key == '*c' || @key == '*class'
         if @key == '*C' || @key == '*CLASS'
           @type = 'class'
           @key = @key.downcase
-          @final = true
         end
         @type = 'id' if @key == '*i' || @key == '*id'
         @type = 'name' if @key == '*n' || @key == '*name'
@@ -373,7 +376,6 @@ module Modl::Parser
         if @key == '*L' || @key == '*LOAD'
           @key = @key.downcase
           @type = 'import'
-          @final = true
         end
         if @key == '*l' || @key == '*load'
           @type = 'import'
