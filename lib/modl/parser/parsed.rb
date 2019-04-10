@@ -583,12 +583,18 @@ module Modl::Parser
       def extract_key_list item
         # the item must be an array of arrays
         @key_lists = []
+        last_keylist_len = 0
         if item.is_a?(ParsedValueItem) && item.value.is_a?(ParsedValue) && item.value.array
           item.value.array.abstractArrayItems.each do |avi|
             key_list = []
             avi.arrayValueItem.array.abstractArrayItems.each do |key|
               key_list << key.arrayValueItem.string.string if key.arrayValueItem.string
               key_list << key.arrayValueItem.number.num if key.arrayValueItem.number
+            end
+            if key_list.length > last_keylist_len
+              last_keylist_len = key_list.length
+            else
+              raise Antlr4::Runtime::ParseCancellationException,'Error: Key lists in *assign are not in ascending order of list length.'
             end
             @key_lists << key_list
           end
@@ -598,6 +604,11 @@ module Modl::Parser
             avi.arrayValueItem.array.abstractArrayItems.each do |key|
               key_list << key.arrayValueItem.string.string if key.arrayValueItem.string
               key_list << key.arrayValueItem.number.num if key.arrayValueItem.number
+            end
+            if key_list.length > last_keylist_len
+              last_keylist_len = key_list.length
+            else
+              raise Antlr4::Runtime::ParseCancellationException,'Error: Key lists in *assign are not in ascending order of list length.'
             end
             @key_lists << key_list
           end
