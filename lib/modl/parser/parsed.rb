@@ -279,10 +279,12 @@ module Modl::Parser
       attr_accessor :key_lists
       attr_accessor :type # A string set to the type of pair that we have found bases on its key
       attr_accessor :text # The simple text value rather than the object
+      attr_reader :final
 
       def initialize(global)
         @global = global
         @needs_defref = true
+        @final = false
       end
 
       def set_value value
@@ -354,7 +356,11 @@ module Modl::Parser
         end
 
         @type = 'class' if @key == '*c' || @key == '*class'
-        @type = 'class' if @key == '*C' || @key == '*CLASS'
+        if @key == '*C' || @key == '*CLASS'
+          @type = 'class'
+          @key = @key.downcase
+          @final = true
+        end
         @type = 'id' if @key == '*i' || @key == '*id'
         @type = 'name' if @key == '*n' || @key == '*name'
         @type = 'name' if @key == '*N' || @key == '*NAME'
@@ -364,14 +370,18 @@ module Modl::Parser
         @type = 'version' if @key == '*V' || @key == '*VERSION'
         @type = 'method' if @key == '*m' || @key == '*method'
         @type = 'transform' if @key == '*t' || @key == '*transform'
-        @type = 'import' if @key == '*L' || @key == '*LOAD'
-        @type = 'import' if @key == '*l' || @key == '*load'
+        if @key == '*L' || @key == '*LOAD'
+          @key = @key.downcase
+          @type = 'import'
+          @final = true
+        end
+        if @key == '*l' || @key == '*load'
+          @type = 'import'
+        end
         @type = 'index' if @key == '?'
         @type = 'hidden' if @key.start_with? '_'
 
         raise Antlr4::Runtime::ParseCancellationException, 'Invalid keyword: ' + @key if @type == 'pair' && @key.start_with?('*')
-
-        validate_key if @type == 'pair' || @type == 'hidden'
 
         if !ctx.modl_array.nil?
           @array = ParsedArray.new @global
@@ -383,6 +393,8 @@ module Modl::Parser
           @valueItem = ParsedValueItem.new @global
           ctx.modl_value_item.enter_rule(@valueItem)
         end
+
+        validate_key if @type == 'pair' || @type == 'hidden'
 
         # Type-specific processing
         case @type
@@ -421,8 +433,12 @@ module Modl::Parser
 
         if @key.start_with? '_'
           k = @key.slice(1, @key.length)
+          existing = @global.pairs[k]
+          raise Antlr4::Runtime::ParseCancellationException, "Already defined " + k + " as final." if existing && existing.final
           @global.pairs[k] = self
         end
+        existing = @global.pairs[@key]
+        raise Antlr4::Runtime::ParseCancellationException, "Already defined " + @key + " as final." if existing && existing.final
         @global.pairs[@key] = self
       end
 
@@ -565,15 +581,27 @@ module Modl::Parser
       end
 
       def validate_key
-        invalid_chars = "!$@-+'*#^&"
+        invalid_chars = "!$@-+'*#^&%"
         invalid_chars.each_char do |c|
-          raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + c + '" character not allowed: ' + @key if @key.include?(c)
+          if @key.include?(c)
+            if c == '%' && @key.rindex(c) == 0
+              next
+            end
+            raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + c + '" character not allowed: ' + @key
+          end
         end
 
         key = (@key.start_with?('_')) ? @key.slice(1, @key.length) : @key
 
         if key == key.to_i.to_s
           raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + key + '" - entirely numeric keys are not allowed: ' + @key
+        end
+
+        if @valueItem && @valueItem.value && @valueItem.value.string
+          self_key = '%' + key
+          if @valueItem.value.string.text.include?(self_key)
+            raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - self-referential keys are not allowed: ' + @key
+          end
         end
 
       end

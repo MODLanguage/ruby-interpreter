@@ -49,12 +49,14 @@ def tests_that_should_pass
   success = 0
   failed = 0
 
-  exit_on_fail = false
+  exit_on_fail = true
 
   data.each_index do |i|
     begin
-
+      #next if i < 141
       test_case = data[i]
+
+      puts 'Test Input: ' + test_case['input']
 
       result = Modl::Parser::Interpreter.interpret test_case['input']
 
@@ -62,29 +64,24 @@ def tests_that_should_pass
 
       mangle(result)
       mangle(expected)
+      puts 'Expected  : ' + expected
+      puts 'Found     : ' + result
       if result == expected
+        puts 'Test ' + i.to_s + ' passed.'
         success += 1
       else
         puts 'Test ' + i.to_s + ' failed.'
-        puts 'Test Input: ' + test_case['input']
-        puts 'Expected  : ' + expected
-        puts 'Found     : ' + result
         failed += 1
         break if exit_on_fail
       end
     rescue StandardError => e
       puts e.to_s
       puts e.backtrace
-      if result == expected
-        success += 1
-      else
-        puts 'Test ' + i.to_s + ' failed.'
-        puts 'Test Input: ' + test_case['input'].to_s
-        puts 'Expected  : ' + expected.to_s
-        puts 'Found     : ' + result.to_s
-        failed += 1
-        break if exit_on_fail
-      end
+      puts 'Expected  : ' + expected.to_s
+      puts 'Found     : ' + result.to_s
+      puts 'Test ' + i.to_s + ' failed.'
+      failed += 1
+      break if exit_on_fail
     end
   end
 
@@ -101,13 +98,15 @@ def tests_that_should_fail
   success = 0
   failed = 0
 
-  exit_on_fail = false
+  exit_on_fail = true
 
   data.each_index do |i|
+    #next if i < 5
     begin
       test_case = data[i]
       result = Modl::Parser::Interpreter.interpret test_case
       failed += 1
+      puts 'Test                                 : ' + i.to_s
       puts 'Test was expected to fail but did not: ' + test_case
       puts 'Result                               : ' + result
       break if exit_on_fail
