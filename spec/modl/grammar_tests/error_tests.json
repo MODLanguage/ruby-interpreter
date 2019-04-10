@@ -44,5 +44,13 @@
   "_test=(\n  numbers=(\"one\"=1)\n)\n\ntesting = this is a string that includes a reference with a letter s after it %test>numbers>ones",
   "true=test",
   "false=test",
-  "null=test"
+  "null=test",
+  "*class(*id=arr)",
+  "*class(*id=num)",
+  "*class(*id=map)",
+  "*class(*id=str)",
+  "*class(*name=arr)",
+  "*class(*name=num)",
+  "*class(*name=map)",
+  "*class(*name=str)"
 ]

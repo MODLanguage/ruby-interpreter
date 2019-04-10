@@ -452,11 +452,16 @@ module Modl::Parser
             if item&.pair&.type
               case item&.pair&.type
               when 'id'
-                clazz['id'] = item.pair.valueItem.value.string.string
+                str_value = item.pair.valueItem.value.string.string
+                raise Antlr4::Runtime::ParseCancellationException, 'Reserved class id - cannot redefine: ' + str_value if reserved_class(str_value)
+                clazz['id'] = str_value
               when 'name'
-                clazz['name'] = item.pair.valueItem.value.string.string
+                str_value = item.pair.valueItem.value.string.string
+                raise Antlr4::Runtime::ParseCancellationException, 'Reserved class name - cannot redefine: ' + str_value if reserved_class(str_value)
+                clazz['name'] = str_value
               when 'superclass'
-                clazz['superclass'] = item.pair.valueItem.value.string.string
+                str_value = item.pair.valueItem.value.string.string
+                clazz['superclass'] = str_value
               when 'keylist'
                 clazz['keylist'] = item.pair.key_lists
               else
@@ -477,6 +482,10 @@ module Modl::Parser
           @global.classes[clazz['id']] = clazz
           @global.classes[clazz['name']] = clazz
         end
+      end
+
+      def reserved_class(str)
+        (str == 'arr' || str == 'map' || str == 'num' || str == 'str')
       end
 
       def extract_method
