@@ -597,13 +597,6 @@ module Modl::Parser
           raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + key + '" - entirely numeric keys are not allowed: ' + @key
         end
 
-        if @valueItem && @valueItem.value && @valueItem.value.string
-          self_key = '%' + key
-          if @valueItem.value.string.text.include?(self_key)
-            raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - self-referential keys are not allowed: ' + @key
-          end
-        end
-
       end
 
       def invoke_deref
