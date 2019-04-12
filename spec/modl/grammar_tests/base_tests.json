@@ -1,4 +1,7 @@
 [
+  {"input":  "*class(\n *id=a\n *name=alpha\n *superclass=map\n v=victor\n)\n*class(\n *id=b\n *name=bravo\n *superclass=a\n w=whisky\n)\n*class(\n *id=c\n *name=charlie\n *superclass=b\n x=xray\n)\n*class(\n *id=d\n *name=delta\n *superclass=c\n y=yankee\n)\nd(test1=test2)",
+    "minimised_modl":  "tbd",
+    "expected_output":   "{\"delta\": {\"test1\": \"test2\",\"y\": \"yankee\",\"x\": \"xray\",\"w\": \"whisky\",\"v\": \"victor\"}}"},
   {"input":  "_test=[[a;b]];letters2=%test>0>0",
     "minimised_modl":  "_test=[[a;b]];letters2=%test>0>0",
     "expected_output":   "{\"letters2\": \"a\"}"},

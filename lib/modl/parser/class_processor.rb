@@ -46,8 +46,14 @@ module Modl::Parser
             end
           end
           if keys
-            keys.each_index do |i|
-              new_value[keys[i]] = v[i]
+            if v.is_a? Hash
+              keys.each_index do |i|
+                new_value[keys[i]] = v[v.keys[i]]
+              end
+            elsif v.is_a? Array
+              keys.each_index do |i|
+                new_value[keys[i]] = v[i]
+              end
             end
           else
             raise Antlr4::Runtime::ParseCancellationException, 'No key list of the correct length in class ' + clazz['id'] + ' - looking for one of length ' + v.length.to_s if v.is_a? Array
@@ -79,6 +85,28 @@ module Modl::Parser
           new_value = v.to_s
         elsif tc == 'num' && !v.is_a?(Numeric)
           raise Antlr4::Runtime::ParseCancellationException, 'Superclass of "' + clazz['id'] + '" is num - cannot assign String value "' + v.to_s + '"'
+        elsif tc == 'map'
+          if v.is_a? Hash
+            new_value = v.merge(new_value)
+            super_class = clazz['superclass']
+            while true
+              next_class = global.classes[super_class]
+              break if next_class.nil?
+              next_class.keys.each do |nck|
+                case nck
+                when 'id'
+                when 'name'
+                when 'superclass'
+                when 'keylist'
+                else
+                  new_value[nck] = next_class[nck].extract_hash
+                end
+              end
+              super_class = next_class['superclass']
+            end
+          else
+            new_value[k] = v
+          end
         else
           new_value = v
         end
@@ -87,9 +115,14 @@ module Modl::Parser
       if new_value.is_a? Hash
         new_value.keys.each do |nk|
           clazz2 = global.classes[nk]
-
+          nv = new_value[nk]
           if clazz2
-            new_k, new_v = process_class global, nk, new_value[nk]
+            if !nv.nil? && !nv.is_a?(String) && !nv.is_a?(Numeric)
+              new_k, new_v = process_class global, nk, nv
+            else
+              new_k = (clazz2['name'].nil?) ? clazz2['id'] : clazz2['name']
+              new_v = nv
+            end
 
             if new_value[new_k] != new_v
               new_value.delete nk

@@ -1,4 +1,8 @@
 [
+  "*method(*id=hy;*name=hyp1;*transform=`replace( ,-)`);*method(*id=hy;*name=hyp2;*transform=`replace( ,-)`)",
+  "*method(*id=hy;*name=hyp1;*transform=`replace( ,-)`);*method(*id=hy1;*name=hyp1;*transform=`replace( ,-)`)",
+  "*method(*id=hy;*name=hyp;*transform=`replace( ,-)`);*method(*id=hyp1;*name=hy;*transform=`replace( ,-)`)",
+  "*method(*id=hy;*name=hyp;*transform=`replace( ,-)`);*method(*id=hyp;*name=hyp1;*transform=`replace( ,-)`)",
   "*class(*id=t;*name=test;*assign=[[a;b];[a]])",
   "*class(*id=t;*name=test;*assign=[[a;b]]);test=1:2:3",
   "*class(*id=t;*name=test);*class(*id=tt;*name=test)",

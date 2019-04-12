@@ -53,7 +53,7 @@ def tests_that_should_pass
 
   data.each_index do |i|
     begin
-      #next if i < 143
+      #next if i < 33
       test_case = data[i]
 
       puts 'Test Input: ' + test_case['input']
@@ -123,10 +123,10 @@ def tests_that_should_fail
   end
 end
 
-puts 'Running tests that should fail.'
-tests_that_should_fail
-
 puts 'Running tests that should pass.'
 tests_that_should_pass
+
+puts 'Running tests that should fail.'
+tests_that_should_fail
 
 puts 'Testing complete.'
