@@ -1,5 +1,6 @@
 require 'singleton'
 require 'modl/parser/object_cache'
+require 'modl/parser/sutil'
 
 module Modl
   module Parser
@@ -18,7 +19,7 @@ module Modl
           if force
             # Don't use the cache if we're forcing a reload.
             ObjectCache.instance.evict(file_name)
-            file_name = file_name.slice(0, file_name.length - 1)
+            file_name = Sutil.head(file_name)
             parsed = nil
           else
             # Do we have a cached version?

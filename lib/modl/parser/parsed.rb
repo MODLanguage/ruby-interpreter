@@ -4,6 +4,7 @@ require 'modl/parser/ref_processor'
 require 'modl/parser/substitutions'
 require 'modl/parser/file_importer'
 require 'antlr4/runtime/parse_cancellation_exception'
+require 'modl/parser/sutil'
 require 'cgi'
 require 'net/http'
 
@@ -360,7 +361,7 @@ module Modl
           @key = ctx.STRING.to_s unless ctx.STRING.nil?
           unless ctx.QUOTED.nil?
             @key = ctx.QUOTED.to_s
-            @key = key.slice(1, key.length - 2) # remove the quotes
+            @key = Sutil.toptail(@key) # remove the quotes
           end
 
           @final = true if @key.upcase == @key
@@ -424,7 +425,7 @@ module Modl
           return if @global.conditional.positive? # Don't store pairs in conditionals until we evaluate the conditions
 
           if @key.start_with? '_'
-            k = @key.slice(1, @key.length)
+            k = Sutil.trail(@key)
             existing = @global.pairs[k]
             raise Antlr4::Runtime::ParseCancellationException, 'Already defined ' + k + ' as final.' if existing&.final
 
@@ -609,7 +610,7 @@ module Modl
             raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + c + '" character not allowed: ' + @key
           end
 
-          key = @key.start_with?('_') ? @key.slice(1, @key.length) : @key
+          key = @key.start_with?('_') ? Sutil.trail(@key) : @key
           raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + key + '" - entirely numeric keys are not allowed: ' + @key if key == key.to_i.to_s
         end
 
@@ -707,7 +708,7 @@ module Modl
             @text, new_value = RefProcessor.instance.deref @text, @global
             @string = ParsedString.new(@text)
           elsif !ctx.QUOTED.nil?
-            @text = ctx.QUOTED.text.slice(1, ctx.QUOTED.text.length - 2) # remove the quotes
+            @text = Sutil.toptail(ctx.QUOTED.text) # remove the quotes
             @text = Parsed.additional_string_processing(@text)
             @text, new_value = RefProcessor.instance.deref @text, @global
             @quoted = ParsedQuoted.new(@text)
@@ -821,7 +822,7 @@ module Modl
             @text = Parsed.additional_string_processing(ctx.STRING.text)
             @string = ParsedString.new(@text)
           elsif !ctx.QUOTED.nil?
-            @text = ctx.QUOTED.text.slice(1, ctx.QUOTED.text.length - 2) # remove the quotes
+            @text = Sutil.toptail(ctx.QUOTED.text) # remove the quotes
             @text = Parsed.additional_string_processing(@text)
             @quoted = ParsedQuoted.new(@text)
           elsif !ctx.NULL.nil?
@@ -994,7 +995,7 @@ module Modl
         def evaluate
           result = false
           if @key
-            key = @key.start_with?('%') ? @key.slice(1, @key.length) : @key
+            key = @key.start_with?('%') ? Sutil.trail(@key) : @key
             ikey = key.to_i
             if ikey.to_s == key
               value1 = @global.index[ikey].text
@@ -1039,7 +1040,7 @@ module Modl
           elsif @values.length == 1
             key = @values[0].text
             if key.is_a?(String)
-              key = key.start_with?('%') ? key.slice(1, key.length) : key
+              key = key.start_with?('%') ? Sutil.trail(key) : key
             end
             the_pair = @global.pairs[key]
             if the_pair
@@ -1179,7 +1180,7 @@ module Modl
             item = @topLevelConditionalReturns[i]
             if item.structures[0].pair
               key = item.structures[0].pair.key
-              key = key.slice(1, key.length) if key[0] == '_'
+              key = Sutil.trail(key) if key[0] == '_'
               @global.pairs[key] = item.structures[0].pair
             end
             return item.extract_hash
@@ -1189,7 +1190,7 @@ module Modl
           last_item = @topLevelConditionalReturns[-1]
           if last_item.structures[0].pair
             key = last_item.structures[0].pair.key
-            key = key.slice(1, key.length) if key[0] == '_'
+            key = Sutil.trail(key) if key[0] == '_'
             @global.pairs[key] = last_item.structures[0].pair
           end
           last_item.extract_hash

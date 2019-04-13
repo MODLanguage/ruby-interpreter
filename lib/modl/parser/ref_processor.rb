@@ -1,6 +1,7 @@
 require 'singleton'
 require 'modl/parser/parsed'
 require 'punycode'
+require 'modl/parser/sutil'
 
 module Modl
   module Parser
@@ -28,28 +29,30 @@ module Modl
         if idx.nil?
           idx = str.index '%'
           return [str, nil] if idx.nil?
+
           graved = false
         else
           graved = true
         end
 
-        parts << str.slice(0, idx)
+        parts << Sutil.head(str, idx)
         skip = graved ? 2 : 1
 
-        parts << str.slice(idx + skip, str.length)
+        parts << Sutil.trail(str, idx + skip)
 
         # Are there any methods?
         dot_index = parts[1].index('.')
         grave_index = parts[1].index('`')
         grave_index = parts[1].length if grave_index.nil?
-        method_str = parts[1].slice(dot_index, parts[1].length) if dot_index && (dot_index < grave_index)
+        method_str = Sutil.trail(parts[1], dot_index) if dot_index && (dot_index < grave_index)
         # Handle nested refs
         if parts[1].include? '>'
-          ref_key = parts[1].slice(0, parts[1].index('>'))
+          ref_key = Sutil.until(parts[1], '>')
 
           # recurse through the nested refs to a final value.
           num_ref_key = ref_key.to_i
-          new_value = num_ref_key.to_s == ref_key ? nested_value(parts[1].slice(parts[1].index('>') + 1, parts[1].length), global.index[num_ref_key], global) : nested_value(parts[1].slice(parts[1].index('>') + 1, parts[1].length), global.pairs[ref_key], global)
+          after_gt = Sutil.after(parts[1], '>')
+          new_value = num_ref_key.to_s == ref_key ? nested_value(after_gt, global.index[num_ref_key], global) : nested_value(after_gt, global.pairs[ref_key], global)
 
           # Process the result of recursing down, if we found a result.
           if new_value
@@ -62,7 +65,7 @@ module Modl
               txt_value = new_value.extract_hash
               parts[1] = txt_value
             end
-            parts[2] = tmp.slice(tmp.index('`'), tmp.length) if graved
+            parts[2] = Sutil.trail(tmp, tmp.index('`')) if graved
             new_value = nil
           end
         else
@@ -70,7 +73,7 @@ module Modl
           key = ''
           while parts[1].length > 0 && digit?(parts[1][0])
             key << parts[1][0]
-            parts[1] = parts[1].slice(1, parts[1].length)
+            parts[1] = Sutil.trail(parts[1])
           end
 
           if key.length.positive?
@@ -102,7 +105,7 @@ module Modl
               # We found a match so replace the ref with the new value.
               tmp = parts[1]
               parts[1] = global.pairs[best_match].text
-              parts[2] = tmp.slice(best_match.length, tmp.length)
+              parts[2] = Sutil.trail(tmp, best_match.length)
               if str.start_with?('`%') || str.start_with?('%')
                 pair = global.pairs[best_match]
                 if pair.array
@@ -125,7 +128,7 @@ module Modl
         # Are there any methods to run?
         next_part = run_methods(global, method_str, parts)
 
-        parts[next_part] = parts[next_part].slice(1, parts[next_part].length) if graved && parts[next_part]
+        parts[next_part] = Sutil.trail(parts[next_part]) if graved && parts[next_part]
 
         # Join the parts and return the result.
         if parts[0].empty? && parts[2] && parts[2].empty?
@@ -148,46 +151,46 @@ module Modl
         while parts.length == 3 && remainder && remainder[0] == '.'
           method, remainder = get_method remainder
 
+          skip2 = Sutil.trail(parts[next_part], 2)
+
           case method
           when '.u'
             parts[1] = parts[1].upcase
-            parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
+            parts[next_part] = skip2 if parts[next_part].start_with? method
           when '.d'
             parts[1] = parts[1].downcase
-            parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
+            parts[next_part] = skip2 if parts[next_part].start_with? method
           when '.i'
             parts[1] = parts[1].split.map(&:capitalize) * ' '
-            parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
+            parts[next_part] = skip2 if parts[next_part].start_with? method
           when '.s'
             split = parts[1].split
             split[0].capitalize!
             parts[1] = split.join(' ')
-            parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
+            parts[next_part] = skip2 if parts[next_part].start_with? method
           when '.e'
             parts[1] = CGI.escape(parts[1])
-            parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
+            parts[next_part] = skip2 if parts[next_part].start_with? method
           when '.r'
             s1, s2 = get_subst_parts parts[next_part]
             parts[1] = parts[1].sub(s1, s2)
             # Consume the subst clause
-            close_bracket = parts[next_part].index(')')
-            parts[next_part] = parts[next_part].slice(close_bracket + 1, parts[next_part].length)
+            parts[next_part] = Sutil.after(parts[next_part], ')')
           when '.t'
             s1 = extract_params parts[next_part]
             i = parts[1].index(s1)
-            parts[1] = parts[1].slice(0, i)
+            parts[1] = Sutil.head(parts[1], i)
             # Consume the trunc clause
-            close_bracket = parts[next_part].index(')')
-            parts[next_part] = parts[next_part].slice(close_bracket + 1, parts[next_part].length)
+            parts[next_part] = Sutil.after(parts[next_part], ')')
           when '.p'
             encoded = parts[1]
             decoded = Punycode.decode(encoded)
             parts[1] = decoded
-            parts[next_part] = parts[next_part].slice(2, parts[next_part].length) if parts[next_part].start_with? method
+            parts[next_part] = skip2 if parts[next_part].start_with? method
           else
             # Check for user-defined methods and execute them
             if method
-              m = global.methods_hash[method.slice(1, method.length)]
+              m = global.methods_hash[Sutil.trail(method)]
 
               if m
                 parts[1] = run_method m['transform'], parts[1]
@@ -214,10 +217,10 @@ module Modl
 
           gt_index = ref.index('>')
           if gt_index < end_index
-            ref_key = ref.slice(0, gt_index)
-            remainder = ref.slice(gt_index + 1, ref.length)
+            ref_key = Sutil.head(ref, gt_index)
+            remainder = Sutil.trail(ref, gt_index + 1)
           else
-            ref_key = ref.slice(0, end_index)
+            ref_key = Sutil.head(ref, end_index)
           end
         else
           # No more nested references so get the target value and return it.
@@ -235,6 +238,7 @@ module Modl
           elsif value.is_a? Parsed::ParsedArrayItem
             num_ref = ref.to_i
             return value.arrayValueItem.array.abstractArrayItems[num_ref] if value.arrayValueItem.array
+
             return value.arrayValueItem.text + '>' + ref
           elsif value.is_a? Parsed::ParsedNbArray
             num_ref = ref.to_i
@@ -244,14 +248,8 @@ module Modl
         end
 
         # Check for dots and graves and slice off the extra
-        if ref_key.include?('`')
-          g_index = ref_key.index('`')
-          ref_key = ref_key.slice(0, g_index)
-        end
-        if ref_key.include?('.')
-          dot_index = ref_key.index('.')
-          ref_key = ref_key.slice(0, dot_index)
-        end
+        ref_key = Sutil.until(ref_key, '`')
+        ref_key = Sutil.until(ref_key, '.')
 
         # We need a map, array or nb array to continue the nested de-reffing
         if value.map
@@ -305,9 +303,7 @@ module Modl
       # Extract the method parameter
       def extract_params(str)
         # should be of the form .r(s1,s2)
-        open_bracket = str.index '('
-        close_bracket = str.index ')'
-        str.slice(open_bracket + 1, close_bracket - open_bracket - 1)
+        Sutil.between(str, '(', ')')
       end
 
       # Check the string for the next method name and return it.
@@ -317,7 +313,7 @@ module Modl
           'udisertp'.each_char do |m|
             method_name = '.' + m
             if str.start_with?(method_name)
-              remainder = str.slice(2, str.length)
+              remainder = Sutil.trail(str, 2)
               return [method_name, remainder]
             end
           end
@@ -332,7 +328,7 @@ module Modl
           end
 
           if method_name.length > 1
-            remainder = str.slice(method_name.length + 1, str.length)
+            remainder = Sutil.trail(str, method_name.length + 1)
             return [method_name, remainder]
           end
         end
@@ -356,17 +352,17 @@ module Modl
             str = str.sub(s1, s2)
             # Consume the subst clause
             close_bracket = transform.index(')')
-            transform = transform.slice(close_bracket + 2, transform.length)
+            transform = Sutil.trail(transform, close_bracket + 2)
           elsif transform.start_with? 'trim'
             s1 = extract_params transform
             i = str.index(s1)
-            str = str.slice(0, i)
+            str = Sutil.head(str, i)
             # Consume the trunc clause
             close_bracket = transform.index(')')
-            transform = transform.slice(close_bracket + 2, transform.length)
+            transform = Sutil.trail(transform, close_bracket + 2)
           elsif transform.start_with? 'initcap'
             str = str.split.map(&:capitalize) * ' '
-            transform = transform.slice(8, transform.length)
+            transform = Sutil.trail(transform, 8)
           elsif transform.start_with? 'upcase'
             raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
           elsif transform.start_with? 'downcase'
