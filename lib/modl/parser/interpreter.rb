@@ -25,8 +25,11 @@ module Modl
         return interpreted if interpreted.is_a? String
 
         # Otherwise generate a JSON string.
-        JSON.generate interpreted unless pretty
-        JSON.pretty_generate interpreted if pretty
+        if pretty
+          JSON.pretty_generate interpreted
+        else
+          JSON.generate interpreted
+        end
       end
     end
   end
