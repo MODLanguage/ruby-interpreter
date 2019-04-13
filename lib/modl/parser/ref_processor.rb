@@ -21,8 +21,6 @@ module Modl
         [str, new_value]
       end
 
-      private
-
       # Process the next %ref token
       def split_by_ref_tokens str, global
         parts = []
@@ -140,6 +138,8 @@ module Modl
           [parts[1], new_value]
         end
       end
+
+      private
 
       # Are there any methods to run?
       def run_methods(global, method_str, parts)
