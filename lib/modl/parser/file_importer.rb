@@ -1,5 +1,5 @@
 require 'singleton'
-require 'modl/parser/file_cache'
+require 'modl/parser/object_cache'
 
 module Modl::Parser
 
@@ -13,9 +13,9 @@ module Modl::Parser
 
       file_names.each do |file_name|
         force = file_name.end_with?('!')
-        FileCache.instance.evict(file_name) if force
+        ObjectCache.instance.evict(file_name) if force
 
-        parsed = FileCache.instance.get(file_name)
+        parsed = ObjectCache.instance.get(file_name)
 
         unless parsed
 
@@ -39,7 +39,7 @@ module Modl::Parser
 
           # Parse the downloaded file ands extract the classes
           parsed = Modl::Parser::Parser.parse txt, global
-          FileCache.instance.put(file_name, parsed)
+          ObjectCache.instance.put(file_name, parsed)
         end
         parsed.extract_json
         global.classes.merge!(parsed.global.classes)
