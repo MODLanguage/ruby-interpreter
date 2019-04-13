@@ -48,7 +48,7 @@ module Modl
             ObjectCache.instance.put(file_name, parsed)
           end
           # Extract the JSON content and add the classes and pairs to the existing GlobalParseContext hashes.
-          parsed.extract_json
+          parsed.extract_hash
           global.classes.merge!(parsed.global.classes)
           global.pairs.merge!(parsed.global.pairs)
         end

@@ -16,7 +16,7 @@ module Modl
         parsed = Modl::Parser::Parser.parse str
 
         # Convert the Parsed object into a simpler structure of and Array or Hash
-        interpreted = parsed.extract_json
+        interpreted = parsed.extract_hash
 
         # Process any class definitions used by the MODL file.
         ClassProcessor.instance.process(parsed.global, interpreted)
