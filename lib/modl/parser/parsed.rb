@@ -294,23 +294,23 @@ module Modl
           @final = false
         end
 
-        def set_value value
+        # Set the appropriate field base on the value type
+        def set_value(value)
           if value.is_a? Array
             @map = nil
             @array = ParsedArray.new @global
             @array.abstractArrayItems = []
             value.each do |item|
-              arrayItem = ParsedArrayItem.new @global
-              arrayItem.arrayValueItem = ParsedArrayValueItem.new @global
-              arrayItem.arrayValueItem.string = ParsedString.new(item)
-              arrayItem.arrayValueItem.text = item
-              @array.abstractArrayItems << arrayItem
+              array_item = ParsedArrayItem.new @global
+              array_item.arrayValueItem = ParsedArrayValueItem.new @global
+              array_item.arrayValueItem.string = ParsedString.new(item)
+              array_item.arrayValueItem.text = item
+              @array.abstractArrayItems << array_item
             end
             @valueItem = nil
             @text = @array.extract_hash
             return
-          end
-          if value.is_a?(TrueClass) || value.is_a?(FalseClass)
+          elsif value.is_a?(TrueClass) || value.is_a?(FalseClass)
             @map = nil
             @array = nil
             @valueItem = ParsedValueItem.new @global
@@ -332,6 +332,7 @@ module Modl
           @text = value
         end
 
+        # Convert this object to a simple hash ready for JSON.generate
         def extract_hash
 
           value = @array.extract_hash if @array
@@ -354,7 +355,7 @@ module Modl
         end
 
         def enterModl_pair(ctx)
-          @type = 'pair'
+          @type = 'pair' # default the type to an ordinary pair
 
           @key = ctx.STRING.to_s unless ctx.STRING.nil?
           unless ctx.QUOTED.nil?
@@ -362,33 +363,9 @@ module Modl
             @key = key.slice(1, key.length - 2) # remove the quotes
           end
 
-          if @key.upcase == @key
-            @final = true
-          end
+          @final = true if @key.upcase == @key
 
-          @type = 'class' if @key == '*c' || @key == '*class'
-          if @key == '*C' || @key == '*CLASS'
-            @type = 'class'
-            @key = @key.downcase
-          end
-          @type = 'id' if @key == '*i' || @key == '*id'
-          @type = 'name' if @key == '*n' || @key == '*name'
-          @type = 'name' if @key == '*N' || @key == '*NAME'
-          @type = 'superclass' if @key == '*S' || @key == '*SUPERCLASS'
-          @type = 'superclass' if @key == '*s' || @key == '*superclass'
-          @type = 'keylist' if @key == '*a' || @key == '*assign'
-          @type = 'version' if @key == '*V' || @key == '*VERSION'
-          @type = 'method' if @key == '*m' || @key == '*method'
-          @type = 'transform' if @key == '*t' || @key == '*transform'
-          if @key == '*L' || @key == '*LOAD'
-            @key = @key.downcase
-            @type = 'import'
-          end
-          if @key == '*l' || @key == '*load'
-            @type = 'import'
-          end
-          @type = 'index' if @key == '?'
-          @type = 'hidden' if @key.start_with? '_'
+          set_pair_type
 
           raise Antlr4::Runtime::ParseCancellationException, 'Invalid keyword: ' + @key if @type == 'pair' && @key.start_with?('*')
 
@@ -420,18 +397,12 @@ module Modl
             extract_key_list @array if @array
           when 'version'
             extract_value
-            if @valueItem.value.number.nil?
-              raise Antlr4::Runtime::ParseCancellationException, "Invalid MODL version: nil"
-            end
-            if @valueItem.value.number.num.is_a? Float
-              raise Antlr4::Runtime::ParseCancellationException, "Invalid MODL version: " + @valueItem.value.number.num.to_s
-            end
-            if @valueItem.value.number.num == 0
-              raise Antlr4::Runtime::ParseCancellationException, "Invalid MODL version: " + @valueItem.value.number.num.to_s
-            end
-            if @global.pairs.length > 0
-              raise Antlr4::Runtime::ParseCancellationException, "MODL version should be on the first line if specified."
-            end
+
+            raise Antlr4::Runtime::ParseCancellationException, 'Invalid MODL version: nil' if @valueItem.value.number.nil?
+            raise Antlr4::Runtime::ParseCancellationException, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.is_a? Float
+            raise Antlr4::Runtime::ParseCancellationException, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.zero?
+            raise Antlr4::Runtime::ParseCancellationException, 'MODL version should be on the first line if specified.' if @global.pairs.length.positive?
+
           when 'method'
             extract_method
           when 'transform'
@@ -450,105 +421,111 @@ module Modl
             invoke_deref
           end
 
-          return if @global.conditional > 0 # Don't store pairs in conditionals until we evaluate the conditions
+          return if @global.conditional.positive? # Don't store pairs in conditionals until we evaluate the conditions
 
           if @key.start_with? '_'
             k = @key.slice(1, @key.length)
             existing = @global.pairs[k]
-            raise Antlr4::Runtime::ParseCancellationException, "Already defined " + k + " as final." if existing&.final
+            raise Antlr4::Runtime::ParseCancellationException, 'Already defined ' + k + ' as final.' if existing&.final
+
             @global.pairs[k] = self
           end
           existing = @global.pairs[@key]
-          raise Antlr4::Runtime::ParseCancellationException, "Already defined " + @key + " as final." if existing&.final
+          raise Antlr4::Runtime::ParseCancellationException, 'Already defined ' + @key + ' as final.' if existing&.final
+
           @global.pairs[@key] = self
         end
 
+        private
+
         def extract_class
-          if @type == 'class'
-            clazz = {}
-            map = @map if @map
-            map = @valueItem&.value&.map if @valueItem&.value&.map
+          return unless @type == 'class'
 
-            map.mapItems.each do |item|
-              if item&.pair&.type
-                case item&.pair&.type
-                when 'id'
-                  str_value = item.pair.valueItem.value.string.string
-                  raise Antlr4::Runtime::ParseCancellationException, 'Reserved class id - cannot redefine: ' + str_value if reserved_class(str_value)
-                  clazz['id'] = str_value
-                when 'name'
-                  str_value = item.pair.valueItem.value.string.string
-                  raise Antlr4::Runtime::ParseCancellationException, 'Reserved class name - cannot redefine: ' + str_value if reserved_class(str_value)
-                  clazz['name'] = str_value
-                when 'superclass'
-                  str_value = item.pair.valueItem.value.string.string
-                  clazz['superclass'] = str_value
-                when 'keylist'
-                  clazz['keylist'] = item.pair.key_lists
-                else
-                  clazz[item.pair.key] = item.pair.array if item.pair.array
-                  clazz[item.pair.key] = item.pair.map if item.pair.map
-                  clazz[item.pair.key] = item.pair.valueItem.value if item.pair.valueItem.value
-                end
-              end
-            end
+          clazz = {}
+          map = @map if @map
+          map = @valueItem&.value&.map if @valueItem&.value&.map
 
-            superclass = clazz['superclass']
-            if superclass && !(superclass == 'map' || superclass == 'str' || superclass == 'arr' || superclass == 'num') && !@global.classes.keys.include?(superclass)
-              raise Antlr4::Runtime::ParseCancellationException, 'Invalid superclass: ' + superclass.to_s
-            end
-            raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
-# Make sure the class name isn't redefining an existing class
-            if @global.classes[clazz['id']].nil? && @global.classes[clazz['name']].nil?
+          map.mapItems.each do |item|
+            next unless item&.pair&.type
 
-# store the classes by id and name to make them easier to find later
-              @global.classes[clazz['id']] = clazz
-              @global.classes[clazz['name']] = clazz
+            case item&.pair&.type
+            when 'id'
+              str_value = item.pair.valueItem.value.string.string
+              raise Antlr4::Runtime::ParseCancellationException, 'Reserved class id - cannot redefine: ' + str_value if reserved_class(str_value)
+
+              clazz['id'] = str_value
+            when 'name'
+              str_value = item.pair.valueItem.value.string.string
+              raise Antlr4::Runtime::ParseCancellationException, 'Reserved class name - cannot redefine: ' + str_value if reserved_class(str_value)
+
+              clazz['name'] = str_value
+            when 'superclass'
+              str_value = item.pair.valueItem.value.string.string
+              clazz['superclass'] = str_value
+            when 'keylist'
+              clazz['keylist'] = item.pair.key_lists
             else
-              id = (clazz['id'].nil?) ? 'undefined' : clazz['id']
-              name = (clazz['name'].nil?) ? 'undefined' : clazz['name']
-              raise Antlr4::Runtime::ParseCancellationException, 'Class name or id already defined - cannot redefine: ' + id + ", " + name
+              clazz[item.pair.key] = item.pair.array if item.pair.array
+              clazz[item.pair.key] = item.pair.map if item.pair.map
+              clazz[item.pair.key] = item.pair.valueItem.value if item.pair.valueItem.value
             end
+          end
+
+          superclass = clazz['superclass']
+
+          if superclass && !reserved_class(superclass) && !@global.classes.keys.include?(superclass)
+            raise Antlr4::Runtime::ParseCancellationException, 'Invalid superclass: ' + superclass.to_s
+          end
+          raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
+
+          # Make sure the class name isn't redefining an existing class
+          if @global.classes[clazz['id']].nil? && @global.classes[clazz['name']].nil?
+
+            # store the classes by id and name to make them easier to find later
+            @global.classes[clazz['id']] = clazz
+            @global.classes[clazz['name']] = clazz
+          else
+            id = clazz['id'].nil? ? 'undefined' : clazz['id']
+            name = clazz['name'].nil? ? 'undefined' : clazz['name']
+            raise Antlr4::Runtime::ParseCancellationException, 'Class name or id already defined - cannot redefine: ' + id + ', ' + name
           end
         end
 
         def reserved_class(str)
-          (str == 'arr' || str == 'map' || str == 'num' || str == 'str')
+          %w[map str arr num].include?(str)
         end
 
         def extract_method
-          if @type == 'method'
-            mthd = {}
-            map = @map if @map
-            map = @valueItem&.value&.map if @valueItem&.value&.map
+          return unless @type == 'method'
 
-            map.mapItems.each do |item|
-              if item&.pair&.type
-                case item&.pair&.type
-                when 'id'
-                  mthd['id'] = item.pair.valueItem.value.string.string
-                when 'transform'
-                  mthd['transform'] = item.pair.valueItem.value.string.string
-                when 'name'
-                  mthd['name'] = item.pair.valueItem.value.string.string
-                else
-                  raise Antlr4::Runtime::ParseCancellationException, 'Invalid *method - only *id, *name, and *transform fields expected'
-                end
+          mthd = {}
+          map = @map if @map
+          map = @valueItem&.value&.map if @valueItem&.value&.map
+
+          map.mapItems.each do |item|
+            if item&.pair&.type
+              case item&.pair&.type
+              when 'id'
+                mthd['id'] = item.pair.valueItem.value.string.string
+              when 'transform'
+                mthd['transform'] = item.pair.valueItem.value.string.string
+              when 'name'
+                mthd['name'] = item.pair.valueItem.value.string.string
+              else
+                raise Antlr4::Runtime::ParseCancellationException, 'Invalid *method - only *id, *name, and *transform fields expected'
               end
             end
-
-            raise Antlr4::Runtime::ParseCancellationException, 'Missing id for method' if mthd['id'].nil?
-            raise Antlr4::Runtime::ParseCancellationException, 'Missing name for method' if mthd['name'].nil?
-
-# Does the method name or id already exist?
-            raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method name: ' + mthd['name'] unless @global.methods_hash[mthd['name']].nil?
-            raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method id: ' + mthd['id'] unless @global.methods_hash[mthd['id']].nil?
-
-
-# store the methods by id and name to make them easier to find later
-            @global.methods_hash[mthd['id']] = mthd
-            @global.methods_hash[mthd['name']] = mthd
           end
+
+          raise Antlr4::Runtime::ParseCancellationException, 'Missing id for method' if mthd['id'].nil?
+          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for method' if mthd['name'].nil?
+          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method name: ' + mthd['name'] unless @global.methods_hash[mthd['name']].nil?
+          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method id: ' + mthd['id'] unless @global.methods_hash[mthd['id']].nil?
+
+
+          # store the methods by id and name to make them easier to find later
+          @global.methods_hash[mthd['id']] = mthd
+          @global.methods_hash[mthd['name']] = mthd
         end
 
         def extract_value
@@ -575,16 +552,11 @@ module Modl
                 @global.index << avi.arrayValueItem
               end
             end
-            return
           elsif item.is_a? ParsedArray
             item.abstractArrayItems.each do |avi|
               @global.index << avi.arrayValueItem
             end
-            return
-          else
-            return
           end
-          raise Antlr4::Runtime::ParseCancellationException, 'The index should have one or more values'
         end
 
         def extract_key_list item
@@ -631,40 +603,60 @@ module Modl
         def validate_key
           invalid_chars = "!$@-+'*#^&%"
           invalid_chars.each_char do |c|
-            if @key.include?(c)
-              if c == '%' && @key.rindex(c) == 0
-                next
-              end
-              raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + c + '" character not allowed: ' + @key
-            end
+            next unless @key.include?(c)
+            next if c == '%' && @key.rindex(c).zero?
+
+            raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + c + '" character not allowed: ' + @key
           end
 
-          key = (@key.start_with?('_')) ? @key.slice(1, @key.length) : @key
-
-          if key == key.to_i.to_s
-            raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + key + '" - entirely numeric keys are not allowed: ' + @key
-          end
-
+          key = @key.start_with?('_') ? @key.slice(1, @key.length) : @key
+          raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + key + '" - entirely numeric keys are not allowed: ' + @key if key == key.to_i.to_s
         end
 
         def invoke_deref
-          if @needs_defref && !@text.nil? && @text.is_a?(String) && @text.include?('%')
-            @needs_defref = false
+          return unless @needs_defref && !@text.nil? && @text.is_a?(String) && @text.include?('%')
 
-            @text, new_value = RefProcessor.instance.deref @text, @global
+          @needs_defref = false
+          @text, new_value = RefProcessor.instance.deref @text, @global
 
-            if new_value.is_a? ParsedMap
-              @map = new_value
-            elsif new_value.is_a? ParsedArray
-              @array = new_value
-            elsif new_value.is_a? ParsedValueItem
-              @valueItem = new_value
-            elsif new_value.nil?
-              set_value @text
-            elsif new_value.is_a? ParsedPair
-              set_value @text
-            end
+          if new_value.is_a? ParsedMap
+            @map = new_value
+          elsif new_value.is_a? ParsedArray
+            @array = new_value
+          elsif new_value.is_a? ParsedValueItem
+            @valueItem = new_value
+          elsif new_value.nil?
+            set_value @text
+          elsif new_value.is_a? ParsedPair
+            set_value @text
           end
+        end
+
+        # Set the pair type if its a 'special' type
+        def set_pair_type
+          @type = 'class' if @key == '*c' || @key == '*class'
+          if @key == '*C' || @key == '*CLASS'
+            @type = 'class'
+            @key = @key.downcase
+          end
+          @type = 'id' if @key == '*i' || @key == '*id'
+          @type = 'name' if @key == '*n' || @key == '*name'
+          @type = 'name' if @key == '*N' || @key == '*NAME'
+          @type = 'superclass' if @key == '*S' || @key == '*SUPERCLASS'
+          @type = 'superclass' if @key == '*s' || @key == '*superclass'
+          @type = 'keylist' if @key == '*a' || @key == '*assign'
+          @type = 'version' if @key == '*V' || @key == '*VERSION'
+          @type = 'method' if @key == '*m' || @key == '*method'
+          @type = 'transform' if @key == '*t' || @key == '*transform'
+          if @key == '*L' || @key == '*LOAD'
+            @key = @key.downcase
+            @type = 'import'
+          end
+          if @key == '*l' || @key == '*load'
+            @type = 'import'
+          end
+          @type = 'index' if @key == '?'
+          @type = 'hidden' if @key.start_with? '_'
         end
       end
 
