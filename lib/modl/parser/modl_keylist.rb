@@ -16,7 +16,7 @@ module Modl
             if key_list.length > last_keylist_len
               last_keylist_len = key_list.length
             else
-              raise Antlr4::Runtime::ParseCancellationException, 'Error: Key lists in *assign are not in ascending order of list length.'
+              raise InterpreterError, 'Error: Key lists in *assign are not in ascending order of list length.'
             end
             pair.key_lists << key_list
           end
@@ -30,12 +30,12 @@ module Modl
             if key_list.length > last_keylist_len
               last_keylist_len = key_list.length
             else
-              raise Antlr4::Runtime::ParseCancellationException, 'Error: Key lists in *assign are not in ascending order of list length.'
+              raise InterpreterError, 'Error: Key lists in *assign are not in ascending order of list length.'
             end
             pair.key_lists << key_list
           end
         else
-          raise Antlr4::Runtime::ParseCancellationException, 'Array of arrays expected for: ' + pair.key
+          raise InterpreterError, 'Array of arrays expected for: ' + pair.key
         end
       end
     end

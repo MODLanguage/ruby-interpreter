@@ -8,6 +8,10 @@ require 'json'
 
 module Modl
   module Parser
+    # Interpreter-specific errors
+    class InterpreterError < StandardError
+    end
+
     # This is the main Ruby Interpreter entry point. Supply a String containing MODL text and it will return a String
     # containing the JSON equivalent. The JSON isn't pretty-printed unless pretty is true
     class Interpreter

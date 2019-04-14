@@ -291,7 +291,7 @@ module Modl
         if ref_key == target_key
           return remainder && remainder.length > 0 ? nested_value(remainder, result, global) : result.valueItem
         end
-        raise Antlr4::Runtime::ParseCancellationException, ref_key + ' item not found for reference ' + ref
+        raise InterpreterError, ref_key + ' item not found for reference ' + ref
       end
 
       # Extract the method parameters
@@ -364,15 +364,15 @@ module Modl
             str = str.split.map(&:capitalize) * ' '
             transform = Sutil.trail(transform, 8)
           elsif transform.start_with? 'upcase'
-            raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+            raise InterpreterError, 'NOT IMPLEMENTED'
           elsif transform.start_with? 'downcase'
-            raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+            raise InterpreterError, 'NOT IMPLEMENTED'
           elsif transform.start_with? 'sentence'
-            raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+            raise InterpreterError, 'NOT IMPLEMENTED'
           elsif transform.start_with? 'urlencode'
-            raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+            raise InterpreterError, 'NOT IMPLEMENTED'
           else
-            raise Antlr4::Runtime::ParseCancellationException, 'NOT IMPLEMENTED'
+            raise InterpreterError, 'NOT IMPLEMENTED'
           end
         end
         str

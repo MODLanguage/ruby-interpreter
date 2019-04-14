@@ -237,7 +237,7 @@ module Modl
 
           set_pair_type
 
-          raise Antlr4::Runtime::ParseCancellationException, 'Invalid keyword: ' + @key if @type == 'pair' && @key.start_with?('*')
+          raise InterpreterError, 'Invalid keyword: ' + @key if @type == 'pair' && @key.start_with?('*')
 
           if !ctx.modl_array.nil?
             @array = ParsedArray.new @global
@@ -268,10 +268,10 @@ module Modl
           when 'version'
             extract_value
 
-            raise Antlr4::Runtime::ParseCancellationException, 'Invalid MODL version: nil' if @valueItem.value.number.nil?
-            raise Antlr4::Runtime::ParseCancellationException, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.is_a? Float
-            raise Antlr4::Runtime::ParseCancellationException, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.zero?
-            raise Antlr4::Runtime::ParseCancellationException, 'MODL version should be on the first line if specified.' if @global.pairs.length.positive?
+            raise InterpreterError, 'Invalid MODL version: nil' if @valueItem.value.number.nil?
+            raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.is_a? Float
+            raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.zero?
+            raise InterpreterError, 'MODL version should be on the first line if specified.' if @global.pairs.length.positive?
 
           when 'method'
             MethodExtractor.extract(self, @global)
@@ -296,12 +296,12 @@ module Modl
           if @key.start_with? '_'
             k = Sutil.trail(@key)
             existing = @global.pairs[k]
-            raise Antlr4::Runtime::ParseCancellationException, 'Already defined ' + k + ' as final.' if existing&.final
+            raise InterpreterError, 'Already defined ' + k + ' as final.' if existing&.final
 
             @global.pairs[k] = self
           end
           existing = @global.pairs[@key]
-          raise Antlr4::Runtime::ParseCancellationException, 'Already defined ' + @key + ' as final.' if existing&.final
+          raise InterpreterError, 'Already defined ' + @key + ' as final.' if existing&.final
 
           @global.pairs[@key] = self
         end
@@ -325,11 +325,11 @@ module Modl
             next unless @key.include?(c)
             next if c == '%' && @key.rindex(c).zero?
 
-            raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + c + '" character not allowed: ' + @key
+            raise InterpreterError, 'Invalid key - "' + c + '" character not allowed: ' + @key
           end
 
           key = @key.start_with?('_') ? Sutil.trail(@key) : @key
-          raise Antlr4::Runtime::ParseCancellationException, 'Invalid key - "' + key + '" - entirely numeric keys are not allowed: ' + @key if key == key.to_i.to_s
+          raise InterpreterError, 'Invalid key - "' + key + '" - entirely numeric keys are not allowed: ' + @key if key == key.to_i.to_s
         end
 
         def invoke_deref

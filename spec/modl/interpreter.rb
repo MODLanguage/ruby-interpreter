@@ -110,7 +110,7 @@ def tests_that_should_fail
       puts 'Test was expected to fail but did not: ' + test_case
       puts 'Result                               : ' + result
       break if exit_on_fail
-    rescue StandardError => e
+    rescue Modl::Parser::InterpreterError => e
       success += 1
       puts e.to_s
       puts e.backtrace
@@ -123,8 +123,8 @@ def tests_that_should_fail
   end
 end
 
-puts 'Running tests that should pass.'
-tests_that_should_pass
+#puts 'Running tests that should pass.'
+#tests_that_should_pass
 
 puts 'Running tests that should fail.'
 tests_that_should_fail

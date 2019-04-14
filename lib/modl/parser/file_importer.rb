@@ -39,7 +39,7 @@ module Modl
               begin
                 txt = File.readlines(file_name).join
               rescue
-                raise Antlr4::Runtime::ParseCancellationException, 'File not found: ' + file_name
+                raise InterpreterError, 'File not found: ' + file_name
               end
             end
 

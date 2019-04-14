@@ -57,7 +57,7 @@ module Modl
           if tc == 'str'
             new_value = v.to_s
           elsif tc == 'num' && !v.is_a?(Numeric)
-            raise Antlr4::Runtime::ParseCancellationException, 'Superclass of "' + clazz.id + '" is num - cannot assign String value "' + v.to_s + '"'
+            raise InterpreterError, 'Superclass of "' + clazz.id + '" is num - cannot assign String value "' + v.to_s + '"'
           elsif tc == 'map'
             if v.is_a? Hash
               # Bring down values from the superclass hierarchy

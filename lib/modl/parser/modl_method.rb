@@ -31,14 +31,14 @@ module Modl
           when 'name'
             mthd.name = item.pair.valueItem.value.string.string
           else
-            raise Antlr4::Runtime::ParseCancellationException, 'Invalid *method - only *id, *name, and *transform fields expected'
+            raise InterpreterError, 'Invalid *method - only *id, *name, and *transform fields expected'
           end
         end
 
-        raise Antlr4::Runtime::ParseCancellationException, 'Missing id for method' if mthd.id.nil?
-        raise Antlr4::Runtime::ParseCancellationException, 'Missing name for method' if mthd.name.nil?
-        raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method name: ' + mthd.name unless global.methods_hash[mthd.name].nil?
-        raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method id: ' + mthd.id unless global.methods_hash[mthd.id].nil?
+        raise InterpreterError, 'Missing id for method' if mthd.id.nil?
+        raise InterpreterError, 'Missing name for method' if mthd.name.nil?
+        raise InterpreterError, 'Duplicate method name: ' + mthd.name unless global.methods_hash[mthd.name].nil?
+        raise InterpreterError, 'Duplicate method id: ' + mthd.id unless global.methods_hash[mthd.id].nil?
 
         # store the methods by id and name to make them easier to find later
         global.methods_hash[mthd.id] = mthd
