@@ -22,6 +22,7 @@ Or clone the repository and build and install it yourself as:
     
     $ sudo gem install modl-0.1.0.gem
 
+You will also need to install the antlr4-ruby-runtime gem that this depends on. See https://github.com/MODLanguage/antlr4-ruby-runtime
 ## Usage
 
 ```ruby
