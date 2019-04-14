@@ -5,6 +5,7 @@ require 'modl/parser/substitutions'
 require 'modl/parser/file_importer'
 require 'antlr4/runtime/parse_cancellation_exception'
 require 'modl/parser/sutil'
+require 'modl/parser/modl_class'
 require 'cgi'
 require 'net/http'
 
@@ -35,141 +36,6 @@ module Modl
         end
 
         @global
-      end
-
-      def exitModl(ctx)
-      end
-
-      def enterModl_structure(ctx)
-      end
-
-      def exitModl_structure(ctx)
-      end
-
-      def enterModl_map(ctx)
-      end
-
-      def exitModl_map(ctx)
-      end
-
-      def enterModl_array(ctx)
-      end
-
-      def exitModl_array(ctx)
-      end
-
-      def enterModl_nb_array(ctx)
-      end
-
-      def exitModl_nb_array(ctx)
-      end
-
-      def enterModl_pair(ctx)
-      end
-
-      def exitModl_pair(ctx)
-      end
-
-      def enterModl_value_item(ctx)
-      end
-
-      def exitModl_value_item(ctx)
-      end
-
-      def enterModl_top_level_conditional(ctx)
-      end
-
-      def exitModl_top_level_conditional(ctx)
-      end
-
-      def enterModl_top_level_conditional_return(ctx)
-      end
-
-      def exitModl_top_level_conditional_return(ctx)
-      end
-
-      def enterModl_map_conditional(ctx)
-      end
-
-      def exitModl_map_conditional(ctx)
-      end
-
-      def enterModl_map_conditional_return(ctx)
-      end
-
-      def exitModl_map_conditional_return(ctx)
-      end
-
-      def enterModl_map_item(ctx)
-      end
-
-      def exitModl_map_item(ctx)
-      end
-
-      def enterModl_array_conditional(ctx)
-      end
-
-      def exitModl_array_conditional(ctx)
-      end
-
-      def enterModl_array_conditional_return(ctx)
-      end
-
-      def exitModl_array_conditional_return(ctx)
-      end
-
-      def enterModl_array_item(ctx)
-      end
-
-      def exitModl_array_item(ctx)
-      end
-
-      def enterModl_value_conditional(ctx)
-      end
-
-      def exitModl_value_conditional(ctx)
-      end
-
-      def enterModl_value_conditional_return(ctx)
-      end
-
-      def exitModl_value_conditional_return(ctx)
-      end
-
-      def enterModl_condition_test(ctx)
-      end
-
-      def exitModl_condition_test(ctx)
-      end
-
-      def enterModl_operator(ctx)
-      end
-
-      def exitModl_operator(ctx)
-      end
-
-      def enterModl_condition(ctx)
-      end
-
-      def exitModl_condition(ctx)
-      end
-
-      def enterModl_condition_group(ctx)
-      end
-
-      def exitModl_condition_group(ctx)
-      end
-
-      def enterModl_value(ctx)
-      end
-
-      def exitModl_value(ctx)
-      end
-
-      def enterModl_array_value_item(ctx)
-      end
-
-      def exitModl_array_value_item(ctx)
       end
 
       def self.additional_string_processing(text)
@@ -442,7 +308,7 @@ module Modl
         def extract_class
           return unless @type == 'class'
 
-          clazz = {}
+          clazz = MODLClass.new
           map = @map if @map
           map = @valueItem&.value&.map if @valueItem&.value&.map
 
@@ -454,40 +320,40 @@ module Modl
               str_value = item.pair.valueItem.value.string.string
               raise Antlr4::Runtime::ParseCancellationException, 'Reserved class id - cannot redefine: ' + str_value if reserved_class(str_value)
 
-              clazz['id'] = str_value
+              clazz.id = str_value
             when 'name'
               str_value = item.pair.valueItem.value.string.string
               raise Antlr4::Runtime::ParseCancellationException, 'Reserved class name - cannot redefine: ' + str_value if reserved_class(str_value)
 
-              clazz['name'] = str_value
+              clazz.name = str_value
             when 'superclass'
               str_value = item.pair.valueItem.value.string.string
-              clazz['superclass'] = str_value
+              clazz.superclass = str_value
             when 'keylist'
-              clazz['keylist'] = item.pair.key_lists
+              clazz.assign = item.pair.key_lists
             else
-              clazz[item.pair.key] = item.pair.array if item.pair.array
-              clazz[item.pair.key] = item.pair.map if item.pair.map
-              clazz[item.pair.key] = item.pair.valueItem.value if item.pair.valueItem.value
+              clazz.content[item.pair.key] = item.pair.array if item.pair.array
+              clazz.content[item.pair.key] = item.pair.map if item.pair.map
+              clazz.content[item.pair.key] = item.pair.valueItem.value if item.pair.valueItem.value
             end
           end
 
-          superclass = clazz['superclass']
+          superclass = clazz.superclass
 
           if superclass && !reserved_class(superclass) && !@global.classes.keys.include?(superclass)
             raise Antlr4::Runtime::ParseCancellationException, 'Invalid superclass: ' + superclass.to_s
           end
-          raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz['id'].nil?
+          raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz.id.nil?
 
           # Make sure the class name isn't redefining an existing class
-          if @global.classes[clazz['id']].nil? && @global.classes[clazz['name']].nil?
+          if @global.classes[clazz.id].nil? && @global.classes[clazz.name].nil?
 
             # store the classes by id and name to make them easier to find later
-            @global.classes[clazz['id']] = clazz
-            @global.classes[clazz['name']] = clazz
+            @global.classes[clazz.id] = clazz
+            @global.classes[clazz.name] = clazz
           else
-            id = clazz['id'].nil? ? 'undefined' : clazz['id']
-            name = clazz['name'].nil? ? 'undefined' : clazz['name']
+            id = clazz.id.nil? ? 'undefined' : clazz.id
+            name = clazz.name.nil? ? 'undefined' : clazz.name
             raise Antlr4::Runtime::ParseCancellationException, 'Class name or id already defined - cannot redefine: ' + id + ', ' + name
           end
         end
