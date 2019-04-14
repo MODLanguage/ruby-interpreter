@@ -1,7 +1,7 @@
 class Bailout < StandardError
 end
 
-require '../../lib/modl/parser/interpreter'
+require '../../lib/modl/parser'
 require 'json'
 
 def mangle(str)

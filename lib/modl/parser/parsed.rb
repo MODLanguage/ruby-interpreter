@@ -578,7 +578,7 @@ module Modl
             @text = Parsed.additional_string_processing(@text)
             @text, new_value = RefProcessor.instance.deref @text, @global
             @quoted = ParsedQuoted.new(@text)
-          elsif !ctx.Null.nil?
+          elsif !ctx.NULL.nil?
             @nilVal = ParsedNull.instance
             @text = 'null'
           elsif !ctx.TRUE.nil?

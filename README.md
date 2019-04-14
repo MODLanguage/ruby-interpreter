@@ -11,20 +11,27 @@ gem 'modl'
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
-Or install it yourself as:
+Or clone the repository and build and install it yourself as:
 
-    $ gem install modl
+    $ gem build modl.gemspec
+    $ gem install modl-0.1.0.gem
+    
+    or if that fails:
+    
+    $ sudo gem install modl-0.1.0.gem
 
 ## Usage
 
 ```ruby
-require 'modl/parser/interpreter'
+require 'modl/parser'
 
-result = Modl::Parser::Interpreter.interpret str
+result = Modl::Parser::Interpreter.interpret
+or
+result = Modl::Parser::Interpreter.interpret, true
 ```
-where `str` is the modl to be interpreted. The result will be a JSON string.
+where `str` is the modl to be interpreted. The result will be a JSON string. If the second parameter is `true` then the JSON will be pretty-printed.
 
 ## Development
 
