@@ -6,6 +6,9 @@ require 'modl/parser/file_importer'
 require 'antlr4/runtime/parse_cancellation_exception'
 require 'modl/parser/sutil'
 require 'modl/parser/modl_class'
+require 'modl/parser/modl_method'
+require 'modl/parser/modl_index'
+require 'modl/parser/modl_keylist'
 require 'cgi'
 require 'net/http'
 
@@ -252,7 +255,7 @@ module Modl
           # Type-specific processing
           case @type
           when 'class'
-            extract_class
+            ClassExtractor.extract(self, @global)
           when 'id'
             extract_value
           when 'name'
@@ -260,8 +263,8 @@ module Modl
           when 'superclass'
             extract_value
           when 'keylist'
-            extract_key_list @valueItem if @valueItem
-            extract_key_list @array if @array
+            KeylistExtractor.extract(self, @valueItem) if @valueItem
+            KeylistExtractor.extract(self, @array) if @array
           when 'version'
             extract_value
 
@@ -271,7 +274,7 @@ module Modl
             raise Antlr4::Runtime::ParseCancellationException, 'MODL version should be on the first line if specified.' if @global.pairs.length.positive?
 
           when 'method'
-            extract_method
+            MethodExtractor.extract(self, @global)
           when 'transform'
             extract_transform @valueItem
           when 'import'
@@ -279,7 +282,7 @@ module Modl
             files = @array.extract_hash if @array
             FileImporter.instance.import_files files, @global
           when 'index'
-            extract_index
+            IndexExtractor.extract(self, @global)
           when 'hidden'
             extract_value
             invoke_deref
@@ -305,162 +308,11 @@ module Modl
 
         private
 
-        def extract_class
-          return unless @type == 'class'
-
-          clazz = MODLClass.new
-          map = @map if @map
-          map = @valueItem&.value&.map if @valueItem&.value&.map
-
-          map.mapItems.each do |item|
-            next unless item&.pair&.type
-
-            case item&.pair&.type
-            when 'id'
-              str_value = item.pair.valueItem.value.string.string
-              raise Antlr4::Runtime::ParseCancellationException, 'Reserved class id - cannot redefine: ' + str_value if reserved_class(str_value)
-
-              clazz.id = str_value
-            when 'name'
-              str_value = item.pair.valueItem.value.string.string
-              raise Antlr4::Runtime::ParseCancellationException, 'Reserved class name - cannot redefine: ' + str_value if reserved_class(str_value)
-
-              clazz.name = str_value
-            when 'superclass'
-              str_value = item.pair.valueItem.value.string.string
-              clazz.superclass = str_value
-            when 'keylist'
-              clazz.assign = item.pair.key_lists
-            else
-              clazz.content[item.pair.key] = item.pair.array if item.pair.array
-              clazz.content[item.pair.key] = item.pair.map if item.pair.map
-              clazz.content[item.pair.key] = item.pair.valueItem.value if item.pair.valueItem.value
-            end
-          end
-
-          superclass = clazz.superclass
-
-          if superclass && !reserved_class(superclass) && !@global.classes.keys.include?(superclass)
-            raise Antlr4::Runtime::ParseCancellationException, 'Invalid superclass: ' + superclass.to_s
-          end
-          raise Antlr4::Runtime::ParseCancellationException, 'Missing id for class' if clazz.id.nil?
-
-          # Make sure the class name isn't redefining an existing class
-          if @global.classes[clazz.id].nil? && @global.classes[clazz.name].nil?
-
-            # store the classes by id and name to make them easier to find later
-            @global.classes[clazz.id] = clazz
-            @global.classes[clazz.name] = clazz
-          else
-            id = clazz.id.nil? ? 'undefined' : clazz.id
-            name = clazz.name.nil? ? 'undefined' : clazz.name
-            raise Antlr4::Runtime::ParseCancellationException, 'Class name or id already defined - cannot redefine: ' + id + ', ' + name
-          end
-        end
-
-        def reserved_class(str)
-          %w[map str arr num].include?(str)
-        end
-
-        def extract_method
-          return unless @type == 'method'
-
-          mthd = {}
-          map = @map if @map
-          map = @valueItem&.value&.map if @valueItem&.value&.map
-
-          map.mapItems.each do |item|
-            if item&.pair&.type
-              case item&.pair&.type
-              when 'id'
-                mthd['id'] = item.pair.valueItem.value.string.string
-              when 'transform'
-                mthd['transform'] = item.pair.valueItem.value.string.string
-              when 'name'
-                mthd['name'] = item.pair.valueItem.value.string.string
-              else
-                raise Antlr4::Runtime::ParseCancellationException, 'Invalid *method - only *id, *name, and *transform fields expected'
-              end
-            end
-          end
-
-          raise Antlr4::Runtime::ParseCancellationException, 'Missing id for method' if mthd['id'].nil?
-          raise Antlr4::Runtime::ParseCancellationException, 'Missing name for method' if mthd['name'].nil?
-          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method name: ' + mthd['name'] unless @global.methods_hash[mthd['name']].nil?
-          raise Antlr4::Runtime::ParseCancellationException, 'Duplicate method id: ' + mthd['id'] unless @global.methods_hash[mthd['id']].nil?
-
-
-          # store the methods by id and name to make them easier to find later
-          @global.methods_hash[mthd['id']] = mthd
-          @global.methods_hash[mthd['name']] = mthd
-        end
-
         def extract_value
           item = @valueItem
           @text = item.value.text if item.is_a?(ParsedValueItem) && item.value
           @text = item.valueItem.value.text if item.is_a?(ParsedPair)
           invoke_deref
-        end
-
-        def extract_index
-          item = @valueItem if @valueItem
-          item = @array if @array
-
-          # collect all values from the object
-          if item.is_a? ParsedValueItem
-            if item&.value&.text
-              @global.index << item.value.text
-            elsif item&.value&.array
-              item.value.array.abstractArrayItems.each do |avi|
-                @global.index << avi.arrayValueItem
-              end
-            elsif item&.value&.nbArray
-              item.value.nbArray.arrayItems.each do |avi|
-                @global.index << avi.arrayValueItem
-              end
-            end
-          elsif item.is_a? ParsedArray
-            item.abstractArrayItems.each do |avi|
-              @global.index << avi.arrayValueItem
-            end
-          end
-        end
-
-        def extract_key_list item
-          # the item must be an array of arrays
-          @key_lists = []
-          last_keylist_len = 0
-          if item.is_a?(ParsedValueItem) && item.value.is_a?(ParsedValue) && item.value.array
-            item.value.array.abstractArrayItems.each do |avi|
-              key_list = []
-              avi.arrayValueItem.array.abstractArrayItems.each do |key|
-                key_list << key.arrayValueItem.string.string if key.arrayValueItem.string
-                key_list << key.arrayValueItem.number.num if key.arrayValueItem.number
-              end
-              if key_list.length > last_keylist_len
-                last_keylist_len = key_list.length
-              else
-                raise Antlr4::Runtime::ParseCancellationException, 'Error: Key lists in *assign are not in ascending order of list length.'
-              end
-              @key_lists << key_list
-            end
-          elsif item.is_a?(ParsedArray)
-            item.abstractArrayItems.each do |avi|
-              key_list = []
-              avi.arrayValueItem.array.abstractArrayItems.each do |key|
-                key_list << key.arrayValueItem.string.string if key.arrayValueItem.string
-                key_list << key.arrayValueItem.number.num if key.arrayValueItem.number
-              end
-              if key_list.length > last_keylist_len
-                last_keylist_len = key_list.length
-              else
-                raise Antlr4::Runtime::ParseCancellationException, 'Error: Key lists in *assign are not in ascending order of list length.'
-              end
-              @key_lists << key_list
-            end
-          else
-            raise Antlr4::Runtime::ParseCancellationException, 'Array of arrays expected for: ' + @key
-          end
         end
 
         def extract_transform item

@@ -193,7 +193,7 @@ module Modl
               m = global.methods_hash[Sutil.trail(method)]
 
               if m
-                parts[1] = run_method m['transform'], parts[1]
+                parts[1] = run_method m.transform, parts[1]
                 parts[next_part] = ''
               else
                 parts[next_part] = method
