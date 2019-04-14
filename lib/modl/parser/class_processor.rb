@@ -15,7 +15,9 @@ module Modl
         raise StandardError, 'parameter "global" should be a GlobalParseContext' unless global.is_a?(GlobalParseContext)
 
         if obj.is_a? Array
-          obj.each {|o| process_obj global, o if o.is_a? Hash}
+          obj.each do |o|
+            process_obj global, o if o.is_a? Hash
+          end
         elsif obj.is_a? Hash
           process_obj global, obj
         end
@@ -32,7 +34,7 @@ module Modl
           if clazz
             # Yes so convert this value to an instance of that class
             new_k, new_v = process_class global, k, value
-            # Replace the existing object with the new class instance
+            # Replace the existing object with the new class instance and a new key
             obj.delete k
             obj[new_k] = new_v
           end
@@ -75,14 +77,12 @@ module Modl
       # Bring down values from the superclass hierarchy
       def copy_from_superclasses(clazz, global, new_value, v)
         new_value = v.merge(new_value)
-        super_class = clazz.superclass
         depth = 0
         loop do
-          next_class = global.classes[super_class]
-          break if next_class.nil? || depth > MAX_RECURSION_DEPTH
+          clazz = global.classes[clazz.superclass]
+          break if clazz.nil? || depth > MAX_RECURSION_DEPTH
 
-          next_class.merge_content(new_value)
-          super_class = next_class.superclass
+          clazz.merge_content(new_value)
           depth += 1
         end
         new_value
@@ -93,9 +93,7 @@ module Modl
         val.each do |value|
           next unless value&.is_a?(Hash)
 
-          value.keys.each do |vk|
-            new_value[vk] = value[vk]
-          end
+          new_value.merge!(value)
         end
       end
 
@@ -104,14 +102,14 @@ module Modl
         return unless new_value.is_a? Hash
 
         new_value.keys.each do |nk|
-          clazz2 = global.classes[nk]
+          clazz = global.classes[nk]
           nv = new_value[nk]
-          next unless clazz2 # skip it if it doesn't refer to a class
+          next unless clazz # skip it if it doesn't refer to a class
 
           if !nv.nil? && !nv.is_a?(String) && !nv.is_a?(Numeric)
             new_k, new_v = process_class global, nk, nv
           else
-            new_k = clazz2.name_or_id
+            new_k = clazz.name_or_id
             new_v = nv
           end
 
@@ -132,14 +130,11 @@ module Modl
         # Slightly different processing for hashes and arrays
         if v.is_a? Hash
           keys = clazz.keylist_of_length(v.length)
-          unless keys.nil?
-            keys.each_index do |i|
-              new_value[keys[i]] = v[v.keys[i]]
-            end
+          keys.each_index do |i|
+            new_value[keys[i]] = v[v.keys[i]]
           end
         elsif v.is_a? Array
           keys = clazz.keylist_of_length(v.length)
-
           keys.each_index do |i|
             new_value[keys[i]] = v[i]
           end
@@ -153,7 +148,7 @@ module Modl
       end
 
       # Get the top level class for the supplied class
-      def top_class clazz, global, depth = 0
+      def top_class(clazz, global, depth = 0)
         # Check for self-referential classes that cause infinite recursion
         return if depth > MAX_RECURSION_DEPTH
 
@@ -162,7 +157,6 @@ module Modl
         return top_class(c, global, depth + 1) if c
 
         superclass
-        # else superclass is assumed
       end
     end
   end

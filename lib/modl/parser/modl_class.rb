@@ -1,5 +1,6 @@
 module Modl
   module Parser
+    # Represents a *class defined, or loaded by, a MODL document.
     class MODLClass
       attr_accessor :id
       attr_accessor :name
