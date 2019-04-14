@@ -23,7 +23,6 @@ module Modl
           parsed
         rescue Antlr4::Runtime::ParseCancellationException => e
           puts e.to_s
-          puts e.backtrace
           raise InterpreterError, 'Parser Error: ' + e.message
         end
       end
