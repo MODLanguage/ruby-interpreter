@@ -53,6 +53,7 @@ RSpec.describe Modl::Parser do
 
     data.each_index do |i|
       begin
+        #next if i <= 20
         test_case = data[i]
 
         puts 'Test Input: ' + test_case['input']

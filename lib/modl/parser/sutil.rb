@@ -14,6 +14,8 @@ module Sutil
 
   # Keep everyting until char c
   def self.until(str, c)
+    return str if c.nil? || c.empty?
+
     i = str.index(c)
     i ? str&.slice(0, i) : str
   end
@@ -21,7 +23,7 @@ module Sutil
   # Get everything after char c
   def self.after(str, c)
     i = str.index(c)
-    i ? str&.slice(i + 1, str.length) : str
+    i ? str&.slice(i + c.length, str.length) : str
   end
 
   # Get everything between ch1 and ch2

@@ -59,6 +59,16 @@ module Modl
           @global = global
         end
 
+        def find_property(key)
+          if key.is_a? Fixnum
+            return @mapItems[key]
+          else
+            @mapItems.each do |mi|
+              return mi.pair if mi.pair.key == key
+            end
+          end
+        end
+
         def enterModl_map(ctx)
           return if ctx.modl_map_item.nil?
 
@@ -164,6 +174,12 @@ module Modl
           @final = false
         end
 
+        def find_property(key)
+          return @map.find_property(key) if @map
+          return @array.find_property(key) if @array
+          return @valueItem.find_property(key) if @valueItem
+        end
+
         # Set the appropriate field base on the value type
         def set_value(value)
           if value.is_a? Array
@@ -222,6 +238,9 @@ module Modl
 
           if @key.include?('%')
             key, new_value = RefProcessor.instance.deref @key, @global
+            unless key.is_a?(String)
+              key = new_value.is_a?(String) ? new_value : new_value.text
+            end
             raise InterpreterError, "Error: '" + @key.to_s + "' should de-ref to a string." unless key.is_a?(String)
           else
             key = @key
@@ -325,10 +344,9 @@ module Modl
         end
 
         def validate_key
-          invalid_chars = "!$@-+'*#^&%"
+          invalid_chars = "!$@-+'*#^&"
           invalid_chars.each_char do |c|
             next unless @key.include?(c)
-            next if c == '%' && @key.rindex(c).zero?
 
             raise InterpreterError, 'Invalid key - "' + c + '" character not allowed: ' + @key
           end
@@ -353,6 +371,10 @@ module Modl
             set_value @text
           elsif new_value.is_a? ParsedPair
             set_value @text
+          elsif new_value.is_a? String
+            set_value @text
+          else
+            set_value(new_value)
           end
         end
 
@@ -399,6 +421,22 @@ module Modl
 
         def initialize(global)
           @global = global
+        end
+
+        def find_property(key)
+          return @map.find_property(key) if @map
+          return @array.find_property(key) if @array
+          return @nbArray.find_property(key) if @nbArray
+          return @pair.find_property(key) if @pair
+
+          if @string
+            meths = key.split('.')
+            meths.each do |m|
+              @string.string = Parsed.run_method(m, @string.string)
+            end
+            @text = @string.string
+            return @text
+          end
         end
 
         def extract_hash
@@ -459,6 +497,10 @@ module Modl
           @global = global
         end
 
+        def find_property(key)
+          return value.find_property(key)
+        end
+
         def enterModl_value_item(ctx)
           unless ctx.modl_value_conditional.nil?
             @valueConditional = ParsedValueConditional.new @global
@@ -492,6 +534,22 @@ module Modl
 
         def initialize(global)
           @global = global
+        end
+
+        def find_property(key)
+          return @map.find_property(key) if @map
+          return @array.find_property(key) if @array
+          return @nbArray.find_property(key) if @nbArray
+          return @pair.find_property(key) if @pair
+
+          if @string
+            meths = key.split('.')
+            meths.each do |m|
+              @string.string = Parsed.run_method(m, @string.string)
+            end
+            @text = @string.string
+            return @text
+          end
         end
 
         def extract_hash
@@ -564,7 +622,7 @@ module Modl
 
       # Class to represent a parsed grammar object
       class ParsedString
-        attr_reader :string
+        attr_accessor :string
 
         def initialize(string)
           @string = string
@@ -1152,6 +1210,17 @@ module Modl
           @abstractArrayItems = []
         end
 
+        def find_property(key)
+          if key.is_a? Fixnum
+            return @abstractArrayItems[key].arrayValueItem
+          else
+            @abstractArrayItems.each do |mi|
+              return mi.arrayValueItem.pair if mi.arrayValueItem.pair && mi.arrayValueItem.pair.key == key
+            end
+            nil
+          end
+        end
+
         def extract_hash
           result = []
 
@@ -1269,6 +1338,34 @@ module Modl
           return result[0]
         end
         result
+      end
+
+      def self.run_method(m, str)
+        case m
+        when 'u'
+          return str.upcase
+        when 'd'
+          return str.downcase
+        when 'i'
+          return str.split.map(&:capitalize) * ' '
+        when 's'
+          split = str.split
+          split[0].capitalize!
+          return split.join(' ')
+        when 'e'
+          return CGI.escape(str)
+        when 'r'
+          s1, s2 = get_subst_parts m
+          return str.sub(s1, s2)
+        when 't'
+          s1 = extract_params m
+          i = str.index(s1)
+          return Sutil.head(str, i)
+        when 'p'
+          return Punycode.decode(str)
+        else
+          return str + '.' + m
+        end
       end
     end
   end
