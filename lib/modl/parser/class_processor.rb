@@ -49,7 +49,6 @@ module Modl
         new_value = transform_to_class(clazz, global, v)
 
         if v.is_a?(Array)
-          copy_keys_to_new_value(new_value, v)
           new_value = v if new_value.empty?
         else
           # Check the top class and do some type-specific processing
@@ -71,7 +70,7 @@ module Modl
         end
 
         process_nested_classes(global, new_value)
-        [clazz.name, new_value]
+        [clazz.name_or_id, new_value]
       end
 
       # Bring down values from the superclass hierarchy

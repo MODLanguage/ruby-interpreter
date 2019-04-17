@@ -211,7 +211,6 @@ module Modl
 
           unless value.is_a?(String) && value.start_with?('%')
             @text = value
-            {@key => value}
           end
 
           return if @type == 'index'
@@ -221,7 +220,13 @@ module Modl
           return if @type == 'method'
           return if @type == 'import'
 
-          {@key => @text}
+          if @key.include?('%')
+            key, new_value = RefProcessor.instance.deref @key, @global
+            raise InterpreterError, "Error: '" + @key.to_s + "' should de-ref to a string." unless key.is_a?(String)
+          else
+            key = @key
+          end
+          {key => @text}
         end
 
         def enterModl_pair(ctx)
