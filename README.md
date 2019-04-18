@@ -26,11 +26,11 @@ You will also need to install the antlr4-ruby-runtime gem that this depends on. 
 ## Usage
 
 ```ruby
-require 'modl/parser'
+require 'modl/interpreter'
 
-result = Modl::Parser::Interpreter.interpret
+result = Modl::Interpreter.interpret
 or
-result = Modl::Parser::Interpreter.interpret, true
+result = Modl::Interpreter.interpret, true
 ```
 where `str` is the modl to be interpreted. The result will be a JSON string. If the second parameter is `true` then the JSON will be pretty-printed.
 

@@ -56,13 +56,13 @@ RSpec.describe Modl::Parser do
 
       begin
         test_case = data[i]
-        result = Modl::Parser::Interpreter.interpret test_case
+        result = Modl::Interpreter.interpret test_case
         failed += 1
         puts 'Test                                 : ' + i.to_s
         puts 'Test was expected to fail but did not: ' + test_case
         puts 'Result                               : ' + result
         break if exit_on_fail
-      rescue Modl::Parser::InterpreterError => e
+      rescue Modl::InterpreterError => e
         success += 1
         puts e.to_s
       end

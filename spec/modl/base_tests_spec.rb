@@ -59,7 +59,7 @@ RSpec.describe Modl::Parser do
 
         puts 'Test Input: ' + test_case['input']
 
-        result = Modl::Parser::Interpreter.interpret test_case['input']
+        result = Modl::Interpreter.interpret test_case['input']
 
         expected = test_case['expected_output']
 
