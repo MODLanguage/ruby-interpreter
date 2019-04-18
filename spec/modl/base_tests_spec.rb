@@ -53,7 +53,8 @@ RSpec.describe Modl::Parser do
 
     data.each_index do |i|
       begin
-        #next if i <= 205
+        #next if i <= 1
+
         test_case = data[i]
 
         puts 'Test Input: ' + test_case['input']

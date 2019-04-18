@@ -782,19 +782,24 @@ module Modl
         def evaluate
           result = false
           if @key
-            key = @key.start_with?('%') ? Sutil.trail(@key) : @key
-            ikey = key.to_i
-            if ikey.to_s == key
-              value1 = @global.index[ikey].text
+            if @key.include?('%')
+              value1, _ignore = Modl::Parser::RefProcessor.instance.deref(@key, @global)
             else
-              pair = @global.pairs[key]
-              return false unless pair
+              key = @key
+              ikey = key.to_i
+              if ikey.to_s == key
+                value1 = @global.index[ikey].text
+              else
+                pair = @global.pairs[key]
+                return false unless pair
 
-              value1 = pair.text
+                value1 = pair.text
+              end
             end
 
             @values.each do |value|
               value2 = value.text
+              value2, _ignore = Modl::Parser::RefProcessor.instance.deref(value2, @global) if value2.is_a?(String) && value2.include?('%')
               value2 = @global.pairs[value.text].text if @global.pairs[value.text]
 
               case @operator
@@ -803,11 +808,7 @@ module Modl
                 if wild
                   regex = '^'
                   value2.each_char do |c|
-                    if c == '*'
-                      regex << '.*'
-                    else
-                      regex << c
-                    end
+                    regex << ((c == '*') ? '.*' : c)
                   end
                   result |= !value1.match(regex).nil?
                 else
