@@ -12,34 +12,52 @@ module Modl
       include Singleton
 
       NESTED_SEPARATOR = '.'
+      MATCHER = Regexp.new('((`?\%[0-9][0-9.][a-zA-Z0-9.(),]*`?)|(`?\%[0-9][0-9]*`?)|(`?\%[_a-zA-Z][_a-zA-Z0-9.%]*`?))')
 
       # Check str for references and process them.
       # Return the processed string and a new_value if there is one.
       def deref(str, global)
         # How many refs to process?
         count = str.count('%')
-        str, new_value = split_by_ref_tokens str, global if count.positive?
-        [str, new_value]
+        obj = str
+        obj, new_value = split_by_ref_tokens str, global if count.positive?
+        [obj, new_value]
       end
 
       # Process the next %ref token
       def split_by_ref_tokens(str, global)
         new_value = nil
 
+        text = str
+
         loop do
-          match = /(`?\%[a-zA-Z0-9.]*`?)/.match(str)
+          match = MATCHER.match(text.to_s)
           break if match.nil?
 
           ref = match[0]
+          text = Sutil.after(text, ref)
           new_value, remainder = expand(global, ref)
           ref = Sutil.until(ref, remainder)
           if new_value.is_a?(String)
             str.sub!(ref, new_value)
+          elsif new_value.is_a?(Parsed::ParsedArrayItem)
+            nv_text = new_value.arrayValueItem.text
+            if ref == str
+              str = nv_text
+            else
+              str.sub!(ref, nv_text.to_s)
+            end
+            new_value = nil
           elsif new_value.is_a?(Modl::Parser::MODLParserBaseListener)
             if new_value.text
-              str.sub!(ref, new_value.text.to_s)
+              if ref == str
+                str = new_value.text
+              else
+                str.sub!(ref, new_value.text.to_s)
+              end
+              new_value = nil
             else
-              str.sub!(ref, '')
+              str = nil
             end
           else
             break
@@ -53,6 +71,7 @@ module Modl
       def expand(global, ref)
         result = nil
         prev = nil
+
         # Remove the graves if there are any.
         ref = Sutil.toptail(ref) if ref.start_with?('`')
 
@@ -61,19 +80,35 @@ module Modl
         resolved = 0
 
         parts.each do |p|
+          if p.include?('%')
+            p, _ignore = expand(global, p)
+            if p.is_a?(Modl::Parser::MODLParserBaseListener)
+              p = p.text
+            end
+          end
           n = p.to_i
           result = if n.to_s == p
                      # Numeric ref
                      result.nil? ? nth_value(global.index, n) : result.find_property(n)
                    else
                      # String ref
-                     result.nil? ? global.pairs[p] : result.find_property(p)
+                     if result.is_a? String
+                       StandardMethods.run_method(p, result)
+                     else
+                       result.nil? ? global.pairs[p] : result.find_property(p)
+                     end
                    end
           break if result.nil?
+
           prev = result
           resolved += 1
         end
-        remainder = resolved < parts.length ? '.' + parts[resolved..parts.length].join('.') : ''
+        if prev.nil?
+          remainder = ''
+          prev = ref
+        else
+          remainder = resolved < parts.length ? '.' + parts[resolved..parts.length].join('.') : ''
+        end
         [prev, remainder]
       end
 

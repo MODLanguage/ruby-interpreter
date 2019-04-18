@@ -21,7 +21,7 @@ module Modl
           parsed = Parsed.new(global)
           parser.modl.enter_rule(parsed)
           parsed
-        rescue Antlr4::Runtime::ParseCancellationException => e
+        rescue StandardError => e
           puts e.to_s
           raise InterpreterError, 'Parser Error: ' + e.message
         end

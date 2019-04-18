@@ -175,6 +175,8 @@ module Modl
         end
 
         def find_property(key)
+          return self if key == @key
+
           return @map.find_property(key) if @map
           return @array.find_property(key) if @array
           return @valueItem.find_property(key) if @valueItem
@@ -195,6 +197,11 @@ module Modl
             end
             @valueItem = nil
             @text = @array.extract_hash
+            return
+          elsif value.is_a?(ParsedPair)
+            @map = value.map ? value.map : nil
+            @array = value.array ? value.array : nil
+            @valueItem = value.valueItem ? value.valueItem : nil
             return
           elsif value.is_a?(TrueClass) || value.is_a?(FalseClass)
             @map = nil
@@ -370,7 +377,8 @@ module Modl
           elsif new_value.nil?
             set_value @text
           elsif new_value.is_a? ParsedPair
-            set_value @text
+            set_value @text if @text
+            set_value new_value if @text.nil?
           elsif new_value.is_a? String
             set_value @text
           else
@@ -430,12 +438,11 @@ module Modl
           return @pair.find_property(key) if @pair
 
           if @string
-            meths = key.split('.')
-            meths.each do |m|
-              @string.string = Parsed.run_method(m, @string.string)
+            user_method = @global.methods_hash[key]
+            if user_method
+              return user_method.run(@string.string)
             end
-            @text = @string.string
-            return @text
+            return StandardMethods.run_method(key, @string.string)
           end
         end
 
@@ -543,12 +550,11 @@ module Modl
           return @pair.find_property(key) if @pair
 
           if @string
-            meths = key.split('.')
-            meths.each do |m|
-              @string.string = Parsed.run_method(m, @string.string)
+            user_method = @global.methods_hash[key]
+            if user_method
+              return user_method.run(@string.string)
             end
-            @text = @string.string
-            return @text
+            return StandardMethods.run_method(key, @string.string)
           end
         end
 
@@ -1149,6 +1155,17 @@ module Modl
           @arrayItems = []
         end
 
+        def find_property(key)
+          if key.is_a? Fixnum
+            return @arrayItems[key].arrayValueItem
+          else
+            @arrayItems.each do |mi|
+              return mi.arrayValueItem.pair if mi.arrayValueItem.pair && mi.arrayValueItem.pair.key == key
+            end
+            nil
+          end
+        end
+
         def extract_hash
           result = []
 
@@ -1212,7 +1229,7 @@ module Modl
 
         def find_property(key)
           if key.is_a? Fixnum
-            return @abstractArrayItems[key].arrayValueItem
+            return @abstractArrayItems[key]
           else
             @abstractArrayItems.each do |mi|
               return mi.arrayValueItem.pair if mi.arrayValueItem.pair && mi.arrayValueItem.pair.key == key
@@ -1287,6 +1304,10 @@ module Modl
           @global = global
         end
 
+        def find_property(key)
+          return @arrayValueItem.find_property(key)
+        end
+
         def enterModl_array_item(ctx)
           unless ctx.modl_array_conditional.nil?
             @arrayConditional = ParsedArrayConditional.new @global
@@ -1338,34 +1359,6 @@ module Modl
           return result[0]
         end
         result
-      end
-
-      def self.run_method(m, str)
-        case m
-        when 'u'
-          return str.upcase
-        when 'd'
-          return str.downcase
-        when 'i'
-          return str.split.map(&:capitalize) * ' '
-        when 's'
-          split = str.split
-          split[0].capitalize!
-          return split.join(' ')
-        when 'e'
-          return CGI.escape(str)
-        when 'r'
-          s1, s2 = get_subst_parts m
-          return str.sub(s1, s2)
-        when 't'
-          s1 = extract_params m
-          i = str.index(s1)
-          return Sutil.head(str, i)
-        when 'p'
-          return Punycode.decode(str)
-        else
-          return str + '.' + m
-        end
       end
     end
   end
