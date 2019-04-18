@@ -22,6 +22,12 @@ module Modl
         @methods_hash = {}
         @conditional = 0
       end
+
+      def index_value(n, default)
+        return default if n > @index.length
+
+        @index[n]
+      end
     end
   end
 end

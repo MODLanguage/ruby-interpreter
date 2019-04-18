@@ -52,6 +52,8 @@ RSpec.describe Modl::Parser do
     exit_on_fail = true
 
     data.each_index do |i|
+      #next if i <= 46
+
       begin
         test_case = data[i]
         result = Modl::Parser::Interpreter.interpret test_case

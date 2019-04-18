@@ -29,6 +29,7 @@ module Modl
         new_value = nil
 
         text = str
+        original = str
 
         loop do
           match = MATCHER.match(text.to_s)
@@ -39,30 +40,32 @@ module Modl
           new_value, remainder = expand(global, ref)
           ref = Sutil.until(ref, remainder)
           if new_value.is_a?(String)
-            str.sub!(ref, new_value)
+            str = str.sub(ref, new_value)
           elsif new_value.is_a?(Parsed::ParsedArrayItem)
             nv_text = new_value.arrayValueItem.text
-            if ref == str
-              str = nv_text
-            else
-              str.sub!(ref, nv_text.to_s)
-            end
+            str = if ref == str
+                    nv_text
+                  else
+                    str.sub(ref, nv_text.to_s)
+                  end
             new_value = nil
           elsif new_value.is_a?(Modl::Parser::MODLParserBaseListener)
             if new_value.text
-              if ref == str
-                str = new_value.text
-              else
-                str.sub!(ref, new_value.text.to_s)
-              end
+              str = if ref == str
+                      new_value.text
+                    else
+                      str.sub(ref, new_value.text.to_s)
+                    end
               new_value = nil
             else
               str = nil
             end
           else
-            break
+            new_value = nil
+            raise InterpreterError, 'Cannot resolve reference in : "' + str + '"' if str == original
           end
         end
+
         [str, new_value]
       end
 
@@ -89,7 +92,7 @@ module Modl
           n = p.to_i
           result = if n.to_s == p
                      # Numeric ref
-                     result.nil? ? nth_value(global.index, n) : result.find_property(n)
+                     result.nil? ? global.index_value(n, ref) : result.find_property(n)
                    else
                      # String ref
                      if result.is_a? String
@@ -110,13 +113,6 @@ module Modl
           remainder = resolved < parts.length ? '.' + parts[resolved..parts.length].join('.') : ''
         end
         [prev, remainder]
-      end
-
-      def nth_value(obj, index)
-        return index > obj.length ? nil : obj[index] if obj.is_a? Array
-        return index > obj.length ? nil : obj[obj.keys[index]] if obj.is_a? Hash
-
-        nil
       end
     end
   end
