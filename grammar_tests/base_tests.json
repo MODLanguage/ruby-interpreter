@@ -1,8 +1,4 @@
 [
-  {"comment": "Blank input should produce blank output.",
-    "input":  "",
-    "minimised_modl":  "",
-    "expected_output":   ""},
   { "input":  "_array[1;2]\n_array_item=%array.0\ntest={\n  array_item=%array.0?\n     yes\n  /?\n     no\n}",
     "minimised_modl":  "_array[1;2];_array_item=%array.0;test={array_item=%array.0?yes/?no}",
     "expected_output":   "{\n    \"test\": \"yes\"\n}"},
