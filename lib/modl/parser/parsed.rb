@@ -243,16 +243,7 @@ module Modl
           return if @type == 'method'
           return if @type == 'import'
 
-          if @key.include?('%')
-            key, new_value = RefProcessor.instance.deref @key, @global
-            unless key.is_a?(String)
-              key = new_value.is_a?(String) ? new_value : new_value.text
-            end
-            raise InterpreterError, "Error: '" + @key.to_s + "' should de-ref to a string." unless key.is_a?(String)
-          else
-            key = @key
-          end
-          {key => @text}
+          {@key => @text}
         end
 
         def enterModl_pair(ctx)
@@ -262,6 +253,14 @@ module Modl
           unless ctx.QUOTED.nil?
             @key = ctx.QUOTED.to_s
             @key = Sutil.toptail(@key) # remove the quotes
+          end
+
+          if @key.include?('%')
+            @key, new_value = RefProcessor.instance.deref @key, @global
+            unless @key.is_a?(String)
+              @key = new_value.is_a?(String) ? new_value : new_value.text
+            end
+            raise InterpreterError, "Error: '" + @key.to_s + "' should de-ref to a string." unless key.is_a?(String)
           end
 
           @final = true if @key.upcase == @key

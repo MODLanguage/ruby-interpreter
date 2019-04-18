@@ -12,7 +12,7 @@ RSpec.describe Modl::Parser do
 
   it "can create a Parser" do
     test_strings = []
-    test_strings << "?=[a;b;c;d]:[1;2;3;4;5]\ntest=%1[0]"
+    test_strings << "?=[a;b;c;d]:[1;2;3;4;5]\ntest=%1.0"
 
     test_strings.each do |str|
       lexer = Modl::Parser::MODLLexer.new(Antlr4::Runtime::CharStreams.from_string(str, 'Test String'))
