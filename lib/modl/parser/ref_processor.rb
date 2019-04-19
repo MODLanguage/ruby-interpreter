@@ -12,13 +12,19 @@ module Modl
       include Singleton
 
       NESTED_SEPARATOR = '.'
-      MATCHER = Regexp.new('((`?\%[0-9][0-9.][a-zA-Z0-9.(),]*`?)|(`?\%[0-9][0-9]*`?)|(`?\%[_a-zA-Z][_a-zA-Z0-9.%]*`?)|(`.*`\.[_a-zA-Z0-9.(),%]+)|(`.*`))')
+      MATCHER = Regexp.new('((`?\%[0-9][0-9.][a-zA-Z0-9.(),]*`?)|(`?\%[0-9][0-9]*`?)|(`?\%[_a-zA-Z][_a-zA-Z0-9.%(),]*`?)|(`.*`\.[_a-zA-Z0-9.(),%]+)|(`.*`))')
+
+      def trivial_reject(str)
+        # do a fast check to see if we need to deref - save processing the regex if we don't have to.
+        str.nil? || str.include?('%') || str.include?('`')
+      end
 
       # Check str for references and process them.
       # Return the processed string and a new_value if there is one.
       def deref(str, global)
+        obj = str
         # How many refs to process?
-        obj, new_value = split_by_ref_tokens str, global
+        obj, new_value = split_by_ref_tokens str, global if trivial_reject(str)
         [obj, new_value]
       end
 
