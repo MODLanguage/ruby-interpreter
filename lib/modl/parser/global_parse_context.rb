@@ -14,6 +14,10 @@ module Modl
       attr_accessor :methods_hash
       # Tracks the nesting depth for conditional clauses.
       attr_accessor :conditional
+      # Defaults to 1 and can be overridden by the *version command.
+      attr_accessor :syntax_version
+
+      attr_accessor :interpreter_syntax_version
 
       def initialize
         @index = []
@@ -21,6 +25,8 @@ module Modl
         @classes = {}
         @methods_hash = {}
         @conditional = 0
+        @syntax_version = 1
+        @interpreter_syntax_version = 1
       end
 
       def index_value(n, default)

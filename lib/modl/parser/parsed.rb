@@ -304,6 +304,7 @@ module Modl
             raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.is_a? Float
             raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.zero?
             raise InterpreterError, 'MODL version should be on the first line if specified.' if @global.pairs.length.positive?
+            @global.syntax_version = @valueItem.value.number.num
 
           when 'method'
             MethodExtractor.extract(self, @global)

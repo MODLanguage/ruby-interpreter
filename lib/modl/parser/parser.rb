@@ -18,11 +18,15 @@ module Modl
           parser.remove_error_listeners
           parser.add_error_listener ThrowingErrorListener.instance
 
+          global = GlobalParseContext.new if global.nil?
+
           parsed = Parsed.new(global)
           parser.modl.enter_rule(parsed)
           parsed
         rescue StandardError => e
-          puts e.to_s
+          puts e.message
+          raise InterpreterError, 'MODL Version ' + global.interpreter_syntax_version.to_s + ' interpreter cannot process this MODL Version ' + global.syntax_version.to_s + ' file.' if global.syntax_version > global.interpreter_syntax_version
+
           raise InterpreterError, 'Parser Error: ' + e.message
         end
       end
