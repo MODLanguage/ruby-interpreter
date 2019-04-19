@@ -21,17 +21,17 @@ module Modl
             str = StandardMethods.run_method(m, str)
             # Consume the subst clause
             close_bracket = transform.index(')')
-            transform = Sutil.trail(transform, close_bracket + 2)
+            transform = Sutil.tail(transform, close_bracket + 2)
           elsif transform.start_with? 'trim'
             close_bracket = transform.index(')')
             m = Sutil.head(transform, close_bracket + 1).sub!('trim', 't')
             str = StandardMethods.run_method(m, str)
             # Consume the trunc clause
             close_bracket = transform.index(')')
-            transform = Sutil.trail(transform, close_bracket + 2)
+            transform = Sutil.tail(transform, close_bracket + 2)
           elsif transform.start_with? 'initcap'
             str = str.split.map(&:capitalize) * ' '
-            transform = Sutil.trail(transform, 8)
+            transform = Sutil.tail(transform, 8)
           elsif transform.start_with? 'upcase'
             raise InterpreterError, 'NOT IMPLEMENTED'
           elsif transform.start_with? 'downcase'
@@ -88,28 +88,28 @@ module Modl
       def self.run_method(m, str)
         case m[0]
         when 'u'
-          return str.upcase
+          str.upcase
         when 'd'
-          return str.downcase
+          str.downcase
         when 'i'
-          return str.split.map(&:capitalize) * ' '
+          str.split.map(&:capitalize) * ' '
         when 's'
           split = str.split
           split[0].capitalize!
-          return split.join(' ')
+          split.join(' ')
         when 'e'
-          return CGI.escape(str)
+          CGI.escape(str)
         when 'r'
           s1, s2 = get_subst_parts m
-          return str.sub(s1, s2)
+          str.sub(s1, s2)
         when 't'
           s1 = extract_params m
           i = str.index(s1)
-          return Sutil.head(str, i)
+          Sutil.head(str, i)
         when 'p'
-          return Punycode.decode(str)
+          Punycode.decode(str)
         else
-          return str + '.' + m
+          str + '.' + m
         end
       end
 

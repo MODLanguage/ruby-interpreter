@@ -232,7 +232,9 @@ module Modl
           value = @valueItem.extract_hash if @valueItem
           value = @map.extract_hash if @map
 
-          unless value.is_a?(String) && value.start_with?('%')
+          if value.is_a?(String) && (value.start_with?('%') || value.start_with?('`'))
+            @text, _ignore = RefProcessor.instance.deref(@text, @global)
+          else
             @text = value
           end
 
@@ -255,7 +257,7 @@ module Modl
             @key = Sutil.toptail(@key) # remove the quotes
           end
 
-          if @key.include?('%')
+          if @key.include?('%') || @key.include?('`')
             @key, new_value = RefProcessor.instance.deref @key, @global
             unless @key.is_a?(String)
               @key = new_value.is_a?(String) ? new_value : new_value.text
@@ -324,7 +326,7 @@ module Modl
           return if @global.conditional.positive? # Don't store pairs in conditionals until we evaluate the conditions
 
           if @key.start_with? '_'
-            k = Sutil.trail(@key)
+            k = Sutil.tail(@key)
             existing = @global.pairs[k]
             raise InterpreterError, 'Already defined ' + k + ' as final.' if existing&.final
 
@@ -357,7 +359,7 @@ module Modl
             raise InterpreterError, 'Invalid key - "' + c + '" character not allowed: ' + @key
           end
 
-          key = @key.start_with?('_') ? Sutil.trail(@key) : @key
+          key = @key.start_with?('_') ? Sutil.tail(@key) : @key
           raise InterpreterError, 'Invalid key - "' + key + '" - entirely numeric keys are not allowed: ' + @key if key == key.to_i.to_s
         end
 
@@ -607,6 +609,7 @@ module Modl
           elsif !ctx.STRING.nil?
             @text = Parsed.additional_string_processing(ctx.STRING.text)
             @string = ParsedString.new(@text)
+            @text = @string.string
           elsif !ctx.QUOTED.nil?
             @text = Sutil.toptail(ctx.QUOTED.text) # remove the quotes
             @text = Parsed.additional_string_processing(@text)
@@ -827,7 +830,7 @@ module Modl
           elsif @values.length == 1
             key = @values[0].text
             if key.is_a?(String)
-              key = key.start_with?('%') ? Sutil.trail(key) : key
+              key = key.start_with?('%') ? Sutil.tail(key) : key
             end
             the_pair = @global.pairs[key]
             if the_pair
@@ -967,7 +970,7 @@ module Modl
             item = @topLevelConditionalReturns[i]
             if item.structures[0].pair
               key = item.structures[0].pair.key
-              key = Sutil.trail(key) if key[0] == '_'
+              key = Sutil.tail(key) if key[0] == '_'
               @global.pairs[key] = item.structures[0].pair
             end
             return item.extract_hash
@@ -977,7 +980,7 @@ module Modl
           last_item = @topLevelConditionalReturns[-1]
           if last_item.structures[0].pair
             key = last_item.structures[0].pair.key
-            key = Sutil.trail(key) if key[0] == '_'
+            key = Sutil.tail(key) if key[0] == '_'
             @global.pairs[key] = last_item.structures[0].pair
           end
           last_item.extract_hash

@@ -12,15 +12,13 @@ module Modl
       include Singleton
 
       NESTED_SEPARATOR = '.'
-      MATCHER = Regexp.new('((`?\%[0-9][0-9.][a-zA-Z0-9.(),]*`?)|(`?\%[0-9][0-9]*`?)|(`?\%[_a-zA-Z][_a-zA-Z0-9.%]*`?))')
+      MATCHER = Regexp.new('((`?\%[0-9][0-9.][a-zA-Z0-9.(),]*`?)|(`?\%[0-9][0-9]*`?)|(`?\%[_a-zA-Z][_a-zA-Z0-9.%]*`?)|(`.*`\.[_a-zA-Z0-9.(),%]+)|(`.*`))')
 
       # Check str for references and process them.
       # Return the processed string and a new_value if there is one.
       def deref(str, global)
         # How many refs to process?
-        count = str.count('%')
-        obj = str
-        obj, new_value = split_by_ref_tokens str, global if count.positive?
+        obj, new_value = split_by_ref_tokens str, global
         [obj, new_value]
       end
 
@@ -75,44 +73,54 @@ module Modl
         result = nil
         prev = nil
 
-        # Remove the graves if there are any.
-        ref = Sutil.toptail(ref) if ref.start_with?('`')
+        degraved = Sutil.replace(ref, '`', '')
 
-        parts = Sutil.trail(ref).split('.')
+        parts = Sutil.tail(degraved).split('.') if degraved[0] == '%'
+        parts = degraved.split('.') unless degraved[0] == '%'
 
-        resolved = 0
-
-        parts.each do |p|
-          if p.include?('%')
-            p, _ignore = expand(global, p)
-            if p.is_a?(Modl::Parser::MODLParserBaseListener)
-              p = p.text
+        if degraved.include?('%')
+          resolved = 0
+          parts.each do |p|
+            if p.include?('%')
+              p, _ignore = expand(global, p)
+              if p.is_a?(Modl::Parser::MODLParserBaseListener)
+                p = p.text
+              end
             end
-          end
-          n = p.to_i
-          result = if n.to_s == p
-                     # Numeric ref
-                     result.nil? ? global.index_value(n, ref) : result.find_property(n)
-                   else
-                     # String ref
-                     if result.is_a? String
-                       StandardMethods.run_method(p, result)
+            n = p.to_i
+            result = if n.to_s == p
+                       # Numeric ref
+                       result.nil? ? global.index_value(n, degraved) : result.find_property(n)
                      else
-                       result.nil? ? global.pairs[p] : result.find_property(p)
+                       # String ref
+                       if result.is_a? String
+                         StandardMethods.run_method(p, result)
+                       else
+                         result.nil? ? global.pairs[p] : result.find_property(p)
+                       end
                      end
-                   end
-          break if result.nil?
+            break if result.nil?
 
-          prev = result
-          resolved += 1
-        end
-        if prev.nil?
-          remainder = ''
-          prev = ref
+            prev = result
+            resolved += 1
+          end
+          if prev.nil?
+            remainder = ''
+            prev = degraved
+          else
+            remainder = resolved < parts.length ? '.' + parts[resolved..parts.length].join('.') : ''
+          end
+          [prev, remainder]
         else
-          remainder = resolved < parts.length ? '.' + parts[resolved..parts.length].join('.') : ''
+          # Remove the graves if there are any.
+          result = parts[0]
+          i = 1
+          while i < parts.length
+            result = StandardMethods.run_method(parts[i], result)
+            i += 1
+          end
+          [result, '']
         end
-        [prev, remainder]
       end
     end
   end

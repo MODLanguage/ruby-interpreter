@@ -1,7 +1,7 @@
 module Sutil
 
   # Remove the first n characters from a string
-  def self.trail(str, n = 1)
+  def self.tail(str, n = 1)
     str&.slice(n, str.length)
   end
 
@@ -38,5 +38,17 @@ module Sutil
   # Remove the first and last chars from a string.
   def self.toptail(str)
     str.slice(1, str.length - 2) if str
+  end
+
+  def self.replace(str, old, new)
+    return str if old.nil? || new.nil? || old == new
+
+    result = str
+    loop do
+      break unless result.include?(old)
+
+      result = result.sub(old, new)
+    end
+    result
   end
 end
