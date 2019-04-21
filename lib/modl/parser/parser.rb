@@ -25,7 +25,12 @@ module Modl
           parsed
         rescue StandardError => e
           puts e.message
-          raise InterpreterError, 'MODL Version ' + global.interpreter_syntax_version.to_s + ' interpreter cannot process this MODL Version ' + global.syntax_version.to_s + ' file.' if global.syntax_version > global.interpreter_syntax_version
+          if global.syntax_version > global.interpreter_syntax_version
+            raise InterpreterError, 'MODL Version ' +
+                global.interpreter_syntax_version.to_s +
+                ' interpreter cannot process this MODL Version ' +
+                global.syntax_version.to_s + ' file.'
+          end
 
           raise InterpreterError, 'Parser Error: ' + e.message
         end

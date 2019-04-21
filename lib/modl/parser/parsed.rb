@@ -791,7 +791,8 @@ module Modl
               key = @key
               ikey = key.to_i
               if ikey.to_s == key
-                value1 = @global.index[ikey].text
+                index_val = @global.index[ikey]
+                value1 = index_val.respond_to?(:text) ? index_val.text : nil
               else
                 pair = @global.pairs[key]
                 return false unless pair

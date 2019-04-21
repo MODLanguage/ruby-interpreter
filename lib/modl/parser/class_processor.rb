@@ -129,14 +129,14 @@ module Modl
         # Slightly different processing for hashes and arrays
         if v.is_a? Hash
           keys = clazz.keylist_of_length(v.length)
-          keys.each_index do |i|
-            new_value[keys[i]] = v[v.keys[i]]
-          end
+          lam = ->(i) {v[v.keys[i]]}
         elsif v.is_a? Array
           keys = clazz.keylist_of_length(v.length)
-          keys.each_index do |i|
-            new_value[keys[i]] = v[i]
-          end
+          lam = ->(i) {v[i]}
+        end
+
+        keys&.each_index do |i|
+          new_value[keys[i]] = lam.call(i)
         end
 
         new_value.keys do |nk|
