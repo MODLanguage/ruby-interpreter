@@ -50,5 +50,7 @@ class MODLParserVisitor < Antlr4::Runtime::ParseTreeVisitor
 	end
 	def visitModl_array_value_item(ctx)
 	end
+	def visitModl_primitive(ctx)
+	end
 end
 end

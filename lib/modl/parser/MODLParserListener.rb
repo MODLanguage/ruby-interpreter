@@ -141,5 +141,11 @@ class MODLParserListener < Antlr4::Runtime::ParseTreeListener
 	def exitModl_array_value_item(ctx)
 	end
 
+	def enterModl_primitive(ctx)
+	end
+
+	def exitModl_primitive(ctx)
+	end
+
 end
 end

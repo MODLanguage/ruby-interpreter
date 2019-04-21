@@ -142,6 +142,12 @@ class MODLParserBaseListener < MODLParserListener
 	 def exitModl_array_value_item(ctx)
 	 end
 
+	 def enterModl_primitive(ctx)
+	 end
+
+	 def exitModl_primitive(ctx)
+	 end
+
  def enter_every_rule(ctx)
  end
 

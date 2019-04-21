@@ -98,6 +98,10 @@ module Modl::Parser
 	 return visit_children(ctx)
 	 end
 
+	def visitModl_primitive( ctx)
+	 return visit_children(ctx)
+	 end
+
 
 end
 end
