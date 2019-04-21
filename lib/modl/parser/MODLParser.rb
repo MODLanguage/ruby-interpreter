@@ -2851,9 +2851,6 @@ class MODLParser < Antlr4::Runtime::Parser
 		def NEWLINE_i( i)
 			return token(MODLParser::NEWLINE, i)
 		end
-		def STRING()
-		  return token(MODLParser::STRING, 0)
-		end
 		def modl_operator()
 			return rule_context("Modl_operatorContext",0)
 		end
@@ -2915,7 +2912,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			when 1
 
 				@_state_number = 632
-				match(STRING)
+				modl_primitive()
 
 			end
 			@_state_number = 636
@@ -3575,8 +3572,8 @@ class MODLParser < Antlr4::Runtime::Parser
 	    "\u026d\3\2\2\2\u0272\u026e\3\2\2\2\u0272\u0270\3\2\2\2\u0273\'\3\2",
 	    "\2\2\u0274\u0276\7\7\2\2\u0275\u0274\3\2\2\2\u0276\u0279\3\2\2\2\u0277",
 	    "\u0275\3\2\2\2\u0277\u0278\3\2\2\2\u0278\u027b\3\2\2\2\u0279\u0277",
-	    "\3\2\2\2\u027a\u027c\7\21\2\2\u027b\u027a\3\2\2\2\u027b\u027c\3\2\2",
-	    "\2\u027c\u027e\3\2\2\2\u027d\u027f\5&\24\2\u027e\u027d\3\2\2\2\u027e",
+	    "\3\2\2\2\u027a\u027c\5\60\31\2\u027b\u027a\3\2\2\2\u027b\u027c\3\2",
+	    "\2\2\u027c\u027e\3\2\2\2\u027d\u027f\5&\24\2\u027e\u027d\3\2\2\2\u027e",
 	    "\u027f\3\2\2\2\u027f\u0280\3\2\2\2\u0280\u0285\5\60\31\2\u0281\u0282",
 	    "\7\35\2\2\u0282\u0284\5\60\31\2\u0283\u0281\3\2\2\2\u0284\u0287\3\2",
 	    "\2\2\u0285\u0283\3\2\2\2\u0285\u0286\3\2\2\2\u0286\u028b\3\2\2\2\u0287",
