@@ -10,8 +10,8 @@ module Modl
           item.value.array.abstractArrayItems.each do |avi|
             key_list = []
             avi.arrayValueItem.array.abstractArrayItems.each do |key|
-              key_list << key.arrayValueItem.string.string if key.arrayValueItem.string
-              key_list << key.arrayValueItem.number.num if key.arrayValueItem.number
+              key_list << key.arrayValueItem.primitive.string.string if key.arrayValueItem.primitive.string
+              key_list << key.arrayValueItem.primitive.number.num if key.arrayValueItem.primitive.number
             end
             if key_list.length > last_keylist_len
               last_keylist_len = key_list.length
@@ -24,8 +24,8 @@ module Modl
           item.abstractArrayItems.each do |avi|
             key_list = []
             avi.arrayValueItem.array.abstractArrayItems.each do |key|
-              key_list << key.arrayValueItem.string.string if key.arrayValueItem.string
-              key_list << key.arrayValueItem.number.num if key.arrayValueItem.number
+              key_list << key.arrayValueItem.primitive.string.string if key.arrayValueItem.primitive.string
+              key_list << key.arrayValueItem.primitive.number.num if key.arrayValueItem.primitive.number
             end
             if key_list.length > last_keylist_len
               last_keylist_len = key_list.length

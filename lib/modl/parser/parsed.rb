@@ -9,6 +9,7 @@ require 'modl/parser/modl_class'
 require 'modl/parser/modl_method'
 require 'modl/parser/modl_index'
 require 'modl/parser/modl_keylist'
+require 'modl/parser/evaluator'
 require 'cgi'
 require 'net/http'
 
@@ -191,8 +192,9 @@ module Modl
             value.each do |item|
               array_item = ParsedArrayItem.new @global
               array_item.arrayValueItem = ParsedArrayValueItem.new @global
-              array_item.arrayValueItem.string = ParsedString.new(item)
-              array_item.arrayValueItem.text = item
+              array_item.arrayValueItem.primitive = ParsedPrimitive.new(@global)
+              array_item.arrayValueItem.primitive.string = ParsedString.new(item)
+              array_item.arrayValueItem.primitive.text = item
               @array.abstractArrayItems << array_item
             end
             @valueItem = nil
@@ -208,11 +210,13 @@ module Modl
             @array = nil
             @valueItem = ParsedValueItem.new @global
             @valueItem.value = ParsedValue.new @global
+            @valueItem.value.primitive = ParsedPrimitive.new(@global)
             if value
-              @valueItem.value.trueVal = ParsedTrue.instance
+              @valueItem.value.primitive.trueVal = ParsedTrue.instance
             else
-              @valueItem.value.falseVal = ParsedFalse.instance
+              @valueItem.value.primitive.falseVal = ParsedFalse.instance
             end
+            @valueItem.value.primitive.text = value
             @valueItem.value.text = value
             @text = value
             return
@@ -300,11 +304,11 @@ module Modl
           when 'version'
             extract_value
 
-            raise InterpreterError, 'Invalid MODL version: nil' if @valueItem.value.number.nil?
-            raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.is_a? Float
-            raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.number.num.to_s if @valueItem.value.number.num.zero?
+            raise InterpreterError, 'Invalid MODL version: nil' if @valueItem.value.primitive.number.nil?
+            raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.primitive.number.num.to_s if @valueItem.value.primitive.number.num.is_a? Float
+            raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.primitive.number.num.to_s if @valueItem.value.primitive.number.num.zero?
             raise InterpreterError, 'MODL version should be on the first line if specified.' if @global.pairs.length.positive?
-            @global.syntax_version = @valueItem.value.number.num
+            @global.syntax_version = @valueItem.value.primitive.number.num
 
           when 'method'
             MethodExtractor.extract(self, @global)
@@ -349,7 +353,7 @@ module Modl
         end
 
         def extract_transform item
-          @transform = item.value.string.string
+          @transform = item.value.primitive.string.string
         end
 
         def validate_key
@@ -421,12 +425,7 @@ module Modl
         attr_reader :map
         attr_reader :array
         attr_reader :pair
-        attr_reader :quoted
-        attr_reader :number
-        attr_reader :trueVal
-        attr_reader :falseVal
-        attr_accessor :nilVal
-        attr_accessor :string
+        attr_accessor :primitive
         attr_accessor :text # The simple text value rather than the object
 
         def initialize(global)
@@ -438,14 +437,7 @@ module Modl
           return @array.find_property(key) if @array
           return @nbArray.find_property(key) if @nbArray
           return @pair.find_property(key) if @pair
-
-          if @string
-            user_method = @global.methods_hash[key]
-            if user_method
-              return user_method.run(@string.string)
-            end
-            return StandardMethods.run_method(key, @string.string)
-          end
+          return @primitive.find_property(key) if @primitive
         end
 
         def extract_hash
@@ -453,18 +445,14 @@ module Modl
           return @array.extract_hash if @array
           return @nbArray.extract_hash if @nbArray
           return @pair.extract_hash if @pair
+          return @primitive.extract_hash if @primitive
 
-          return @text unless @number
-
-          return @text.to_i
+          @text
         end
 
         def enterModl_array_value_item(ctx)
           @text = nil
-          if !ctx.NUMBER.nil?
-            @number = ParsedNumber.new(ctx.NUMBER.text)
-            @text = @number.num
-          elsif !ctx.modl_map.nil?
+          if !ctx.modl_map.nil?
             @map = ParsedMap.new @global
             ctx.modl_map.enter_rule(@map)
           elsif !ctx.modl_array.nil?
@@ -473,24 +461,10 @@ module Modl
           elsif !ctx.modl_pair.nil?
             @pair = ParsedPair.new @global
             ctx.modl_pair.enter_rule(@pair)
-          elsif !ctx.STRING.nil?
-            @text = Parsed.additional_string_processing(ctx.STRING.text)
-            @text, new_value = RefProcessor.instance.deref @text, @global
-            @string = ParsedString.new(@text)
-          elsif !ctx.QUOTED.nil?
-            @text = Sutil.toptail(ctx.QUOTED.text) # remove the quotes
-            @text = Parsed.additional_string_processing(@text)
-            @text, new_value = RefProcessor.instance.deref @text, @global
-            @quoted = ParsedQuoted.new(@text)
-          elsif !ctx.NULL.nil?
-            @nilVal = ParsedNull.instance
-            @text = 'null'
-          elsif !ctx.TRUE.nil?
-            @trueVal = ParsedTrue.instance
-            @text = true
-          elsif !ctx.FALSE.nil?
-            @falseVal = ParsedFalse.instance
-            @text = false
+          elsif !ctx.modl_primitive.nil?
+            @primitive = ParsedPrimitive.new @global
+            ctx.modl_primitive.enter_rule(@primitive)
+            @text = @primitive.text
           end
 
           # ignoring comments!
@@ -533,12 +507,7 @@ module Modl
         attr_reader :array
         attr_reader :nbArray
         attr_reader :pair
-        attr_reader :quoted
-        attr_reader :number
-        attr_accessor :trueVal
-        attr_accessor :falseVal
-        attr_reader :nilVal
-        attr_reader :string
+        attr_accessor :primitive
         attr_accessor :text # The simple text value rather than the object
 
         def initialize(global)
@@ -550,14 +519,7 @@ module Modl
           return @array.find_property(key) if @array
           return @nbArray.find_property(key) if @nbArray
           return @pair.find_property(key) if @pair
-
-          if @string
-            user_method = @global.methods_hash[key]
-            if user_method
-              return user_method.run(@string.string)
-            end
-            return StandardMethods.run_method(key, @string.string)
-          end
+          return @primitive.find_property(key) if @primitive
         end
 
         def extract_hash
@@ -565,13 +527,13 @@ module Modl
           return @array.extract_hash if @array
           return @nbArray.extract_hash if @nbArray
           return @pair.extract_hash if @pair
+          return @primitive.extract_hash if @primitive
 
           @text
         end
 
         def evaluate
-          return false if @nilVal
-          return false if @falseVal
+          return @primitive.evaluate if @primitive
 
           true
         end
@@ -581,21 +543,11 @@ module Modl
           return @array if @array
           return @nbArray if @nbArray
           return @pair if @pair
-          return @quoted if @quoted
-          return @number if @number
-          return @trueVal if @trueVal
-          return @falseVal if @falseVal
-          return @nilVal if @nilVal
-          return @string if @string
-
-          @text
+          return @primitive if @primitive
         end
 
         def enterModl_value(ctx)
-          if !ctx.NUMBER.nil?
-            @number = ParsedNumber.new(ctx.NUMBER.text)
-            @text = @number.num
-          elsif !ctx.modl_map.nil?
+          if !ctx.modl_map.nil?
             @map = ParsedMap.new @global
             ctx.modl_map.enter_rule(@map)
           elsif !ctx.modl_nb_array.nil?
@@ -607,6 +559,66 @@ module Modl
           elsif !ctx.modl_pair.nil?
             @pair = ParsedPair.new @global
             ctx.modl_pair.enter_rule(@pair)
+          elsif !ctx.modl_primitive.nil?
+            @primitive = ParsedPrimitive.new @global
+            ctx.modl_primitive.enter_rule(@primitive)
+            @text = @primitive.text
+          end
+          # ignoring comments!
+        end
+      end
+
+      # Class to represent a parsed grammar object
+      class ParsedPrimitive < Modl::Parser::MODLParserBaseListener
+        attr_accessor :quoted
+        attr_accessor :number
+        attr_accessor :trueVal
+        attr_accessor :falseVal
+        attr_accessor :nilVal
+        attr_accessor :string
+        attr_accessor :text # The simple text value rather than the object
+
+        def initialize(global)
+          @global = global
+        end
+
+        def find_property(key)
+          if @string
+            user_method = @global.methods_hash[key]
+            if user_method
+              return user_method.run(@string.string)
+            end
+            return StandardMethods.run_method(key, @string.string)
+          end
+        end
+
+        def extract_hash
+          result, _ignore = RefProcessor.instance.deref(@text, @global)
+          result
+        end
+
+        def evaluate
+          return false if @nilVal
+          return false if @falseVal
+
+          true
+        end
+
+        def value_obj
+          return @quoted if @quoted
+          return @number if @number
+          return @trueVal if @trueVal
+          return @falseVal if @falseVal
+          return @nilVal if @nilVal
+          return @string if @string
+
+          @text
+        end
+
+        def enterModl_primitive(ctx)
+          if !ctx.NUMBER.nil?
+            @number = ParsedNumber.new(ctx.NUMBER.text)
+            @text = @number.num
           elsif !ctx.STRING.nil?
             @text = Parsed.additional_string_processing(ctx.STRING.text)
             @string = ParsedString.new(@text)
@@ -773,87 +785,24 @@ module Modl
 
       # Class to represent a parsed grammar object
       class ParsedCondition < Modl::Parser::MODLParserBaseListener
-        attr_reader :key
+        attr_reader :primitives
         attr_reader :operator
-        attr_reader :values
 
         def initialize(global)
           @global = global
-          @values = []
+          @primitives = []
         end
 
         def evaluate
-          result = false
-          if @key
-            if @key.include?('%')
-              value1, _ignore = Modl::Parser::RefProcessor.instance.deref(@key, @global)
-            else
-              key = @key
-              ikey = key.to_i
-              if ikey.to_s == key
-                index_val = @global.index[ikey]
-                value1 = index_val.respond_to?(:text) ? index_val.text : nil
-              else
-                pair = @global.pairs[key]
-                return false unless pair
-
-                value1 = pair.text
-              end
-            end
-
-            @values.each do |value|
-              value2 = value.text
-              value2, _ignore = Modl::Parser::RefProcessor.instance.deref(value2, @global) if value2.is_a?(String) && value2.include?('%')
-              value2 = @global.pairs[value.text].text if @global.pairs[value.text]
-
-              case @operator
-              when '='
-                wild = (value2.is_a?(String) && value2.include?('*')) ? true : false
-                if wild
-                  regex = '^'
-                  value2.each_char do |c|
-                    regex << ((c == '*') ? '.*' : c)
-                  end
-                  result |= !value1.match(regex).nil?
-                else
-                  result |= value1 == value2
-                end
-              when '>'
-                result |= value1 > value2
-              when '<'
-                result |= value1 < value2
-              when '>='
-                result |= value1 >= value2
-              when '<='
-                result |= value1 <= value2
-              end
-              break if result # shortcut if we have a matching value
-            end
-          elsif @values.length == 1
-            key = @values[0].text
-            if key.is_a?(String)
-              key = key.start_with?('%') ? Sutil.tail(key) : key
-            end
-            the_pair = @global.pairs[key]
-            if the_pair
-              result = the_pair.text
-            else
-              return true if @values[0].trueVal
-              return false if @values[0].falseVal
-              return false if @values[0].string
-              result = @values[0].evaluate
-            end
-          end
-          result
+          Evaluator.evaluate(@global, self)
         end
 
         def enterModl_condition(ctx)
-          @key = ctx.STRING.text unless ctx.STRING.nil?
           @operator = ctx.modl_operator.text unless ctx.modl_operator.nil?
-          ctx.modl_value.each do |v|
-            value = ParsedValue.new @global
+          ctx.modl_primitive.each do |v|
+            value = ParsedPrimitive.new @global
             v.enter_rule(value)
-            @values << value
+            @primitives << value
           end
         end
       end
@@ -1218,7 +1167,8 @@ module Modl
         # TODO : Is there a way to know the type to create or is nil always acceptable?
         array_item = ParsedArrayItem.new @global
         array_item.arrayValueItem = ParsedArrayValueItem.new @global
-        array_item.arrayValueItem.nilVal = ParsedNull.instance
+        array_item.arrayValueItem.primitive = ParsedPrimitive.new @global
+        array_item.arrayValueItem.primitive.nilVal = ParsedNull.instance
         array_item
       end
 

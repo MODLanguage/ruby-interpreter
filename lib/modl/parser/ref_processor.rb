@@ -16,14 +16,13 @@ module Modl
 
       def trivial_reject(str)
         # do a fast check to see if we need to deref - save processing the regex if we don't have to.
-        str.nil? || str.include?('%') || str.include?('`')
+        str.is_a?(String) && (str.nil? || str.include?('%') || str.include?('`'))
       end
 
       # Check str for references and process them.
       # Return the processed string and a new_value if there is one.
       def deref(str, global)
         obj = str
-        # How many refs to process?
         obj, new_value = split_by_ref_tokens str, global if trivial_reject(str)
         [obj, new_value]
       end

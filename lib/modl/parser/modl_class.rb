@@ -49,17 +49,17 @@ module Modl
 
           case item&.pair&.type
           when 'id'
-            str_value = item.pair.valueItem.value.string.string
+            str_value = item.pair.valueItem.value.primitive.string.string
             raise InterpreterError, 'Reserved class id - cannot redefine: ' + str_value if reserved?(str_value)
 
             clazz.id = str_value
           when 'name'
-            str_value = item.pair.valueItem.value.string.string
+            str_value = item.pair.valueItem.value.primitive.string.string
             raise InterpreterError, 'Reserved class name - cannot redefine: ' + str_value if reserved?(str_value)
 
             clazz.name = str_value
           when 'superclass'
-            str_value = item.pair.valueItem.value.string.string
+            str_value = item.pair.valueItem.value.primitive.string.string
             clazz.superclass = str_value
           when 'keylist'
             clazz.assign = item.pair.key_lists

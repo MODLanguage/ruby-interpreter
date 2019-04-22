@@ -63,11 +63,11 @@ module Modl
 
           case item&.pair&.type
           when 'id'
-            mthd.id = item.pair.valueItem.value.string.string
+            mthd.id = item.pair.valueItem.value.primitive.string.string
           when 'transform'
-            mthd.transform = item.pair.valueItem.value.string.string
+            mthd.transform = item.pair.valueItem.value.primitive.string.string
           when 'name'
-            mthd.name = item.pair.valueItem.value.string.string
+            mthd.name = item.pair.valueItem.value.primitive.string.string
           else
             raise InterpreterError, 'Invalid *method - only *id, *name, and *transform fields expected'
           end
