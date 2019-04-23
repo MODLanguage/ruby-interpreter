@@ -15,12 +15,11 @@ And then execute:
 
 Or clone the repository and build and install it yourself as:
 
-    $ gem build modl.gemspec
-    $ gem install modl-0.1.0.gem
+    $ rake install
     
     or if that fails:
     
-    $ sudo gem install modl-0.1.0.gem
+    $ sudo rake install
 
 You will also need to install the antlr4-ruby-runtime gem that this depends on. See https://github.com/MODLanguage/antlr4-ruby-runtime
 ## Usage
@@ -29,7 +28,7 @@ You will also need to install the antlr4-ruby-runtime gem that this depends on. 
 require 'modl/interpreter'
 
 result = Modl::Interpreter.interpret
-or
+# or
 result = Modl::Interpreter.interpret, true
 ```
 where `str` is the modl to be interpreted. The result will be a JSON string. If the second parameter is `true` then the JSON will be pretty-printed.

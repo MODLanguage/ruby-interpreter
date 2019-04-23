@@ -3,42 +3,17 @@ end
 
 require 'json'
 
+# Reformat a JSON string for easier comparison of actual vs expected results.
 def mangle(str)
-  loop do
-    break unless str.sub!('": ', '":')
-  end
-
-  loop do
-    break unless str.sub!('" : ', '":')
-  end
-
-  loop do
-    break unless str.sub!("\n", '')
-  end
-
-  loop do
-    break unless str.sub!('[ ', '[')
-  end
-
-  loop do
-    break unless str.sub!(' ]', ']')
-  end
-
-  loop do
-    break unless str.sub!(' }', '}')
-  end
-
-  loop do
-    break unless str.sub!('] ', ']')
-  end
-
-  loop do
-    break unless str.sub!('{ ', '{')
-  end
-
-  loop do
-    break unless str.sub!(', ', ',')
-  end
+  str = Sutil.replace(str, '": ', '":')
+  str = Sutil.replace(str, '" : ', '":')
+  str = Sutil.replace(str, "\n", '')
+  str = Sutil.replace(str, '[ ', '[')
+  str = Sutil.replace(str, ' ]', ']')
+  str = Sutil.replace(str, ' }', '}')
+  str = Sutil.replace(str, '] ', ']')
+  str = Sutil.replace(str, '{ ', '{')
+  Sutil.replace(str, ', ', ',')
 end
 
 RSpec.describe Modl::Parser do
@@ -53,7 +28,7 @@ RSpec.describe Modl::Parser do
 
     data.each_index do |i|
       begin
-        #next if i <= 1
+        #next if i <= 9
 
         test_case = data[i]
 
@@ -63,8 +38,8 @@ RSpec.describe Modl::Parser do
 
         expected = test_case['expected_output']
 
-        mangle(result)
-        mangle(expected)
+        result = mangle(result)
+        expected = mangle(expected)
         puts 'Expected  : ' + expected
         puts 'Found     : ' + result
         if result == expected

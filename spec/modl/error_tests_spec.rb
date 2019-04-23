@@ -3,44 +3,6 @@ end
 
 require 'json'
 
-def mangle(str)
-  loop do
-    break unless str.sub!('": ', '":')
-  end
-
-  loop do
-    break unless str.sub!('" : ', '":')
-  end
-
-  loop do
-    break unless str.sub!("\n", '')
-  end
-
-  loop do
-    break unless str.sub!('[ ', '[')
-  end
-
-  loop do
-    break unless str.sub!(' ]', ']')
-  end
-
-  loop do
-    break unless str.sub!(' }', '}')
-  end
-
-  loop do
-    break unless str.sub!('] ', ']')
-  end
-
-  loop do
-    break unless str.sub!('{ ', '{')
-  end
-
-  loop do
-    break unless str.sub!(', ', ',')
-  end
-end
-
 RSpec.describe Modl::Parser do
   it "can run the failure tests" do
     file = File.open "./grammar_tests/error_tests.json"
