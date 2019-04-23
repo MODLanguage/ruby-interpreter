@@ -2,6 +2,7 @@ module Modl
   module Parser
     # Evaluate a conditional expression
     class Evaluator
+      # Evaluate the given condition
       def self.evaluate(global, condition)
         return false if global.nil? || !global.is_a?(GlobalParseContext) || !condition.is_a?(Modl::Parser::Parsed::ParsedCondition)
 

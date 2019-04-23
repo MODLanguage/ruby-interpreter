@@ -481,7 +481,7 @@ module Modl
         end
 
         def find_property(key)
-          return value.find_property(key)
+          @value.find_property(key) if @value
         end
 
         def enterModl_value_item(ctx)
@@ -692,7 +692,14 @@ module Modl
             should_negate = s.b.b
 
             partial = s.a.evaluate
+            case last_operator
+            when '&'
+              result &= should_negate ? !partial : partial
+            when '|'
+              result |= should_negate ? !partial : partial
+            else
             result |= should_negate ? !partial : partial
+            end
           end
           result
         end
