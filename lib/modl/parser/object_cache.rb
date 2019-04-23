@@ -1,10 +1,8 @@
-require 'singleton'
 
 module Modl
   module Parser
     # Store any files for up to 1 hour by default.
     class ObjectCache
-      include Singleton
       # A cache record to keep track of the time since an object was last cached.
       class CacheEntry
         TTL_ONE_HOUR = 3_600 # seconds

@@ -22,7 +22,7 @@ module Modl
       interpreted = parsed.extract_hash
 
       # Process any class definitions used by the MODL file.
-      Modl::Parser::ClassProcessor.instance.process(parsed.global, interpreted)
+      Modl::Parser::ClassProcessor.process(parsed.global, interpreted)
 
       # If the result is a simple string then just return it.
       return interpreted if interpreted.is_a? String

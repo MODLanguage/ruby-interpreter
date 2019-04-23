@@ -1,4 +1,3 @@
-require 'singleton'
 require 'modl/parser/object_cache'
 require 'modl/parser/sutil'
 
@@ -7,7 +6,11 @@ module Modl
 
     # This class handled file loading from local or remote file systems.
     class FileImporter
-      include Singleton
+
+      def initialize
+        @cache = ObjectCache.new
+      end
+
       # Supply a single file name as a string or an array of file names.
       def import_files(files, global)
         file_names = []
@@ -18,19 +21,19 @@ module Modl
           force = file_name.end_with?('!')
           if force
             # Don't use the cache if we're forcing a reload.
-            ObjectCache.instance.evict(file_name)
+            @cache.evict(file_name)
             file_name = Sutil.head(file_name)
             parsed = nil
           else
             # Do we have a cached version?
-            parsed = ObjectCache.instance.get(file_name)
+            parsed = @cache.get(file_name)
           end
 
           # Did we hit the cache?
           unless parsed
             # No.
             file_name << '.modl' unless file_name.end_with?('.txt', '.modl')
-            file_name, new_val = RefProcessor.instance.deref file_name, global if file_name.include?('%')
+            file_name, new_val = RefProcessor.deref file_name, global if file_name.include?('%')
 
             begin
               uri = URI(file_name)
@@ -46,7 +49,7 @@ module Modl
             # Parse the downloaded file ands extract the classes
             parsed = Modl::Parser::Parser.parse txt, global
             # Save it for next time
-            ObjectCache.instance.put(file_name, parsed)
+            @cache.put(file_name, parsed)
           end
           # Extract the JSON content and add the classes and pairs to the existing GlobalParseContext hashes.
           parsed.extract_hash

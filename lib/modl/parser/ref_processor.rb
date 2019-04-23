@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'singleton'
 require 'modl/parser/parsed'
 require 'punycode'
 require 'modl/parser/sutil'
@@ -9,26 +8,25 @@ module Modl
   module Parser
     # Convert MODL reference to the replacement value
     class RefProcessor
-      include Singleton
 
       NESTED_SEPARATOR = '.'
       MATCHER = Regexp.new('((`?\%[0-9][0-9.][a-zA-Z0-9.(),]*`?)|(`?\%[0-9][0-9]*`?)|(`?\%[_a-zA-Z][_a-zA-Z0-9.%(),]*`?)|(`.*`\.[_a-zA-Z0-9.(),%]+)|(`.*`))')
 
-      def trivial_reject(str)
+      def self.trivial_reject(str)
         # do a fast check to see if we need to deref - save processing the regex if we don't have to.
         str.is_a?(String) && (str.nil? || str.include?('%') || str.include?('`'))
       end
 
       # Check str for references and process them.
       # Return the processed string and a new_value if there is one.
-      def deref(str, global)
+      def self.deref(str, global)
         obj = str
         obj, new_value = split_by_ref_tokens str, global if trivial_reject(str)
         [obj, new_value]
       end
 
       # Process the next %ref token
-      def split_by_ref_tokens(str, global)
+      def self.split_by_ref_tokens(str, global)
         new_value = nil
 
         text = str
@@ -74,7 +72,7 @@ module Modl
 
       private
 
-      def expand(global, ref)
+      def self.expand(global, ref)
         result = nil
         prev = nil
 

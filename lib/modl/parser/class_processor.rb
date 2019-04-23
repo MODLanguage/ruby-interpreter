@@ -1,15 +1,12 @@
-require 'singleton'
-
 module Modl
   module Parser
     # This class handles the conversion of objects that refer to classes into instances of those classes.
     # It works recursively since class usage can be nested.
     class ClassProcessor
-      include Singleton
       # How deep can the class structure be?
       MAX_RECURSION_DEPTH = 20
       # global is a GlobalParseContext and obj is the extracted Array or Hash from Modl::Parser::Parsed.extract_json
-      def process(global, obj)
+      def self.process(global, obj)
         # Process each object in the array or just process the object if its a hash.
         # Any other object is ignored.
         raise StandardError, 'parameter "global" should be a GlobalParseContext' unless global.is_a?(GlobalParseContext)
@@ -26,7 +23,7 @@ module Modl
       private
 
       # Process the contents of the supplied hash obj
-      def process_obj(global, obj)
+      def self.process_obj(global, obj)
         obj.keys.each do |k|
           value = obj[k]
           # Does the key refer to a class that we have parsed or loaded?
@@ -44,7 +41,7 @@ module Modl
       end
 
       # Convert the supplied object val into an instance of the class with key k
-      def process_class(global, k, v)
+      def self.process_class(global, k, v)
         clazz = global.classes[k]
         new_value = transform_to_class(clazz, global, v)
 
@@ -74,7 +71,7 @@ module Modl
       end
 
       # Bring down values from the superclass hierarchy
-      def copy_from_superclasses(clazz, global, new_value, v)
+      def self.copy_from_superclasses(clazz, global, new_value, v)
         new_value = v.merge(new_value)
         depth = 0
         loop do
@@ -88,7 +85,7 @@ module Modl
       end
 
       # Transfer the keys from val to the new_value object.
-      def copy_keys_to_new_value(new_value, val)
+      def self.copy_keys_to_new_value(new_value, val)
         val.each do |value|
           next unless value&.is_a?(Hash)
 
@@ -97,7 +94,7 @@ module Modl
       end
 
       # If the new_value has nested class references then process those recursively as well.
-      def process_nested_classes(global, new_value)
+      def self.process_nested_classes(global, new_value)
         return unless new_value.is_a? Hash
 
         new_value.keys.each do |nk|
@@ -122,7 +119,7 @@ module Modl
 
       # Process the *assign lists ('keylist' in this code) and any extra pairs defined by the class.
       # The id, name, and superclass can be ignored here.
-      def transform_to_class(clazz, global, v)
+      def self.transform_to_class(clazz, global, v)
         new_value = {} # the replacement for val after conversion to a class instance
 
         # Process the key list if we found one otherwise raise an error
@@ -147,7 +144,7 @@ module Modl
       end
 
       # Get the top level class for the supplied class
-      def top_class(clazz, global, depth = 0)
+      def self.top_class(clazz, global, depth = 0)
         # Check for self-referential classes that cause infinite recursion
         return if depth > MAX_RECURSION_DEPTH
 

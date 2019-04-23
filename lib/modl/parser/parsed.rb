@@ -43,7 +43,7 @@ module Modl
       end
 
       def self.additional_string_processing(text)
-        text = Substitutions.instance.process text
+        text = Substitutions.process text
         # Special case for a possibly empty graved string ``
         unless text.nil?
           match_data = /^`([^`]*)`$/.match text
@@ -173,6 +173,7 @@ module Modl
           @global = global
           @needs_defref = true
           @final = false
+          @file_importer = FileImporter.new
         end
 
         def find_property(key)
@@ -237,7 +238,7 @@ module Modl
           value = @map.extract_hash if @map
 
           if value.is_a?(String) && (value.start_with?('%') || value.start_with?('`'))
-            @text, _ignore = RefProcessor.instance.deref(@text, @global)
+            @text, _ignore = RefProcessor.deref(@text, @global)
           else
             @text = value
           end
@@ -262,7 +263,7 @@ module Modl
           end
 
           if @key.include?('%') || @key.include?('`')
-            @key, new_value = RefProcessor.instance.deref @key, @global
+            @key, new_value = RefProcessor.deref @key, @global
             unless @key.is_a?(String)
               @key = new_value.is_a?(String) ? new_value : new_value.text
             end
@@ -317,7 +318,7 @@ module Modl
           when 'import'
             files = @valueItem.extract_hash if @valueItem
             files = @array.extract_hash if @array
-            FileImporter.instance.import_files files, @global
+            @file_importer.import_files files, @global
           when 'index'
             IndexExtractor.extract(self, @global)
           when 'hidden'
@@ -372,7 +373,7 @@ module Modl
           return unless @needs_defref && !@text.nil? && @text.is_a?(String) && @text.include?('%')
 
           @needs_defref = false
-          @text, new_value = RefProcessor.instance.deref @text, @global
+          @text, new_value = RefProcessor.deref @text, @global
 
           if new_value.is_a? ParsedMap
             @map = new_value
@@ -593,7 +594,7 @@ module Modl
         end
 
         def extract_hash
-          result, _ignore = RefProcessor.instance.deref(@text, @global)
+          result, _ignore = RefProcessor.deref(@text, @global)
           result
         end
 

@@ -53,7 +53,7 @@ module Modl
       def self.value(global, k)
         success = false
         if k.is_a?(String) && k.include?('%')
-          value1, _ignore = Modl::Parser::RefProcessor.instance.deref(k, global)
+          value1, _ignore = Modl::Parser::RefProcessor.deref(k, global)
           success = true
         elsif k.is_a?(FalseClass)
           value1 = false
@@ -84,7 +84,7 @@ module Modl
         result = false
         if @key
           if @key.include?('%')
-            value1, _ignore = Modl::Parser::RefProcessor.instance.deref(@key, @global)
+            value1, _ignore = Modl::Parser::RefProcessor.deref(@key, @global)
           else
             key = @key
             ikey = key.to_i
@@ -101,7 +101,7 @@ module Modl
 
           @values.each do |value|
             value2 = value.text
-            value2, _ignore = Modl::Parser::RefProcessor.instance.deref(value2, @global) if value2.is_a?(String) && value2.include?('%')
+            value2, _ignore = Modl::Parser::RefProcessor.deref(value2, @global) if value2.is_a?(String) && value2.include?('%')
             value2 = @global.pairs[value.text].text if @global.pairs[value.text]
 
             case @operator

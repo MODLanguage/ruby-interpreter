@@ -27,9 +27,9 @@ You will also need to install the antlr4-ruby-runtime gem that this depends on. 
 ```ruby
 require 'modl/interpreter'
 
-result = Modl::Interpreter.interpret
+result = Modl::Interpreter.interpret(str)
 # or
-result = Modl::Interpreter.interpret, true
+result = Modl::Interpreter.interpret(str, true)
 ```
 where `str` is the modl to be interpreted. The result will be a JSON string. If the second parameter is `true` then the JSON will be pretty-printed.
 
