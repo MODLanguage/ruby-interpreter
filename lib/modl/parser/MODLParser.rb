@@ -1293,7 +1293,7 @@ class MODLParser < Antlr4::Runtime::Parser
 				@_state_number = 286
 				@_err_handler.sync(self)
 				_la = @_input.la(1)
-				if ((((_la) & ~0x3f) == 0 && ((1 << _la) & ((1 << NULL) | (1 << TRUE) | (1 << FALSE) | (1 << NEWLINE) | (1 << EQUALS) | (1 << NUMBER) | (1 << STRING) | (1 << QUOTED) | (1 << LCBRAC) | (1 << GTHAN) | (1 << LTHAN) | (1 << EXCLAM))) != 0))
+				if ((((_la) & ~0x3f) == 0 && ((1 << _la) & ((1 << NULL) | (1 << TRUE) | (1 << FALSE) | (1 << NEWLINE) | (1 << EQUALS) | (1 << LBRAC) | (1 << LSBRAC) | (1 << NUMBER) | (1 << STRING) | (1 << QUOTED) | (1 << LCBRAC) | (1 << GTHAN) | (1 << LTHAN) | (1 << EXCLAM))) != 0))
 
 					@_state_number = 285
 					modl_condition_test()
@@ -1610,7 +1610,7 @@ class MODLParser < Antlr4::Runtime::Parser
 				@_state_number = 361
 				@_err_handler.sync(self)
 				_la = @_input.la(1)
-				if ((((_la) & ~0x3f) == 0 && ((1 << _la) & ((1 << NULL) | (1 << TRUE) | (1 << FALSE) | (1 << NEWLINE) | (1 << EQUALS) | (1 << NUMBER) | (1 << STRING) | (1 << QUOTED) | (1 << LCBRAC) | (1 << GTHAN) | (1 << LTHAN) | (1 << EXCLAM))) != 0))
+				if ((((_la) & ~0x3f) == 0 && ((1 << _la) & ((1 << NULL) | (1 << TRUE) | (1 << FALSE) | (1 << NEWLINE) | (1 << EQUALS) | (1 << LBRAC) | (1 << LSBRAC) | (1 << NUMBER) | (1 << STRING) | (1 << QUOTED) | (1 << LCBRAC) | (1 << GTHAN) | (1 << LTHAN) | (1 << EXCLAM))) != 0))
 
 					@_state_number = 360
 					modl_condition_test()
@@ -2011,7 +2011,7 @@ class MODLParser < Antlr4::Runtime::Parser
 				@_state_number = 450
 				@_err_handler.sync(self)
 				_la = @_input.la(1)
-				if ((((_la) & ~0x3f) == 0 && ((1 << _la) & ((1 << NULL) | (1 << TRUE) | (1 << FALSE) | (1 << NEWLINE) | (1 << EQUALS) | (1 << NUMBER) | (1 << STRING) | (1 << QUOTED) | (1 << LCBRAC) | (1 << GTHAN) | (1 << LTHAN) | (1 << EXCLAM))) != 0))
+				if ((((_la) & ~0x3f) == 0 && ((1 << _la) & ((1 << NULL) | (1 << TRUE) | (1 << FALSE) | (1 << NEWLINE) | (1 << EQUALS) | (1 << LBRAC) | (1 << LSBRAC) | (1 << NUMBER) | (1 << STRING) | (1 << QUOTED) | (1 << LCBRAC) | (1 << GTHAN) | (1 << LTHAN) | (1 << EXCLAM))) != 0))
 
 					@_state_number = 449
 					modl_condition_test()
@@ -2668,18 +2668,17 @@ class MODLParser < Antlr4::Runtime::Parser
 			end
 			@_state_number = 600
 			@_err_handler.sync(self)
-			case (@_input.la(1))
-			when MODLParser::NULL, MODLParser::TRUE, MODLParser::FALSE, MODLParser::NEWLINE, MODLParser::EQUALS, MODLParser::NUMBER, MODLParser::STRING, MODLParser::QUOTED, MODLParser::GTHAN, MODLParser::LTHAN, MODLParser::EXCLAM
+			case ( @_interp.adaptive_predict(@_input,96,@_ctx) )
+			when 1
 
 				@_state_number = 598
 				modl_condition()
 
-			when MODLParser::LCBRAC
+			when 2
 
 				@_state_number = 599
 				modl_condition_group()
-			else
-				raise Antlr4::Runtime::NoViableAltException self
+
 			end
 			@_state_number = 612
 			@_err_handler.sync(self);
@@ -2711,18 +2710,17 @@ class MODLParser < Antlr4::Runtime::Parser
 					end
 					@_state_number = 608
 					@_err_handler.sync(self)
-					case (@_input.la(1))
-					when MODLParser::NULL, MODLParser::TRUE, MODLParser::FALSE, MODLParser::NEWLINE, MODLParser::EQUALS, MODLParser::NUMBER, MODLParser::STRING, MODLParser::QUOTED, MODLParser::GTHAN, MODLParser::LTHAN, MODLParser::EXCLAM
+					case ( @_interp.adaptive_predict(@_input,98,@_ctx) )
+					when 1
 
 						@_state_number = 606
 						modl_condition()
 
-					when MODLParser::LCBRAC
+					when 2
 
 						@_state_number = 607
 						modl_condition_group()
-					else
-						raise Antlr4::Runtime::NoViableAltException self
+
 					end 
 				end
 				@_state_number = 614
@@ -2839,11 +2837,11 @@ class MODLParser < Antlr4::Runtime::Parser
 	end
 
 	 class Modl_conditionContext < Antlr4::Runtime::ParserRuleContext
-		def modl_primitive()
-			return rule_contexts("Modl_primitiveContext")
+		def modl_value()
+			return rule_contexts("Modl_valueContext")
 		end
-		def modl_primitive_i( i)
-			return rule_context("Modl_primitiveContext",i)
+		def modl_value_i( i)
+			return rule_context("Modl_valueContext",i)
 		end
 		def NEWLINE()
 		 return tokens(MODLParser::NEWLINE)
@@ -2851,14 +2849,17 @@ class MODLParser < Antlr4::Runtime::Parser
 		def NEWLINE_i( i)
 			return token(MODLParser::NEWLINE, i)
 		end
+		def STRING()
+		  return token(MODLParser::STRING, 0)
+		end
 		def modl_operator()
 			return rule_context("Modl_operatorContext",0)
 		end
-		def PIPE()
-		 return tokens(MODLParser::PIPE)
+		def FSLASH()
+		 return tokens(MODLParser::FSLASH)
 		end
-		def PIPE_i( i)
-			return token(MODLParser::PIPE, i)
+		def FSLASH_i( i)
+			return token(MODLParser::FSLASH, i)
 		end
 		def initialize( parent,  invokingState)
 			super(parent, invokingState)
@@ -2891,7 +2892,6 @@ class MODLParser < Antlr4::Runtime::Parser
 		enter_rule(_localctx, 38, RULE_modl_condition)
 		_la = 0
 		begin
-			_alt = 0
 			enter_outer_alt(_localctx, 1)
 
 			@_state_number = 629
@@ -2912,7 +2912,7 @@ class MODLParser < Antlr4::Runtime::Parser
 			when 1
 
 				@_state_number = 632
-				modl_primitive()
+				match(STRING)
 
 			end
 			@_state_number = 636
@@ -2925,22 +2925,20 @@ class MODLParser < Antlr4::Runtime::Parser
 			end
 
 			@_state_number = 638
-			modl_primitive()
+			modl_value()
 			@_state_number = 643
-			@_err_handler.sync(self);
-			_alt = @_interp.adaptive_predict(@_input,104,@_ctx)
-			while ( _alt!=2 && _alt!=Antlr4::Runtime::ATN::INVALID_ALT_NUMBER )
-				if ( _alt==1 )
+			@_err_handler.sync(self)
+			_la = @_input.la(1)
+			while (_la==FSLASH)
 
 
-					@_state_number = 639
-					match(PIPE)
-					@_state_number = 640
-					modl_primitive() 
-				end
+				@_state_number = 639
+				match(FSLASH)
+				@_state_number = 640
+				modl_value()
 				@_state_number = 645
 				@_err_handler.sync(self)
-				_alt = @_interp.adaptive_predict(@_input,104,@_ctx)
+				_la = @_input.la(1)
 			end
 			@_state_number = 649
 			@_err_handler.sync(self)
@@ -3572,11 +3570,11 @@ class MODLParser < Antlr4::Runtime::Parser
 	    "\u026d\3\2\2\2\u0272\u026e\3\2\2\2\u0272\u0270\3\2\2\2\u0273\'\3\2",
 	    "\2\2\u0274\u0276\7\7\2\2\u0275\u0274\3\2\2\2\u0276\u0279\3\2\2\2\u0277",
 	    "\u0275\3\2\2\2\u0277\u0278\3\2\2\2\u0278\u027b\3\2\2\2\u0279\u0277",
-	    "\3\2\2\2\u027a\u027c\5\60\31\2\u027b\u027a\3\2\2\2\u027b\u027c\3\2",
-	    "\2\2\u027c\u027e\3\2\2\2\u027d\u027f\5&\24\2\u027e\u027d\3\2\2\2\u027e",
-	    "\u027f\3\2\2\2\u027f\u0280\3\2\2\2\u0280\u0285\5\60\31\2\u0281\u0282",
-	    "\7\35\2\2\u0282\u0284\5\60\31\2\u0283\u0281\3\2\2\2\u0284\u0287\3\2",
-	    "\2\2\u0285\u0283\3\2\2\2\u0285\u0286\3\2\2\2\u0286\u028b\3\2\2\2\u0287",
+	    "\3\2\2\2\u027a\u027c\7\21\2\2\u027b\u027a\3\2\2\2\u027b\u027c\3\2\2",
+	    "\2\u027c\u027e\3\2\2\2\u027d\u027f\5&\24\2\u027e\u027d\3\2\2\2\u027e",
+	    "\u027f\3\2\2\2\u027f\u0280\3\2\2\2\u0280\u0285\5,\27\2\u0281\u0282",
+	    "\7\30\2\2\u0282\u0284\5,\27\2\u0283\u0281\3\2\2\2\u0284\u0287\3\2\2",
+	    "\2\u0285\u0283\3\2\2\2\u0285\u0286\3\2\2\2\u0286\u028b\3\2\2\2\u0287",
 	    "\u0285\3\2\2\2\u0288\u028a\7\7\2\2\u0289\u0288\3\2\2\2\u028a\u028d",
 	    "\3\2\2\2\u028b\u0289\3\2\2\2\u028b\u028c\3\2\2\2\u028c)\3\2\2\2\u028d",
 	    "\u028b\3\2\2\2\u028e\u028f\7\25\2\2\u028f\u0294\5$\23\2\u0290\u0291",
