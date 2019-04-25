@@ -577,10 +577,12 @@ module Modl
         attr_accessor :falseVal
         attr_accessor :nilVal
         attr_accessor :string
+        attr_accessor :constant
         attr_accessor :text # The simple text value rather than the object
 
         def initialize(global)
           @global = global
+          @constant = false
         end
 
         def find_property(key)
@@ -594,7 +596,8 @@ module Modl
         end
 
         def extract_hash
-          result, _ignore = RefProcessor.deref(@text, @global)
+          result, _ignore = RefProcessor.deref(@text, @global) unless @constant
+          result = @text if @constant
           result
         end
 
@@ -621,10 +624,13 @@ module Modl
             @number = ParsedNumber.new(ctx.NUMBER.text)
             @text = @number.num
           elsif !ctx.STRING.nil?
-            @text = Parsed.additional_string_processing(ctx.STRING.text)
+            @text = ctx.STRING.text
+            @constant = @text.start_with?('`') && !@text.include?('%') && !@text.include?('`.')
+            @text = Parsed.additional_string_processing(@text)
             @string = ParsedString.new(@text)
             @text = @string.string
           elsif !ctx.QUOTED.nil?
+            @constant = true
             @text = Sutil.toptail(ctx.QUOTED.text) # remove the quotes
             @text = Parsed.additional_string_processing(@text)
             @quoted = ParsedQuoted.new(@text)
@@ -699,7 +705,7 @@ module Modl
             when '|'
               result |= should_negate ? !partial : partial
             else
-            result |= should_negate ? !partial : partial
+              result |= should_negate ? !partial : partial
             end
           end
           result
@@ -793,12 +799,13 @@ module Modl
 
       # Class to represent a parsed grammar object
       class ParsedCondition < Modl::Parser::MODLParserBaseListener
-        attr_reader :primitives
+        attr_reader :values
         attr_reader :operator
+        attr_reader :text
 
         def initialize(global)
           @global = global
-          @primitives = []
+          @values = []
         end
 
         def evaluate
@@ -807,10 +814,15 @@ module Modl
 
         def enterModl_condition(ctx)
           @operator = ctx.modl_operator.text unless ctx.modl_operator.nil?
-          ctx.modl_primitive.each do |v|
-            value = ParsedPrimitive.new @global
+          ctx.modl_value.each do |v|
+            value = ParsedValue.new @global
             v.enter_rule(value)
-            @primitives << value
+            @values << value
+          end
+          if !ctx.STRING.nil?
+            @text = Parsed.additional_string_processing(ctx.STRING.text)
+            @string = ParsedString.new(@text)
+            @text = @string.string
           end
         end
       end

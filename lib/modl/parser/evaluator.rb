@@ -6,10 +6,17 @@ module Modl
       def self.evaluate(global, condition)
         return false if global.nil? || !global.is_a?(GlobalParseContext) || !condition.is_a?(Modl::Parser::Parsed::ParsedCondition)
 
-        value1, success = value(global, condition.primitives[0].text)
+        start = 0
+        if condition.text
+          value1, success = value(global, condition.text)
+        else
+          start = 1
+          value1, success = value(global, condition.values[0].text)
+        end
+
 
         # Handle single-value conditions of the form '{x?}'
-        if condition.primitives.length == 1
+        if condition.values.length == start
           return false if value1.nil?
           return false if value1.is_a?(FalseClass)
           return true if value1.is_a?(TrueClass)
@@ -18,10 +25,15 @@ module Modl
         end
 
         # Handle the right-hand side, which might have many values and operators, e.g. '{x=a|b|c|d?}'
-        i = 1
+        i = start
         result = false
-        while i < condition.primitives.length
-          value2, success = value(global, condition.primitives[i].text)
+        while i < condition.values.length
+          item = condition.values[i]
+          if item.primitive.constant
+            value2 = item.text
+          else
+            value2, success = value(global, item.text)
+          end
           partial = false
           case condition.operator
           when '='
