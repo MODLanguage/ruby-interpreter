@@ -53,8 +53,8 @@ module Modl
           end
           # Extract the JSON content and add the classes and pairs to the existing GlobalParseContext hashes.
           parsed.extract_hash
-          global.classes.merge!(parsed.global.classes)
-          global.pairs.merge!(parsed.global.pairs)
+          global.merge_classes(parsed.global)
+          global.merge_pairs(parsed.global)
         end
       end
     end

@@ -1,4 +1,8 @@
 [
+  {
+    "input": "*L=\"https://www.modl.uk/tests/message-thread.txt\"\n\nclasses=*class",
+    "minimised_modl": "*L=\"https://www.modl.uk/demo/message-thread.txt\";classes=*class",
+    "expected_output": "{\"classes\":\"*class\"}"},
   { "input":  "_test1=one\n_one=two\n{\ntest1=`one`?\n  result=match\n/?\n  result=nomatch\n}",
     "minimised_modl":  "_test1=one;_one=two{test1=`one`?result=match/?result=nomatch}",
     "expected_output":   "{\n  \"result\": \"match\"\n}"},
@@ -618,7 +622,7 @@
   "expected_output": "{\n \"support_number\" : [ \"International Clients\", 14161234567 ]\n}\n"
 }, {
   "input": "*L=\"https://www.modl.uk/tests/message-thread.txt\"\n\nm=out:2018-03-22 15\\:25:Hi\nm=in:2018-03-22 15\\:26:Hello, how are you?\nm=out:2018-03-22 15\\:25:Hi, good thanks\nm=out:2018-03-22 15\\:26:How about you?\nm=in:2018-03-22 15\\:26:Yes, fine thanks. What are you up to?\nm=out:2018-03-22 15\\:25:Just testing out MODL\nm=in:2018-03-22 15\\:26:Cool!",
-  "minimised_modl": "*L=https://config.modl.uk/demo/message-thread.txt;m=out:2018-03-22 15~:25:Hi;m=in:2018-03-22 15~:26:Hello, how are you?;m=out:2018-03-22 15~:25:Hi, good thanks;m=out:2018-03-22 15~:26:How about you?;m=in:2018-03-22 15~:26:Yes, fine thanks. What are you up to?;m=out:2018-03-22 15~:25:Just testing out MODL;m=in:2018-03-22 15~:26:Cool!",
+  "minimised_modl": "*L=\"https://www.modl.uk/demo/message-thread.txt\";m=out:2018-03-22 15~:25:Hi;m=in:2018-03-22 15~:26:Hello, how are you?;m=out:2018-03-22 15~:25:Hi, good thanks;m=out:2018-03-22 15~:26:How about you?;m=in:2018-03-22 15~:26:Yes, fine thanks. What are you up to?;m=out:2018-03-22 15~:25:Just testing out MODL;m=in:2018-03-22 15~:26:Cool!",
   "expected_output": "[ {\n \"message\" : {\n   \"direction\" : \"out\",\n   \"date_time\" : \"2018-03-22 15:25\",\n   \"message\" : \"Hi\",\n   \"method\" : \"sms\"\n }\n}, {\n \"message\" : {\n   \"direction\" : \"in\",\n   \"date_time\" : \"2018-03-22 15:26\",\n   \"message\" : \"Hello, how are you?\",\n   \"method\" : \"sms\"\n }\n}, {\n \"message\" : {\n   \"direction\" : \"out\",\n   \"date_time\" : \"2018-03-22 15:25\",\n   \"message\" : \"Hi, good thanks\",\n   \"method\" : \"sms\"\n }\n}, {\n \"message\" : {\n   \"direction\" : \"out\",\n   \"date_time\" : \"2018-03-22 15:26\",\n   \"message\" : \"How about you?\",\n   \"method\" : \"sms\"\n }\n}, {\n \"message\" : {\n   \"direction\" : \"in\",\n   \"date_time\" : \"2018-03-22 15:26\",\n   \"message\" : \"Yes, fine thanks. What are you up to?\",\n   \"method\" : \"sms\"\n }\n}, {\n \"message\" : {\n   \"direction\" : \"out\",\n   \"date_time\" : \"2018-03-22 15:25\",\n   \"message\" : \"Just testing out MODL\",\n   \"method\" : \"sms\"\n }\n}, {\n \"message\" : {\n   \"direction\" : \"in\",\n   \"date_time\" : \"2018-03-22 15:26\",\n   \"message\" : \"Cool!\",\n   \"method\" : \"sms\"\n }\n} ]\n"
 }, {
   "input": "_var=2\n*L=\"http://s3-eu-west-1.amazonaws.com/modltestfiles/testing.txt!\"\nprint=%update_date\n",

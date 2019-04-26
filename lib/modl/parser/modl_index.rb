@@ -12,16 +12,16 @@ module Modl
             global.index << item.value.text
           elsif item&.value&.array
             item.value.array.abstractArrayItems.each do |avi|
-              global.index << avi.arrayValueItem
+              global.add_to_index(avi.arrayValueItem)
             end
           elsif item&.value&.nbArray
             item.value.nbArray.arrayItems.each do |avi|
-              global.index << avi.arrayValueItem
+              global.add_to_index(avi.arrayValueItem)
             end
           end
         elsif item.is_a? Parsed::ParsedArray
           item.abstractArrayItems.each do |avi|
-            global.index << avi.arrayValueItem
+            global.add_to_index(avi.arrayValueItem)
           end
         end
       end

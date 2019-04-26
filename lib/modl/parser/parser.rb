@@ -25,6 +25,7 @@ module Modl
           parsed
         rescue StandardError => e
           puts e.message
+          puts e.backtrace
 
           if global.syntax_version > global.interpreter_syntax_version
             raise InterpreterError, 'MODL Version ' +

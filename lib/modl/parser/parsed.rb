@@ -323,7 +323,7 @@ module Modl
             raise InterpreterError, 'Invalid MODL version: nil' if @valueItem.value.primitive.number.nil?
             raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.primitive.number.num.to_s if @valueItem.value.primitive.number.num.is_a? Float
             raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.primitive.number.num.to_s if @valueItem.value.primitive.number.num.zero?
-            raise InterpreterError, 'MODL version should be on the first line if specified.' if @global.pairs.length.positive?
+            raise InterpreterError, 'MODL version should be on the first line if specified.' if @global.has_pairs?
             @global.syntax_version = @valueItem.value.primitive.number.num
 
           when 'method'
@@ -344,19 +344,19 @@ module Modl
             invoke_deref
           end
 
-          return if @global.conditional.positive? # Don't store pairs in conditionals until we evaluate the conditions
+          return if @global.in_condition? # Don't store pairs in conditionals until we evaluate the conditions
 
           if @key.start_with? '_'
             k = Sutil.tail(@key)
-            existing = @global.pairs[k]
+            existing = @global.pair(k)
             raise InterpreterError, 'Already defined ' + k + ' as final.' if existing&.final
 
-            @global.pairs[k] = self
+            @global.pair(k, self)
           end
-          existing = @global.pairs[@key]
+          existing = @global.pair(@key)
           raise InterpreterError, 'Already defined ' + @key + ' as final.' if existing&.final
 
-          @global.pairs[@key] = self
+          @global.pair(@key, self)
         end
 
         private
@@ -615,7 +615,7 @@ module Modl
 
         def find_property(key)
           if @string
-            user_method = @global.methods_hash[key]
+            user_method = @global.user_method(key)
             if user_method
               return user_method.run(@string.string)
             end
@@ -987,7 +987,7 @@ module Modl
             if item.structures[0].pair
               key = item.structures[0].pair.key
               key = Sutil.tail(key) if key[0] == '_'
-              @global.pairs[key] = item.structures[0].pair
+              @global.pair(key, item.structures[0].pair)
             end
             return item.extract_hash
           end
@@ -997,13 +997,13 @@ module Modl
           if last_item.structures[0].pair
             key = last_item.structures[0].pair.key
             key = Sutil.tail(key) if key[0] == '_'
-            @global.pairs[key] = last_item.structures[0].pair
+            @global.pair(key, last_item.structures[0].pair)
           end
           last_item.extract_hash
         end
 
         def enterModl_top_level_conditional(ctx)
-          @global.conditional += 1
+          @global.enter_condition
           i = 0
           modl_condition_test = ctx.modl_condition_test
           ctx_modl_top_level_conditional_return = ctx.modl_top_level_conditional_return
@@ -1023,7 +1023,7 @@ module Modl
             ctx.modl_top_level_conditional_return_i(ctx_modl_top_level_conditional_return.size - 1).enter_rule(conditional_return)
             @topLevelConditionalReturns[i] = conditional_return
           end
-          @global.conditional -= 1
+          @global.exit_condition
         end
       end
 

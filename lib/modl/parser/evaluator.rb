@@ -82,7 +82,7 @@ module Modl
             index_val = global.index[ikey]
             value1 = index_val.respond_to?(:text) ? index_val.text : nil
           else
-            pair = global.pairs[key]
+            pair = global.pair(key)
             return k unless pair
 
             value1 = pair.text
@@ -104,7 +104,7 @@ module Modl
               index_val = @global.index[ikey]
               value1 = index_val.respond_to?(:text) ? index_val.text : nil
             else
-              pair = @global.pairs[key]
+              pair = @global.pair(key)
               return false unless pair
 
               value1 = pair.text
@@ -114,7 +114,7 @@ module Modl
           @values.each do |value|
             value2 = value.text
             value2, _ignore = Modl::Parser::RefProcessor.deref(value2, @global) if value2.is_a?(String) && value2.include?('%')
-            value2 = @global.pairs[value.text].text if @global.pairs[value.text]
+            value2 = @global.pair(value.text).text if @global.pair(value.text)
 
             case @operator
             when '='
@@ -144,7 +144,7 @@ module Modl
           if key.is_a?(String)
             key = key.start_with?('%') ? Sutil.tail(key) : key
           end
-          the_pair = @global.pairs[key]
+          the_pair = @global.pair(key)
           if the_pair
             result = the_pair.text
           else

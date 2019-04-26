@@ -27,7 +27,7 @@ module Modl
         obj.keys.each do |k|
           value = obj[k]
           # Does the key refer to a class that we have parsed or loaded?
-          clazz = global.classes[k]
+          clazz = global.classs(k)
           if clazz
             # Yes so convert this value to an instance of that class
             new_k, new_v = process_class global, k, value
@@ -42,7 +42,7 @@ module Modl
 
       # Convert the supplied object val into an instance of the class with key k
       def self.process_class(global, k, v)
-        clazz = global.classes[k]
+        clazz = global.classs(k)
         new_value = transform_to_class(clazz, global, v)
 
         if v.is_a?(Array)
@@ -75,7 +75,7 @@ module Modl
         new_value = v.merge(new_value)
         depth = 0
         loop do
-          clazz = global.classes[clazz.superclass]
+          clazz = global.classs(clazz.superclass)
           break if clazz.nil? || depth > MAX_RECURSION_DEPTH
 
           clazz.merge_content(new_value)
@@ -98,7 +98,7 @@ module Modl
         return unless new_value.is_a? Hash
 
         new_value.keys.each do |nk|
-          clazz = global.classes[nk]
+          clazz = global.classs(nk)
           nv = new_value[nk]
           next unless clazz # skip it if it doesn't refer to a class
 
@@ -149,7 +149,7 @@ module Modl
         return if depth > MAX_RECURSION_DEPTH
 
         superclass = clazz.superclass
-        c = global.classes[superclass]
+        c = global.classs(superclass)
         return top_class(c, global, depth + 1) if c
 
         superclass

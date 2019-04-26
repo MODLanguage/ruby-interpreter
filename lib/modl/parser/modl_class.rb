@@ -72,17 +72,17 @@ module Modl
 
         superclass = clazz.superclass
 
-        if superclass && !reserved?(superclass) && !global.classes.keys.include?(superclass)
+        if superclass && !reserved?(superclass) && !global.has_class?(superclass)
           raise InterpreterError, 'Invalid superclass: ' + superclass.to_s
         end
         raise InterpreterError, 'Missing id for class' if clazz.id.nil?
 
         # Make sure the class name isn't redefining an existing class
-        if global.classes[clazz.id].nil? && global.classes[clazz.name].nil?
+        if !global.has_class?(clazz.id) && !global.has_class?(clazz.name)
 
           # store the classes by id and name to make them easier to find later
-          global.classes[clazz.id] = clazz
-          global.classes[clazz.name] = clazz
+          global.classs(clazz.id, clazz)
+          global.classs(clazz.name, clazz)
         else
           id = clazz.id.nil? ? 'undefined' : clazz.id
           name = clazz.name.nil? ? 'undefined' : clazz.name

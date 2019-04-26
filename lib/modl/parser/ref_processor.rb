@@ -32,6 +32,34 @@ module Modl
         text = str
         original = str
 
+        case str
+        when '%*class'
+          new_value = global.all_classes
+        when '%*method'
+          new_value = global.all_methods
+        when '%*load'
+          new_value = global.all_files
+        when '%*id'
+          new_value = global.all_ids
+        when '%*name'
+          new_value = global.all_names
+        when '%*superclass'
+          new_value = global.all_superclasses
+        when '%*assign'
+          new_value = global.all_assigns
+        when '%*transform'
+          new_value = global.all_transforms
+        else
+          new_value, str = process_tokens(global, original, str, text)
+        end
+
+        [str, new_value]
+      end
+
+      private
+
+      def self.process_tokens(global, original, str, text)
+        new_value = nil
         loop do
           match = MATCHER.match(text.to_s)
           break if match.nil?
@@ -66,11 +94,8 @@ module Modl
             raise InterpreterError, 'Cannot resolve reference in : "' + str + '"' if str == original
           end
         end
-
-        [str, new_value]
+        return new_value, str
       end
-
-      private
 
       def self.expand(global, ref)
         result = nil
@@ -101,7 +126,7 @@ module Modl
                        elsif result.is_a? Array
                          nil
                        else
-                         result.nil? ? global.pairs[p] : result.find_property(p)
+                         result.nil? ? global.pair(p) : result.find_property(p)
                        end
                      end
             break if result.nil?
@@ -127,6 +152,7 @@ module Modl
           [result, '']
         end
       end
+
     end
   end
 end
