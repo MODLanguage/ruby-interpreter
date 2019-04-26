@@ -98,6 +98,8 @@ module Modl
                        # String ref
                        if result.is_a? String
                          StandardMethods.run_method(p, result)
+                       elsif result.is_a? Array
+                         nil
                        else
                          result.nil? ? global.pairs[p] : result.find_property(p)
                        end

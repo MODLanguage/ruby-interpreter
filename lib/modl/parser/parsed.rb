@@ -33,7 +33,8 @@ module Modl
 
         @global = GlobalParseContext.new if @global.nil?
 
-        ctx.modl_structure.each do |str|
+        ctx_modl_structure = ctx.modl_structure
+        ctx_modl_structure.each do |str|
           structure = ParsedStructure.new @global
           str.enter_rule(structure)
           @structures << structure
@@ -71,10 +72,11 @@ module Modl
         end
 
         def enterModl_map(ctx)
-          return if ctx.modl_map_item.nil?
+          modl_map_item = ctx.modl_map_item
+          return if modl_map_item.nil?
 
           @mapItems = []
-          ctx.modl_map_item.each do |mi|
+          modl_map_item.each do |mi|
             map_item = ParsedMapItem.new @global
             mi.enter_rule(map_item)
             @mapItems << map_item
@@ -106,14 +108,16 @@ module Modl
         end
 
         def enterModl_map_item(ctx)
-          unless ctx.modl_pair.nil?
+          modl_pair = ctx.modl_pair
+          unless modl_pair.nil?
             @pair = ParsedPair.new @global
-            ctx.modl_pair.enter_rule(@pair)
+            modl_pair.enter_rule(@pair)
           end
-          return if ctx.modl_map_conditional.nil?
+          modl_map_conditional = ctx.modl_map_conditional
+          return if modl_map_conditional.nil?
 
           @mapConditional = ParsedMapConditional.new @global
-          ctx.modl_map_conditional.enter_rule(@mapConditional)
+          modl_map_conditional.enter_rule(@mapConditional)
         end
 
         def extract_hash
@@ -135,18 +139,23 @@ module Modl
         end
 
         def enterModl_structure(ctx)
-          if !ctx.modl_pair.nil?
+          modl_pair = ctx.modl_pair
+          modl_top_level_conditional = ctx.modl_top_level_conditional
+          modl_map = ctx.modl_map
+          modl_array = ctx.modl_array
+
+          if !modl_pair.nil?
             @pair = ParsedPair.new @global
-            ctx.modl_pair.enter_rule(@pair)
-          elsif !ctx.modl_top_level_conditional.nil?
+            modl_pair.enter_rule(@pair)
+          elsif !modl_top_level_conditional.nil?
             @top_level_conditional = ParsedTopLevelConditional.new @global
-            ctx.modl_top_level_conditional.enter_rule(@top_level_conditional)
-          elsif !ctx.modl_map.nil?
+            modl_top_level_conditional.enter_rule(@top_level_conditional)
+          elsif !modl_map.nil?
             @map = ParsedMap.new @global
-            ctx.modl_map.enter_rule(@map)
-          elsif !ctx.modl_array.nil?
+            modl_map.enter_rule(@map)
+          elsif !modl_array.nil?
             @array = ParsedArray.new @global
-            ctx.modl_array.enter_rule(@array)
+            modl_array.enter_rule(@array)
           end
         end
 
@@ -256,9 +265,11 @@ module Modl
         def enterModl_pair(ctx)
           @type = 'pair' # default the type to an ordinary pair
 
-          @key = ctx.STRING.to_s unless ctx.STRING.nil?
-          unless ctx.QUOTED.nil?
-            @key = ctx.QUOTED.to_s
+          ctx_string = ctx.STRING
+          @key = ctx_string.to_s unless ctx_string.nil?
+          ctx_quoted = ctx.QUOTED
+          unless ctx_quoted.nil?
+            @key = ctx_quoted.to_s
             @key = Sutil.toptail(@key) # remove the quotes
           end
 
@@ -276,15 +287,19 @@ module Modl
 
           raise InterpreterError, 'Invalid keyword: ' + @key if @type == 'pair' && @key.start_with?('*')
 
-          if !ctx.modl_array.nil?
+          modl_array = ctx.modl_array
+          modl_map = ctx.modl_map
+          modl_value_item = ctx.modl_value_item
+
+          if !modl_array.nil?
             @array = ParsedArray.new @global
-            ctx.modl_array.enter_rule(@array)
-          elsif !ctx.modl_map.nil?
+            modl_array.enter_rule(@array)
+          elsif !modl_map.nil?
             @map = ParsedMap.new @global
-            ctx.modl_map.enter_rule(@map)
-          elsif !ctx.modl_value_item.nil?
+            modl_map.enter_rule(@map)
+          elsif !modl_value_item.nil?
             @valueItem = ParsedValueItem.new @global
-            ctx.modl_value_item.enter_rule(@valueItem)
+            modl_value_item.enter_rule(@valueItem)
           end
 
           validate_key if @type == 'pair' || @type == 'hidden'
@@ -453,18 +468,23 @@ module Modl
 
         def enterModl_array_value_item(ctx)
           @text = nil
-          if !ctx.modl_map.nil?
+          modl_map = ctx.modl_map
+          modl_array = ctx.modl_array
+          modl_pair = ctx.modl_pair
+          modl_primitive = ctx.modl_primitive
+
+          if !modl_map.nil?
             @map = ParsedMap.new @global
-            ctx.modl_map.enter_rule(@map)
-          elsif !ctx.modl_array.nil?
+            modl_map.enter_rule(@map)
+          elsif !modl_array.nil?
             @array = ParsedArray.new @global
-            ctx.modl_array.enter_rule(@array)
-          elsif !ctx.modl_pair.nil?
+            modl_array.enter_rule(@array)
+          elsif !modl_pair.nil?
             @pair = ParsedPair.new @global
-            ctx.modl_pair.enter_rule(@pair)
-          elsif !ctx.modl_primitive.nil?
+            modl_pair.enter_rule(@pair)
+          elsif !modl_primitive.nil?
             @primitive = ParsedPrimitive.new @global
-            ctx.modl_primitive.enter_rule(@primitive)
+            modl_primitive.enter_rule(@primitive)
             @text = @primitive.text
           end
 
@@ -486,13 +506,15 @@ module Modl
         end
 
         def enterModl_value_item(ctx)
-          unless ctx.modl_value_conditional.nil?
+          modl_value_conditional = ctx.modl_value_conditional
+          unless modl_value_conditional.nil?
             @valueConditional = ParsedValueConditional.new @global
-            ctx.modl_value_conditional.enter_rule(@valueConditional)
+            modl_value_conditional.enter_rule(@valueConditional)
           end
-          return if ctx.modl_value.nil?
+          modl_value = ctx.modl_value
+          return if modl_value.nil?
           @value = ParsedValue.new @global
-          ctx.modl_value.enter_rule(@value)
+          modl_value.enter_rule(@value)
         end
 
         def extract_hash
@@ -548,21 +570,27 @@ module Modl
         end
 
         def enterModl_value(ctx)
-          if !ctx.modl_map.nil?
+          modl_map = ctx.modl_map
+          modl_nb_array = ctx.modl_nb_array
+          modl_array = ctx.modl_array
+          modl_pair = ctx.modl_pair
+          modl_primitive = ctx.modl_primitive
+
+          if !modl_map.nil?
             @map = ParsedMap.new @global
-            ctx.modl_map.enter_rule(@map)
-          elsif !ctx.modl_nb_array.nil?
+            modl_map.enter_rule(@map)
+          elsif !modl_nb_array.nil?
             @nbArray = ParsedNbArray.new @global
-            ctx.modl_nb_array.enter_rule(@nbArray)
-          elsif !ctx.modl_array.nil?
+            modl_nb_array.enter_rule(@nbArray)
+          elsif !modl_array.nil?
             @array = ParsedArray.new @global
-            ctx.modl_array.enter_rule(@array)
-          elsif !ctx.modl_pair.nil?
+            modl_array.enter_rule(@array)
+          elsif !modl_pair.nil?
             @pair = ParsedPair.new @global
-            ctx.modl_pair.enter_rule(@pair)
-          elsif !ctx.modl_primitive.nil?
+            modl_pair.enter_rule(@pair)
+          elsif !modl_primitive.nil?
             @primitive = ParsedPrimitive.new @global
-            ctx.modl_primitive.enter_rule(@primitive)
+            modl_primitive.enter_rule(@primitive)
             @text = @primitive.text
           end
           # ignoring comments!
@@ -620,27 +648,34 @@ module Modl
         end
 
         def enterModl_primitive(ctx)
-          if !ctx.NUMBER.nil?
-            @number = ParsedNumber.new(ctx.NUMBER.text)
+          ctx_number = ctx.NUMBER
+          ctx_string = ctx.STRING
+          ctx_quoted = ctx.QUOTED
+          ctx_null = ctx.NULL
+          ctx_true = ctx.TRUE
+          ctx_false = ctx.FALSE
+
+          if !ctx_number.nil?
+            @number = ParsedNumber.new(ctx_number.text)
             @text = @number.num
-          elsif !ctx.STRING.nil?
-            @text = ctx.STRING.text
+          elsif !ctx_string.nil?
+            @text = ctx_string.text
             @constant = @text.start_with?('`') && !@text.include?('%') && !@text.include?('`.')
             @text = Parsed.additional_string_processing(@text)
             @string = ParsedString.new(@text)
             @text = @string.string
-          elsif !ctx.QUOTED.nil?
+          elsif !ctx_quoted.nil?
             @constant = true
-            @text = Sutil.toptail(ctx.QUOTED.text) # remove the quotes
+            @text = Sutil.toptail(ctx_quoted.text) # remove the quotes
             @text = Parsed.additional_string_processing(@text)
             @quoted = ParsedQuoted.new(@text)
-          elsif !ctx.NULL.nil?
+          elsif !ctx_null.nil?
             @nilVal = ParsedNull.instance
             @text = nil
-          elsif !ctx.TRUE.nil?
+          elsif !ctx_true.nil?
             @trueVal = ParsedTrue.instance
             @text = true
-          elsif !ctx.FALSE.nil?
+          elsif !ctx_false.nil?
             @falseVal = ParsedFalse.instance
             @text = false
           end
@@ -712,10 +747,11 @@ module Modl
         end
 
         def enterModl_condition_test(ctx)
-          unless ctx.children.empty?
+          ctx_children = ctx.children
+          unless ctx_children.empty?
             last_operator = nil
             should_negate = false
-            ctx.children.each do |child|
+            ctx_children.each do |child|
               if child.is_a? MODLParser::Modl_condition_groupContext
                 condition_group = ParsedConditionGroup.new @global
                 child.enter_rule(condition_group)
@@ -778,10 +814,11 @@ module Modl
         end
 
         def enterModl_condition_group(ctx)
-          return if ctx.children.empty?
+          ctx_children = ctx.children
+          return if ctx_children.empty?
 
           last_operator = nil
-          ctx.children.each do |child|
+          ctx_children.each do |child|
             if child.is_a? MODLParser::Modl_condition_testContext
               condition_test = ParsedConditionTest.new @global
               child.enter_rule(condition_test)
@@ -813,14 +850,17 @@ module Modl
         end
 
         def enterModl_condition(ctx)
-          @operator = ctx.modl_operator.text unless ctx.modl_operator.nil?
-          ctx.modl_value.each do |v|
+          modl_operator = ctx.modl_operator
+          @operator = modl_operator.text unless modl_operator.nil?
+          modl_value = ctx.modl_value
+          modl_value.each do |v|
             value = ParsedValue.new @global
             v.enter_rule(value)
             @values << value
           end
-          if !ctx.STRING.nil?
-            @text = Parsed.additional_string_processing(ctx.STRING.text)
+          ctx_string = ctx.STRING
+          if !ctx_string.nil?
+            @text = Parsed.additional_string_processing(ctx_string.text)
             @string = ParsedString.new(@text)
             @text = @string.string
           end
@@ -841,9 +881,10 @@ module Modl
         end
 
         def enterModl_map_conditional_return(ctx)
-          return if ctx.modl_map_item.empty?
+          modl_map_item = ctx.modl_map_item
+          return if modl_map_item.empty?
 
-          ctx.modl_map_item.each do |mi|
+          modl_map_item.each do |mi|
             map_item = ParsedMapItem.new @global
             mi.enter_rule(map_item)
             @mapItems << map_item
@@ -871,7 +912,10 @@ module Modl
 
         def enterModl_map_conditional(ctx)
           i = 0
-          while i < ctx.modl_condition_test.size
+          modl_condition_test = ctx.modl_condition_test
+          ctx_modl_map_conditional_return = ctx.modl_map_conditional_return
+
+          while i < modl_condition_test.size
             condition_test = ParsedConditionTest.new @global
             ctx.modl_condition_test_i(i).enter_rule(condition_test)
 
@@ -880,10 +924,10 @@ module Modl
             @conditionTests[i] = condition_test
             @mapConditionalReturns[i] = conditional_return
 
-            if ctx.modl_map_conditional_return.size > ctx.modl_condition_test.size
+            if ctx_modl_map_conditional_return.size > modl_condition_test.size
               i += 1
               conditional_return = ParsedMapConditionalReturn.new @global
-              ctx.modl_map_conditional_return_i(ctx.modl_map_conditional_return.size - 1).enter_rule(conditional_return)
+              ctx.modl_map_conditional_return_i(ctx_modl_map_conditional_return.size - 1).enter_rule(conditional_return)
               @mapConditionalReturns[i] = conditional_return
             end
             i += 1
@@ -913,9 +957,10 @@ module Modl
         end
 
         def enterModl_top_level_conditional_return(ctx)
-          return if ctx.modl_structure.empty?
+          modl_structure = ctx.modl_structure
+          return if modl_structure.empty?
 
-          ctx.modl_structure.each do |str|
+          modl_structure.each do |str|
             structure = ParsedStructure.new @global
             str.enter_rule(structure)
             @structures << structure
@@ -960,7 +1005,10 @@ module Modl
         def enterModl_top_level_conditional(ctx)
           @global.conditional += 1
           i = 0
-          while i < ctx.modl_condition_test.size
+          modl_condition_test = ctx.modl_condition_test
+          ctx_modl_top_level_conditional_return = ctx.modl_top_level_conditional_return
+
+          while i < modl_condition_test.size
             condition_test = ParsedConditionTest.new @global
             ctx.modl_condition_test_i(i).enter_rule(condition_test)
 
@@ -970,9 +1018,9 @@ module Modl
             @topLevelConditionalReturns[i] = conditional_return
             i += 1
           end
-          if ctx.modl_top_level_conditional_return.size > ctx.modl_condition_test.size
+          if ctx_modl_top_level_conditional_return.size > modl_condition_test.size
             conditional_return = ParsedTopLevelConditionalReturn.new @global
-            ctx.modl_top_level_conditional_return_i(ctx.modl_top_level_conditional_return.size - 1).enter_rule(conditional_return)
+            ctx.modl_top_level_conditional_return_i(ctx_modl_top_level_conditional_return.size - 1).enter_rule(conditional_return)
             @topLevelConditionalReturns[i] = conditional_return
           end
           @global.conditional -= 1
@@ -993,9 +1041,10 @@ module Modl
         end
 
         def enterModl_array_conditional_return(ctx)
-          return if ctx.modl_array_item.empty?
+          modl_array_item = ctx.modl_array_item
+          return if modl_array_item.empty?
 
-          ctx.modl_array_item.each do |ai|
+          modl_array_item.each do |ai|
             array_item = ParsedArrayItem.new @global
             ai.enter_rule(array_item)
             @arrayItems << array_item
@@ -1022,7 +1071,10 @@ module Modl
 
         def enterModl_array_conditional(ctx)
           i = 0
-          while i < ctx.modl_condition_test.size
+          ctx_modl_condition_test = ctx.modl_condition_test
+          ctx_modl_array_conditional_return = ctx.modl_array_conditional_return
+
+          while i < ctx_modl_condition_test.size
             condition_test = ParsedConditionTest.new @global
             ctx.modl_condition_test_i(i).enter_rule(condition_test)
 
@@ -1031,11 +1083,11 @@ module Modl
             @conditionTests[i] = condition_test
             @arrayConditionalReturns[i] = conditional_return
 
-            if ctx.modl_array_conditional_return.size > ctx.modl_condition_test.size
+            if ctx_modl_array_conditional_return.size > ctx_modl_condition_test.size
               i += 1
               condition_test = ParsedConditionTest.new @global
               conditional_return = ParsedArrayConditionalReturn.new @global
-              ctx.modl_array_conditional_return_i(ctx.modl_array_conditional_return.size - 1).enter_rule(conditional_return)
+              ctx.modl_array_conditional_return_i(ctx_modl_array_conditional_return.size - 1).enter_rule(conditional_return)
               @conditionTests[i] = condition_test
               @arrayConditionalReturns[i] = conditional_return
             end
@@ -1062,9 +1114,10 @@ module Modl
         end
 
         def enterModl_value_conditional_return(ctx)
-          return if ctx.modl_value_item.empty?
+          modl_value_item = ctx.modl_value_item
+          return if modl_value_item.empty?
 
-          ctx.modl_value_item.each do |vi|
+          modl_value_item.each do |vi|
             valueItem = ParsedValueItem.new @global
             vi.enter_rule(valueItem)
             @valueItems << valueItem
@@ -1093,7 +1146,10 @@ module Modl
 
         def enterModl_value_conditional(ctx)
           i = 0
-          while i < ctx.modl_condition_test.size
+          ctx_modl_condition_test = ctx.modl_condition_test
+          ctx_modl_value_conditional_return = ctx.modl_value_conditional_return
+
+          while i < ctx_modl_condition_test.size
             condition_test = ParsedConditionTest.new @global
             ctx.modl_condition_test_i(i).enter_rule(condition_test)
 
@@ -1107,10 +1163,10 @@ module Modl
 
             @valueConditionalReturns[i] = conditional_return
 
-            if ctx.modl_value_conditional_return.size > ctx.modl_condition_test.size
+            if ctx_modl_value_conditional_return.size > ctx_modl_condition_test.size
               condition_test = ParsedConditionTest.new @global
               conditional_return = ParsedValueConditionalReturn.new @global
-              ctx.modl_value_conditional_return_i(ctx.modl_value_conditional_return.size - 1).enter_rule(conditional_return)
+              ctx.modl_value_conditional_return_i(ctx_modl_value_conditional_return.size - 1).enter_rule(conditional_return)
               @conditionTests[i + 1] = condition_test
               @valueConditionalReturns[i + 1] = conditional_return
             end
@@ -1153,7 +1209,8 @@ module Modl
         def enterModl_nb_array(ctx)
           i = 0
           previous = nil
-          ctx.children.each do |pt|
+          ctx_children = ctx.children
+          ctx_children.each do |pt|
             if pt.is_a? MODLParser::Modl_array_itemContext
               array_item = ParsedArrayItem.new @global
               pt.enter_rule(array_item)
@@ -1227,7 +1284,8 @@ module Modl
           # Create the new abstractArrayItems list first, sized to the total of array_item.size and nb_array.size
           i = 0
           previous = nil
-          ctx.children.each do |pt|
+          ctx_children = ctx.children
+          ctx_children.each do |pt|
             if pt.is_a? MODLParser::Modl_array_itemContext
               array_item = ParsedArrayItem.new @global
               pt.enter_rule(array_item)
@@ -1284,13 +1342,15 @@ module Modl
         end
 
         def enterModl_array_item(ctx)
-          unless ctx.modl_array_conditional.nil?
+          ctx_modl_array_conditional = ctx.modl_array_conditional
+          unless ctx_modl_array_conditional.nil?
             @arrayConditional = ParsedArrayConditional.new @global
-            ctx.modl_array_conditional.enter_rule(@arrayConditional)
+            ctx_modl_array_conditional.enter_rule(@arrayConditional)
           end
-          unless ctx.modl_array_value_item.nil?
+          ctx_modl_array_value_item = ctx.modl_array_value_item
+          unless ctx_modl_array_value_item.nil?
             @arrayValueItem = ParsedArrayValueItem.new @global
-            ctx.modl_array_value_item.enter_rule(@arrayValueItem)
+            ctx_modl_array_value_item.enter_rule(@arrayValueItem)
           end
         end
 
