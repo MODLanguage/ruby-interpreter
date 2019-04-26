@@ -34,21 +34,21 @@ module Modl
 
         case str
         when '%*class'
-          new_value = global.all_classes
+          new_value = global.class_list
         when '%*method'
-          new_value = global.all_methods
+          new_value = global.method_list
         when '%*load'
-          new_value = global.all_files
+          new_value = global.file_list
         when '%*id'
-          new_value = global.all_ids
+          new_value = global.id_list
         when '%*name'
-          new_value = global.all_names
+          new_value = global.name_list
         when '%*superclass'
-          new_value = global.all_superclasses
+          new_value = global.superclasse_list
         when '%*assign'
-          new_value = global.all_assigns
+          new_value = global.assign_list
         when '%*transform'
-          new_value = global.all_transforms
+          new_value = global.transform_list
         else
           new_value, str = process_tokens(global, original, str, text)
         end

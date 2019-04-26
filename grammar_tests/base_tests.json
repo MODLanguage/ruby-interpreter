@@ -3,6 +3,10 @@
     "input": "*L=\"https://www.modl.uk/tests/message-thread.txt\"\n\nclasses=*class",
     "minimised_modl": "*L=\"https://www.modl.uk/demo/message-thread.txt\";classes=*class",
     "expected_output": "{\"classes\":\"*class\"}"},
+  {
+    "input": "*L=\"https://www.modl.uk/tests/message-thread.txt\"\n*class(\n *id=a\n *name=alpha\n *superclass=map\n v=victor\n)\n*class(\n *id=b\n *name=bravo\n *superclass=alpha\n w=whisky\n)\n*class(\n *id=c\n *name=charlie\n *superclass=bravo\n x=xray\n)\n*class(\n *id=d\n *name=delta\n *superclass=charlie\n y=yankee\n)\nclasses=%*class",
+    "minimised_modl": "tbd",
+    "expected_output": "{\"classes\":\"FIX ME\"}"},
   { "input":  "_test1=one\n_one=two\n{\ntest1=`one`?\n  result=match\n/?\n  result=nomatch\n}",
     "minimised_modl":  "_test1=one;_one=two{test1=`one`?result=match/?result=nomatch}",
     "expected_output":   "{\n  \"result\": \"match\"\n}"},

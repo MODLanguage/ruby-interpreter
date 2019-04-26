@@ -28,7 +28,7 @@ RSpec.describe Modl::Parser do
 
     data.each_index do |i|
       begin
-        #next if i <= 4
+        next if i <= 0
 
         test_case = data[i]
 

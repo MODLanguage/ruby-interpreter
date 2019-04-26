@@ -81,8 +81,8 @@ module Modl
         if !global.has_class?(clazz.id) && !global.has_class?(clazz.name)
 
           # store the classes by id and name to make them easier to find later
-          global.classs(clazz.id, clazz)
-          global.classs(clazz.name, clazz)
+          global.classs(clazz)
+          global.classs(clazz)
         else
           id = clazz.id.nil? ? 'undefined' : clazz.id
           name = clazz.name.nil? ? 'undefined' : clazz.name

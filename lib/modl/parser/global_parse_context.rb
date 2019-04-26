@@ -14,7 +14,8 @@ module Modl
         # Contains all pairs as they are encountered in the parsing process.
         @pairs = {}
         # Contains all defined and loaded classes for the current MODL document.
-        @classes = {}
+        @classes_by_id = {}
+        @classes_by_name = {}
         # Hold the user-defined methods.
         @methods_hash = {}
         # Tracks the nesting depth for conditional clauses.
@@ -48,10 +49,14 @@ module Modl
         @pairs[key] = val
       end
 
-      def classs(key, clazz = nil)
-        return @classes[key] unless clazz
-
-        @classes[key] = clazz
+      def classs(key)
+        if key.is_a? String
+          result = @classes_by_id[key]
+          @classes_by_name[key] if result.nil?
+        elsif key.is_a? MODLClass
+          @classes_by_id[key.id] = key
+          @classes_by_name[key.name] = key
+        end
       end
 
       def merge_pairs(other)
@@ -59,7 +64,8 @@ module Modl
       end
 
       def merge_classes(other)
-        @classes.merge!(other.all_classes)
+        @classes_by_id.merge!(other.all_classes_by_id)
+        @classes_by_name.merge!(other.all_classes_by_name)
       end
 
       def has_pairs?
@@ -67,7 +73,7 @@ module Modl
       end
 
       def has_class?(key)
-        @classes.keys.include?(key)
+        @classes_by_id.keys.include?(key) || @classes_by_name.keys.include?(key)
       end
 
       def has_user_method?(key)
@@ -84,14 +90,107 @@ module Modl
         @methods_hash[key] = val
       end
 
+      def class_list
+        result = Parsed::ParsedArray.new(self)
+        @classes_by_id.values.each do |clazz|
+          new_item = Parsed::ParsedArrayItem.new(self)
+          new_item.arrayValueItem = Parsed::ParsedArrayValueItem.new(self)
+          new_item.arrayValueItem.pair = Parsed::ParsedPair.new(self)
+          new_item.arrayValueItem.pair.key = clazz.id
+          new_item.arrayValueItem.pair.map = to_map(clazz)
+          result.abstractArrayItems << new_item
+        end
+        result
+      end
+
+      def method_list
+        raise StandardError, 'NOT IMPLEMENTED'
+      end
+
+      def file_list
+        raise StandardError, 'NOT IMPLEMENTED'
+      end
+
+      def id_list
+        raise StandardError, 'NOT IMPLEMENTED'
+      end
+
+      def name_list
+        raise StandardError, 'NOT IMPLEMENTED'
+      end
+
+      def superclasse_list
+        raise StandardError, 'NOT IMPLEMENTED'
+      end
+
+      def assign_list
+        raise StandardError, 'NOT IMPLEMENTED'
+      end
+
+      def transform_list
+        raise StandardError, 'NOT IMPLEMENTED'
+      end
+
       protected
 
-      def all_classes
-        @classes
+      def all_classes_by_id
+        @classes_by_id
+      end
+
+      def all_classes_by_name
+        @classes_by_name
       end
 
       def all_pairs
         @pairs
+      end
+
+      private
+
+      def to_map(clazz)
+        map = Parsed::ParsedMap.new(self)
+
+        # name
+        map_item = new_map_item('name', clazz.name)
+        map.mapItems << map_item
+
+        # superclass
+        map_item = new_map_item('superclass', clazz.superclass)
+        map.mapItems << map_item
+
+        # assign
+        if clazz.assign
+          map_item = new_map_item('assign', clazz.assign)
+          map.mapItems << map_item
+        end
+
+        # content
+        if clazz.content.length.positive?
+          clazz.content.each do |item|
+            map_item = new_map_item(item[0], item[1])
+            map.mapItems << map_item
+          end
+        end
+
+        map
+      end
+
+      def new_map_item(key, value)
+        map_item = Parsed::ParsedMapItem.new(self)
+        map_item.pair = Parsed::ParsedPair.new(self)
+        map_item.pair.key = key
+        map_item.pair.valueItem = Parsed::ParsedValueItem.new(self)
+        if value.is_a? Parsed::ParsedValue
+          map_item.pair.valueItem.value = value
+        else
+          map_item.pair.valueItem.value = Parsed::ParsedValue.new(self)
+          map_item.pair.valueItem.value.primitive = Parsed::ParsedPrimitive.new(self)
+          map_item.pair.valueItem.value.primitive = Parsed::ParsedPrimitive.new(self)
+          map_item.pair.valueItem.value.primitive.string = Parsed::ParsedString.new(value)
+          map_item.pair.valueItem.value.primitive.text = value
+          map_item.pair.valueItem.value.text = value
+        end
+        map_item
       end
     end
   end
