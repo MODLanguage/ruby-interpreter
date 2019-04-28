@@ -52,10 +52,11 @@ module Modl
       def classs(key)
         if key.is_a? String
           result = @classes_by_id[key]
-          @classes_by_name[key] if result.nil?
+          result = @classes_by_name[key] if result.nil?
+          result
         elsif key.is_a? MODLClass
-          @classes_by_id[key.id] = key
-          @classes_by_name[key.name] = key
+          @classes_by_id[key.id] = key if key.id
+          @classes_by_name[key.name] = key if key.name
         end
       end
 

@@ -95,7 +95,7 @@ class MODLParser < Antlr4::Runtime::Parser
 
 	@@VOCABULARY =  Antlr4::Runtime::VocabularyImpl.new(@@_LITERAL_NAMES, @@_SYMBOLIC_NAMES)
 
-	def getVocabulary
+  def get_vocabulary
 		@@VOCABULARY
 	end
 

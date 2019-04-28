@@ -1,3 +1,4 @@
+require "antlr4/runtime"
 require "modl/parser/version"
 require 'modl/parser/MODLParserListener'
 require 'modl/parser/MODLParserVisitor'

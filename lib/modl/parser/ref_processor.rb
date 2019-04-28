@@ -32,6 +32,12 @@ module Modl
         text = str
         original = str
 
+        new_value, str = process_tokens(global, original, str, text)
+
+        [str, new_value]
+      end
+
+      def tmp_saved
         case str
         when '%*class'
           new_value = global.class_list
@@ -49,11 +55,7 @@ module Modl
           new_value = global.assign_list
         when '%*transform'
           new_value = global.transform_list
-        else
-          new_value, str = process_tokens(global, original, str, text)
         end
-
-        [str, new_value]
       end
 
       private

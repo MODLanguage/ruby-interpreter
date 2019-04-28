@@ -4,9 +4,15 @@
     "minimised_modl": "*L=\"https://www.modl.uk/demo/message-thread.txt\";classes=*class",
     "expected_output": "{\"classes\":\"*class\"}"},
   {
+    "input": "*L=\"http://modules.num.uk/1.txt\"\n\nclasses=%*class",
+    "minimised_modl": "*L=\"http://modules.num.uk/1.txt\";classes=%*class",
+    "expected_output": "{\"classes\":\"*class\"}"
+  },
+  {
     "input": "*L=\"https://www.modl.uk/tests/message-thread.txt\"\n*class(\n *id=a\n *name=alpha\n *superclass=map\n v=victor\n)\n*class(\n *id=b\n *name=bravo\n *superclass=alpha\n w=whisky\n)\n*class(\n *id=c\n *name=charlie\n *superclass=bravo\n x=xray\n)\n*class(\n *id=d\n *name=delta\n *superclass=charlie\n y=yankee\n)\nclasses=%*class",
     "minimised_modl": "tbd",
-    "expected_output": "{\"classes\":\"FIX ME\"}"},
+    "expected_output": "{\n  \"classes\": [\n    {\n      \"m\": {\n        \"name\": \"message\",\n        \"superclass\": \"map\",\n        \"assign\": [\n          [\n            \"direction\",\n            \"date_time\",\n            \"message\"\n          ]\n        ],\n        \"method\": \"sms\"\n      }\n    },\n    {\n      \"a\": {\n        \"name\": \"alpha\",\n        \"superclass\": \"map\",\n        \"v\": \"victor\"\n      }\n    },\n    {\n      \"b\": {\n        \"name\": \"bravo\",\n        \"superclass\": \"alpha\",\n        \"w\": \"whisky\"\n      }\n    },\n    {\n      \"c\": {\n        \"name\": \"charlie\",\n        \"superclass\": \"bravo\",\n        \"x\": \"xray\"\n      }\n    },\n    {\n      \"d\": {\n        \"name\": \"delta\",\n        \"superclass\": \"charlie\",\n        \"y\": \"yankee\"\n      }\n    }\n  ]\n}"
+  },
   { "input":  "_test1=one\n_one=two\n{\ntest1=`one`?\n  result=match\n/?\n  result=nomatch\n}",
     "minimised_modl":  "_test1=one;_one=two{test1=`one`?result=match/?result=nomatch}",
     "expected_output":   "{\n  \"result\": \"match\"\n}"},
@@ -60,7 +66,8 @@
     "expected_output":   "{\n    \"name\": \"пример\",\n    \"department\": \"обслуживание клиентов\"\n}"},
   { "input":  "`80aafnhi4ae`.p.u=`lsa12dvaxki`.p.u",
     "minimised_modl":  "`80aafnhi4ae`.p=`lsa12dvaxki`.p",
-    "expected_output":   "{\n  \"название\" : \"бори́с\"\n}"},
+    "expected_output": "{\n  \"НАЗВАНИЕ\":\"БОРИ́С\"\n}"
+  },
   { "input":  "(\n  _name = John\n  %name.u = \"Developer\"\n  foo = %name.u\n)",
     "minimised_modl":  "(_name = John;%name.u = \"Developer\";foo = %name.u)",
     "expected_output":   "{\n  \"JOHN\" : \"Developer\",   \n  \"foo\" : \"JOHN\"\n}"},
