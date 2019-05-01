@@ -32,30 +32,9 @@ module Modl
         text = str
         original = str
 
-        new_value, str = process_tokens(global, original, str, text)
+        new_value, str = process_tokens(global, original, str, text) if new_value.nil?
 
         [str, new_value]
-      end
-
-      def tmp_saved
-        case str
-        when '%*class'
-          new_value = global.class_list
-        when '%*method'
-          new_value = global.method_list
-        when '%*load'
-          new_value = global.file_list
-        when '%*id'
-          new_value = global.id_list
-        when '%*name'
-          new_value = global.name_list
-        when '%*superclass'
-          new_value = global.superclasse_list
-        when '%*assign'
-          new_value = global.assign_list
-        when '%*transform'
-          new_value = global.transform_list
-        end
       end
 
       private

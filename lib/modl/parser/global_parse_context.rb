@@ -92,14 +92,11 @@ module Modl
       end
 
       def class_list
-        result = Parsed::ParsedArray.new(self)
+        result = []
         @classes_by_id.values.each do |clazz|
-          new_item = Parsed::ParsedArrayItem.new(self)
-          new_item.arrayValueItem = Parsed::ParsedArrayValueItem.new(self)
-          new_item.arrayValueItem.pair = Parsed::ParsedPair.new(self)
-          new_item.arrayValueItem.pair.key = clazz.id
-          new_item.arrayValueItem.pair.map = to_map(clazz)
-          result.abstractArrayItems << new_item
+          new_item = {}
+          new_item[clazz.id] = to_map(clazz)
+          result << new_item
         end
         result
       end
@@ -120,7 +117,7 @@ module Modl
         raise StandardError, 'NOT IMPLEMENTED'
       end
 
-      def superclasse_list
+      def superclass_list
         raise StandardError, 'NOT IMPLEMENTED'
       end
 
@@ -149,27 +146,22 @@ module Modl
       private
 
       def to_map(clazz)
-        map = Parsed::ParsedMap.new(self)
-
+        map = {}
         # name
-        map_item = new_map_item('name', clazz.name)
-        map.mapItems << map_item
+        map['name'] = clazz.name
 
         # superclass
-        map_item = new_map_item('superclass', clazz.superclass)
-        map.mapItems << map_item
+        map['superclass'] = clazz.superclass
 
         # assign
         if clazz.assign
-          map_item = new_map_item('assign', clazz.assign)
-          map.mapItems << map_item
+          map['assign'] = clazz.assign
         end
 
         # content
         if clazz.content.length.positive?
           clazz.content.each do |item|
-            map_item = new_map_item(item[0], item[1])
-            map.mapItems << map_item
+            map[item[0]] = item[1].extract_hash
           end
         end
 
