@@ -18,6 +18,7 @@ module Modl
         @classes_by_name = {}
         # Hold the user-defined methods.
         @methods_hash = {}
+        @methods_by_id = {}
         # Tracks the nesting depth for conditional clauses.
         @conditional = 0
         # Defaults to 1 and can be overridden by the *version command.
@@ -91,18 +92,29 @@ module Modl
         @methods_hash[key] = val
       end
 
+      def user_method_id(key, val)
+        @methods_hash[key] = val
+        @methods_by_id[key] = val
+      end
+
       def class_list
         result = []
         @classes_by_id.values.each do |clazz|
           new_item = {}
-          new_item[clazz.id] = to_map(clazz)
+          new_item[clazz.id] = class_to_hash(clazz)
           result << new_item
         end
         result
       end
 
       def method_list
-        raise StandardError, 'NOT IMPLEMENTED'
+        result = []
+        @methods_by_id.values.each do |m|
+          new_item = {}
+          new_item[m.id] = method_to_hash(m)
+          result << new_item
+        end
+        result
       end
 
       def file_list
@@ -145,7 +157,7 @@ module Modl
 
       private
 
-      def to_map(clazz)
+      def class_to_hash(clazz)
         map = {}
         # name
         map['name'] = clazz.name
@@ -164,6 +176,17 @@ module Modl
             map[item[0]] = item[1].extract_hash
           end
         end
+
+        map
+      end
+
+      def method_to_hash(mthd)
+        map = {}
+        # name
+        map['name'] = mthd.name
+
+        # superclass
+        map['transform'] = mthd.transform
 
         map
       end

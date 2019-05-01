@@ -79,7 +79,7 @@ module Modl
         raise InterpreterError, 'Duplicate method id: ' + mthd.id if global.has_user_method?(mthd.id)
 
         # store the methods by id and name to make them easier to find later
-        global.user_method(mthd.id, mthd)
+        global.user_method_id(mthd.id, mthd)
         global.user_method(mthd.name, mthd)
       end
     end
