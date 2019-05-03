@@ -393,12 +393,12 @@ class MODLParser < Antlr4::Runtime::Parser
 			return rule_context("Modl_nb_arrayContext",i)
 		end
 
-		def COMMA()
-			return tokens(MODLParser::COMMA)
+		def SC()
+			return tokens(MODLParser::SC)
 		end
 
-		def COMMA_i(i)
-			return token(MODLParser::COMMA, i)
+		def SC_i(i)
+			return token(MODLParser::SC, i)
 		end
 		def initialize( parent,  invokingState)
 			super(parent, invokingState)
@@ -458,7 +458,7 @@ class MODLParser < Antlr4::Runtime::Parser
 				@_state_number = 100
 				@_err_handler.sync(self)
 				_la = @_input.la(1)
-				while (_la == COMMA)
+				while (_la == SC)
 
 
 					@_state_number = 84
@@ -468,11 +468,11 @@ class MODLParser < Antlr4::Runtime::Parser
 
 
 						@_state_number = 83
-						match(COMMA)
+						match(SC)
 						@_state_number = 86
 						@_err_handler.sync(self)
 						_la = @_input.la(1)
-						break if (!(_la == COMMA))
+						break if (!(_la == SC))
 					end
 					@_state_number = 90
 					@_err_handler.sync(self)
@@ -496,7 +496,7 @@ class MODLParser < Antlr4::Runtime::Parser
 
 
 							@_state_number = 92
-							match(COMMA)
+							match(SC)
 						end
 						@_state_number = 97
 						@_err_handler.sync(self)
@@ -2374,9 +2374,9 @@ class MODLParser < Antlr4::Runtime::Parser
 											"\3\2\2\2CL\7\13\2\2DI\5\30\r\2EF\7\t\2\2FH\5\30\r\2GE\3\2\2\2HK\3\2",
 											"\2\2IG\3\2\2\2IJ\3\2\2\2JM\3\2\2\2KI\3\2\2\2LD\3\2\2\2LM\3\2\2\2MN",
 											"\3\2\2\2NO\7\f\2\2O\7\3\2\2\2Pi\7\r\2\2QT\5\36\20\2RT\5\n\6\2SQ\3\2",
-											"\2\2SR\3\2\2\2Tf\3\2\2\2UW\7\n\2\2VU\3\2\2\2WX\3\2\2\2XV\3\2\2\2XY",
+											"\2\2SR\3\2\2\2Tf\3\2\2\2UW\7\t\2\2VU\3\2\2\2WX\3\2\2\2XV\3\2\2\2XY",
 											"\3\2\2\2Y\\\3\2\2\2Z]\5\36\20\2[]\5\n\6\2\\Z\3\2\2\2\\[\3\2\2\2]a\3",
-											"\2\2\2^`\7\n\2\2_^\3\2\2\2`c\3\2\2\2a_\3\2\2\2ab\3\2\2\2be\3\2\2\2",
+											"\2\2\2^`\7\t\2\2_^\3\2\2\2`c\3\2\2\2a_\3\2\2\2ab\3\2\2\2be\3\2\2\2",
 											"ca\3\2\2\2dV\3\2\2\2eh\3\2\2\2fd\3\2\2\2fg\3\2\2\2gj\3\2\2\2hf\3\2",
 											"\2\2iS\3\2\2\2ij\3\2\2\2jk\3\2\2\2kl\7\16\2\2l\t\3\2\2\2mo\5\36\20",
 											"\2np\7\7\2\2on\3\2\2\2pq\3\2\2\2qo\3\2\2\2qr\3\2\2\2rt\3\2\2\2sm\3",
