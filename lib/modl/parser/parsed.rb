@@ -63,7 +63,7 @@ module Modl
         end
 
         def find_property(key)
-          if key.is_a? Fixnum
+          if key.is_a? Integer
             return @mapItems[key]
           else
             @mapItems.each do |mi|
@@ -231,7 +231,7 @@ module Modl
             @text = value
             return
           end
-          value = value.extract_hash unless value.is_a?(String) || value.is_a?(Fixnum)
+          value = value.extract_hash unless value.is_a?(String) || value.is_a?(Integer)
           @map = nil
           @array = nil
           @valueItem = ParsedValueItem.new @global
@@ -1190,7 +1190,7 @@ module Modl
         end
 
         def find_property(key)
-          if key.is_a? Fixnum
+          if key.is_a? Integer
             return @arrayItems[key].arrayValueItem
           else
             @arrayItems.each do |mi|
@@ -1227,7 +1227,7 @@ module Modl
                 prev_symbol = previous.symbol.type
                 current_symbol = pt.symbol.type
 
-                if prev_symbol != MODLLexer::NEWLINE && current_symbol != MODLLexer::NEWLINE
+                if prev_symbol == MODLLexer::COLON && current_symbol == MODLLexer::COLON
                   array_item = Parsed.handle_empty_array_item
                   @arrayItems[i] = array_item
                   i += 1
@@ -1264,7 +1264,7 @@ module Modl
         end
 
         def find_property(key)
-          if key.is_a? Fixnum
+          if key.is_a? Integer
             return @abstractArrayItems[key]
           else
             @abstractArrayItems.each do |mi|
@@ -1312,7 +1312,7 @@ module Modl
                   next # This allows empty arrays
                 end
 
-                if prev_symbol != MODLLexer::NEWLINE && current_symbol != MODLLexer::NEWLINE
+                if prev_symbol == MODLLexer::STRUCT_SEP && current_symbol == MODLLexer::STRUCT_SEP
 
                   # Create something for the blank array item
                   #
