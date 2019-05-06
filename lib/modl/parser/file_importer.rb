@@ -46,6 +46,8 @@ module Modl
               end
             end
 
+            global.loaded_file(file_name)
+
             # Parse the downloaded file ands extract the classes
             parsed = Modl::Parser::Parser.parse txt, global
             # Save it for next time

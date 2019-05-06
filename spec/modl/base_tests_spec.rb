@@ -24,11 +24,11 @@ RSpec.describe Modl::Parser do
     success = 0
     failed = 0
 
-    exit_on_fail = false
+    exit_on_fail = true
 
     data.each_index do |i|
       begin
-        #next if i <= 206
+        #next if i < 1
 
         test_case = data[i]
 

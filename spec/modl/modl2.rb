@@ -27,7 +27,7 @@ a = <<XXXXXXXX
   *superclass=object;
   *assign=[
     [n];
-    [n,q]
+    [n;q]
 ##    [n;q;d]
 ##    [n;q;d;h;tz]
   ];
@@ -44,11 +44,11 @@ a = <<XXXXXXXX
     ## value, e.g. '441270123456'
     [v];
     ## description and value, e.g. 'Sales:441270123456'
-    [d,v];
+    [d;v];
     ## description, value and available hours, e.g. 'Sales:441270123456:wd@9-17'
-    [d,v,h]
+    [d;v;h]
   ];
-  *allow=[v,ac]
+  *allow=[v;ac]
 );
 
 *class(
@@ -56,7 +56,7 @@ a = <<XXXXXXXX
   *id=x;
   *name=extension;
   *superclass=map;
-  *allow=[url,pa]
+  *allow=[url;pa]
 );
 
 ## ALL OBJECTS CAN BE DESCRIBED WITH THESE KEYS:
@@ -122,13 +122,13 @@ a = <<XXXXXXXX
     ## name, 'Tesco'
     [n];
     ## name and objects 'Tesco:[t=44800 50 5555]'
-    [n,+];
+    [n;+];
     ## name, slogan and objects 'Tesco:Every Little Helps:[t=44800 50 5555]'
-    [n,s,+];
+    [n;s;+];
     ## object index, name, slogan and objects 'tesco:%1.s:Every Little Helps:[t=44800 50 5555;fb=%1]'
-    [?,n,s,+];
+    [?;n;s;+];
     ## ojbect index, name, slogan, available hours and objects 'tesco:%1.s:Every Little Helps:d@6-24:[t=44800 50 5555;fb=%1]'
-    [?,n,s,h,+]
+    [?;n;s;h;+]
   ];
   *allow=[s];
   object_type=entity;
@@ -160,7 +160,7 @@ a = <<XXXXXXXX
     ## name, e.g. John Smith
     [n];
     ## name and role, e.g. John Smith:Managing Director
-    [n,r]
+    [n;r]
   ];
   *allow=[r];
   object_type=entity;
@@ -247,7 +247,7 @@ a = <<XXXXXXXX
 
 *class(
   ## ACCESSIBILITY: Provides accessibility information for media
-  *id=a;
+  *id=acc;
   *name=access;
   *superclass=arr;
   *allow=[str]
@@ -511,7 +511,7 @@ a = <<XXXXXXXX
 *class(
   ## MEDIUM
   *id=md;
-  *name=medium;
+  *name=md2;
   *superclass=medium;
   object_type=medium;
   object_display_name=Medium;
@@ -853,7 +853,9 @@ a = <<XXXXXXXX
 
 ## These are predefined variables
 _AC="Accounts";
-_CS="Customer Service"
+_CS="Customer Service";
+classes=%*class;
+method=%*method
 XXXXXXXX
 
 puts Modl::Interpreter.interpret(a, true)

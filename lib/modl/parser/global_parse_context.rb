@@ -24,6 +24,11 @@ module Modl
         # Defaults to 1 and can be overridden by the *version command.
         @syntax_version = 1
         @interpreter_syntax_version = 1
+        @loaded_files = []
+      end
+
+      def loaded_file(str)
+        @loaded_files << str unless str.nil?
       end
 
       def index_value(n, default)
@@ -118,7 +123,7 @@ module Modl
       end
 
       def file_list
-        raise StandardError, 'NOT IMPLEMENTED'
+        @loaded_files.dup
       end
 
       def id_list

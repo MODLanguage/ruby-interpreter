@@ -16,7 +16,7 @@ module Modl
             if key_list.length > last_keylist_len
               last_keylist_len = key_list.length
             else
-              raise InterpreterError, 'Error: Key lists in *assign are not in ascending order of list length.'
+              raise InterpreterError, 'Error: Key lists in *assign are not in ascending order of list length: ' + key_list.to_s
             end
             pair.key_lists << key_list
           end

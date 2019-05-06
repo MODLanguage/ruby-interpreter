@@ -258,6 +258,7 @@ module Modl
           return if @type == 'class'
           return if @type == 'method'
           return if @type == 'import'
+          return if @type == 'allow'
 
           {@key => @text}
         end
@@ -314,6 +315,8 @@ module Modl
             extract_value
           when 'superclass'
             extract_value
+          when 'allow'
+            nil
           when 'keylist'
             KeylistExtractor.extract(self, @valueItem) if @valueItem
             KeylistExtractor.extract(self, @array) if @array
@@ -437,6 +440,7 @@ module Modl
           end
           @type = 'index' if @key == '?'
           @type = 'hidden' if @key.start_with? '_'
+          @type = 'allow' if @key.downcase == '*allow'
         end
       end
 
