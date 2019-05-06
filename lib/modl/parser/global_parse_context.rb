@@ -127,23 +127,49 @@ module Modl
       end
 
       def id_list
-        raise StandardError, 'NOT IMPLEMENTED'
+        ids = {}
+        ids['methods'] = @methods_by_id.keys.dup.sort!
+        ids['classes'] = @classes_by_id.keys.dup.sort!
+        ids
       end
 
       def name_list
-        raise StandardError, 'NOT IMPLEMENTED'
+        names = {}
+        names['methods'] = @methods_hash.keys.dup.sort!
+        names['classes'] = @classes_by_name.keys.dup.sort!
+        names
       end
 
       def superclass_list
-        raise StandardError, 'NOT IMPLEMENTED'
+        result = {}
+        @classes_by_id.each do |c|
+          result[c[0]] = c[1].superclass
+        end
+        result
       end
 
       def assign_list
-        raise StandardError, 'NOT IMPLEMENTED'
+        result = {}
+        @classes_by_id.each do |c|
+          result[c[0]] = c[1].assign
+        end
+        result
       end
 
       def transform_list
-        raise StandardError, 'NOT IMPLEMENTED'
+        result = {}
+        @methods_by_id.each do |c|
+          result[c[0]] = c[1].transform
+        end
+        result
+      end
+
+      def allow_list
+        result = {}
+        @classes_by_id.each do |c|
+          result[c[0]] = c[1].allow.nil? ? nil : c[1].allow.extract_hash
+        end
+        result
       end
 
       protected
@@ -173,6 +199,11 @@ module Modl
         # assign
         if clazz.assign
           map['assign'] = clazz.assign
+        end
+
+        # allow
+        if clazz.allow
+          map['allow'] = clazz.allow.extract_hash
         end
 
         # content

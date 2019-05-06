@@ -17,7 +17,7 @@ a = <<XXXXXXXX
   *id=object;
   *name=object;
   *superclass=map;
-  *allow=[i,h,q,c_,r_,tz]  
+  *allow=[i;h;q;c_;r_;tz]  
 );
 
 ## ENTITY: Someone or something to make contact with
@@ -31,7 +31,7 @@ a = <<XXXXXXXX
 ##    [n;q;d]
 ##    [n;q;d;h;tz]
   ];
-  *allow=[n,+]
+  *allow=[n;+]
 );
 
 ## MEDIUM: A way to make contact with an entity
@@ -855,7 +855,13 @@ a = <<XXXXXXXX
 _AC="Accounts";
 _CS="Customer Service";
 classes=%*class;
-method=%*method
+method=%*method;
+ids=%*id;
+names=%*name;
+super=%*superclass;
+assign=%*assign;
+trans=%*transform;
+allow=%*allow
 XXXXXXXX
 
 puts Modl::Interpreter.interpret(a, true)

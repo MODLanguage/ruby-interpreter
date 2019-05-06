@@ -316,7 +316,7 @@ module Modl
           when 'superclass'
             extract_value
           when 'allow'
-            nil
+            extract_value
           when 'keylist'
             KeylistExtractor.extract(self, @valueItem) if @valueItem
             KeylistExtractor.extract(self, @array) if @array

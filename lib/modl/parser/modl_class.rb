@@ -7,6 +7,7 @@ module Modl
       attr_accessor :superclass
       attr_accessor :assign
       attr_accessor :content
+      attr_accessor :allow
 
       def initialize
         @content = {}
@@ -63,6 +64,9 @@ module Modl
             clazz.superclass = str_value
           when 'keylist'
             clazz.assign = item.pair.key_lists
+          when 'allow'
+            clazz.allow = item.pair.array if item.pair.array
+            clazz.allow = item.pair.valueItem.value.array if item.pair.valueItem.value.array
           else
             clazz.content[item.pair.key] = item.pair.array if item.pair.array
             clazz.content[item.pair.key] = item.pair.map if item.pair.map

@@ -49,6 +49,8 @@ module Modl
           return global.assign_list
         when '%*transform'
           return global.transform_list
+        when '%*allow'
+          return global.allow_list
         end
       end
     end
