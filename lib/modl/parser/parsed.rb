@@ -268,6 +268,8 @@ module Modl
 
           ctx_string = ctx.STRING
           @key = ctx_string.to_s unless ctx_string.nil?
+          ctx_string = ctx.NUMBER
+          @key = ctx_string.to_s unless ctx_string.nil?
           ctx_quoted = ctx.QUOTED
           unless ctx_quoted.nil?
             @key = ctx_quoted.to_s
