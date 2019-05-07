@@ -27,6 +27,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency 'antlr4-runtime', '>= 0.0.1'
-  spec.add_runtime_dependency 'antlr4-runtime', '>= 0.2.0'
+  spec.add_runtime_dependency 'antlr4-runtime', '>= 0.2.1'
   spec.add_runtime_dependency 'punycode4r', '>= 0.2.0'
 end
