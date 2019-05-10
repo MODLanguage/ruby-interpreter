@@ -1,100 +1,100 @@
 #!/usr/bin/ruby
 
-require 'modl/interpreter'
+require 'modl'
 
 a = <<XXXXXXXX
  *class(
- *id=g,
- *name=glossary,
+ *id=g;
+ *name=glossary;
  *superclass=map
 );
 *class(
- *id=t,
- *name=title,
+ *id=t;
+ *name=title;
  *superclass=str
 );
 *class(
- *id=d,
- *name=GlossDiv,
+ *id=d;
+ *name=GlossDiv;
  *superclass=map
 );
 *class(
- *id=l,
- *name=GlossList,
+ *id=l;
+ *name=GlossList;
  *superclass=map
 );
 *class(
- *id=e,
- *name=GlossEntry,
- *superclass=map,
+ *id=e;
+ *name=GlossEntry;
+ *superclass=map;
  *assign[
-   [i,s,gt,a,ab,gd,gs]
+   [i;s;gt;a;ab;gd;gs]
  ]
 );
 *class(
- *id=i,
- *name=ID,
+ *id=i;
+ *name=ID;
  *superclass=str
 );
 *class(
- *id=s,
- *name=SortAs,
+ *id=s;
+ *name=SortAs;
  *superclass=str
 );
 *class(
- *id=gt,
- *name=GlossTerm,
+ *id=gt;
+ *name=GlossTerm;
  *superclass=str
 );
 *class(
- *id=a,
- *name=Acronym,
+ *id=a;
+ *name=Acronym;
  *superclass=str
 );
 *class(
- *id=ab,
- *name=Abbrev,
+ *id=ab;
+ *name=Abbrev;
  *superclass=str
 );
 *class(
- *id=gd,
- *name=GlossDef,
- *superclass=map,
+ *id=gd;
+ *name=GlossDef;
+ *superclass=map;
  *assign=[
-   [p],
-   [p,sa]
+   [p];
+   [p;sa]
  ]
 );
 *class(
- *id=p,
- *name=para,
+ *id=p;
+ *name=para;
  *superclass=str
 );
 *class(
- *id=sa,
- *name=SeeAlso,
+ *id=sa;
+ *name=SeeAlso;
  *superclass=arr
 );
 *class(
- *id=gs,
- *name=GlossSee,
+ *id=gs;
+ *name=GlossSee;
  *superclass=str
 );
 
 g(
- ?=[SGML,markup,language],
- t=example glossary,
+ ?=[SGML;markup;language];
+ t=example glossary;
  d(
-   t=S,
+   t=S;
    l(
      e(
-       i=%0,
-       s=%0,
-       gt=Standard Generalized %1.s %2.s,
-       a=%0,
-       ab=ISO 8879\:1986,
+       i=%0;
+       s=%0;
+       gt=Standard Generalized %1.s %2.s;
+       a=%0;
+       ab=ISO 8879\:1986;
        gd="A meta-%1 %2, used to create %1 %2s such as DocBook."
-         :[GML,XML]
+         :[GML;XML];
        gs=%1
      )
    )
@@ -103,4 +103,6 @@ g(
 
 XXXXXXXX
 
-puts MODL::Interpreter.interpret(a, true)
+result = MODL.parse(a)
+str = JSON.pretty_generate(result)
+puts str

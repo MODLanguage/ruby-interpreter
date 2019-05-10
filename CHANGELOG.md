@@ -2,6 +2,7 @@
 ===
 - Update to latest ANTLR4 Runtime - v0.2.2
 - Change module name to MODL from Modl.
+- Support simpler usage, i.e. MODL.parse(str). README.md updated accordingly.
 
 0.3.2
 ===

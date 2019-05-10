@@ -25,13 +25,16 @@ You will also need to install the antlr4-ruby-runtime gem that this depends on. 
 ## Usage
 
 ```ruby
-require 'modl/interpreter'
+require 'modl'
 
-result = MODL::Interpreter.interpret(str)
-# or
-result = MODL::Interpreter.interpret(str, true)
+str='s=MODL data'
+
+result = MODL.parse(str)
+jsonStr = JSON.pretty_generate(result)
+puts jsonStr
+
 ```
-where `str` is the modl to be interpreted. The result will be a JSON string. If the second parameter is `true` then the JSON will be pretty-printed.
+where `str` is the modl to be interpreted. 
 
 ## Development
 

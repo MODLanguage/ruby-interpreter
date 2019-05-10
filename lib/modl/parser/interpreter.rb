@@ -35,4 +35,19 @@ module MODL
       end
     end
   end
+
+  # Parse a MODL string and return a hash, array, or String depending on how the MODL is structured.
+  def self.parse(string)
+    # Parse the MODL string into a MODL::Parser::Parsed object.
+    parsed = MODL::Parser::Parser.parse(string)
+
+    # Convert the Parsed object into a simpler structure of and Array or Hash
+    interpreted = parsed.extract_hash
+
+    # Process any class definitions used by the MODL file.
+    MODL::Parser::ClassProcessor.process(parsed.global, interpreted)
+    MODL::Parser::InstructionProcessor.process(parsed.global, interpreted)
+    # If the result is a simple string then just return it.
+    interpreted
+  end
 end
