@@ -1,7 +1,7 @@
 # Generated from MODLParser.g4 by ANTLR 4.7.2
 require 'antlr4/runtime'
 
-module Modl::Parser
+module MODL::Parser
 
 class MODLParserBaseListener < MODLParserListener
 	 def enterModl(ctx)
