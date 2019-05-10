@@ -4,7 +4,7 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-ab=ISO 8879\:1986;
+*class(*id=n;*name=name;*superclass=num);n=Elliott
 
 XXXXXXXX
 

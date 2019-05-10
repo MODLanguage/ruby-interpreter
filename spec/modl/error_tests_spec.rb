@@ -11,7 +11,7 @@ RSpec.describe MODL::Parser do
     success = 0
     failed = 0
 
-    exit_on_fail = true
+    exit_on_fail = false
 
     data.each_index do |i|
       #next if i <= 45

@@ -151,13 +151,10 @@ module MODL
       end
 
       def self.key_list(global, clazz, len)
+        return [] if clazz.nil?
         list = clazz.keylist_of_length(len)
         return list if !list.nil? && list.length > 0
         superclass = global.classs(clazz.superclass)
-        if superclass.nil?
-          raise InterpreterError,
-                'No key list of the correct length in class ' + clazz.name_or_id + ' - looking for one of length ' + len.to_s
-        end
         key_list(global, superclass, len)
       end
 

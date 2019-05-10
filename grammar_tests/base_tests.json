@@ -992,5 +992,8 @@
     "expected_output": "{\"a\":3}"},
   {"input": "x=[1;;;;;;;2:::::::::3;;;;;;;;;;4:::::::::5]",
     "minimised_modl": "x=[1;;;;;;;2:::::::::3;;;;;;;;;;4:::::::::5]",
-    "expected_output": "{\"x\" : [ 1, null, null, null, null, null, null, [2, null, null, null, null, null, null, null, null, 3], null, null, null, null, null, null, null, null, null, [4, null, null, null, null, null, null, null, null, 5] ]}"}
+    "expected_output": "{\"x\" : [ 1, null, null, null, null, null, null, [2, null, null, null, null, null, null, null, null, 3], null, null, null, null, null, null, null, null, null, [4, null, null, null, null, null, null, null, null, 5] ]}"},
+  {"input": "*LOAD=\"http://modules.num.uk/1.txt\";o=Tesco:Every Little Helps:[t=Customer Service:0845555555];",
+    "minimised_modl": "*LOAD=\"http://modules.num.uk/1.txt\";o=Tesco:Every Little Helps:[t=Customer Service:0845555555];",
+    "expected_output": "{\n  \"organisation\": {\n    \"object_type\": \"entity\",\n    \"object_display_name\": \"Organisation\",\n    \"description_default\": \"View Organisation\",\n    \"name\": \"Tesco\",\n    \"slogan\": \"Every Little Helps\",\n    \"objects\": [\n      {\n        \"telephone\": {\n          \"object_type\": \"media\",\n          \"object_display_name\": \"Telephone\",\n          \"description_default\": \"Call\",\n          \"prefix\": \"tel://\",\n          \"media_type\": \"core\",\n          \"description\": \"Customer Service\",\n          \"value\": \"0845555555\"\n        }\n      }\n    ]\n  }\n}\n"}
 ]
