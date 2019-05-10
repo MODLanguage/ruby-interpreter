@@ -56,7 +56,7 @@ module MODL
             # Parse the downloaded file ands extract the classes
             parsed = MODL::Parser::Parser.parse txt, global
             # Save it for next time
-            @cache.put(file_name, parsed)
+            @cache.put(file_name, parsed) unless CACHE_DISABLED
           end
           # Extract the JSON content and add the classes and pairs to the existing GlobalParseContext hashes.
           parsed.extract_hash

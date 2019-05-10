@@ -919,7 +919,7 @@ module MODL
           result = @conditionTests[0].evaluate
           return @mapConditionalReturns[0].extract_hash if result
 
-          @mapConditionalReturns[1].extract_hash
+          @mapConditionalReturns[1].extract_hash if @mapConditionalReturns.length > 1
         end
 
         def enterModl_map_conditional(ctx)
