@@ -4,9 +4,9 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-  _var=2;
-  *L="https://s3-eu-west-1.amazonaws.com/modltestfiles/testing.txt!";
-  print=%update_date
+*LOAD="http://modules.num.uk/1.txt";
+o=Tesco:Every Little Helps:[t=Customer Service:0845555555];
+## o=Tesco;
 
 XXXXXXXX
 

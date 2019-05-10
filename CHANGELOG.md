@@ -1,3 +1,7 @@
+0.3.4
+===
+- Fixed a bug with class handling to expand classes properly.
+
 0.3.3
 ===
 - Change module name to MODL from Modl.

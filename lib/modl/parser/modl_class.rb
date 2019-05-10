@@ -8,6 +8,7 @@ module MODL
       attr_accessor :assign
       attr_accessor :content
       attr_accessor :allow
+      attr_accessor :expect
 
       def initialize
         @content = {}
@@ -67,6 +68,9 @@ module MODL
           when 'allow'
             clazz.allow = item.pair.array if item.pair.array
             clazz.allow = item.pair.valueItem.value.array if item.pair.valueItem.value.array
+          when 'expect'
+            clazz.expect = item.pair.array if item.pair.array
+            clazz.expect = item.pair.valueItem.value.array if item.pair.valueItem.value.array
           else
             clazz.content[item.pair.key] = item.pair.array if item.pair.array
             clazz.content[item.pair.key] = item.pair.map if item.pair.map

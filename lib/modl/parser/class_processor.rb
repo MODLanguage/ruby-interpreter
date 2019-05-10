@@ -47,6 +47,8 @@ module MODL
 
         if v.is_a?(Array)
           new_value = v if new_value.empty?
+        elsif v.is_a?(String)
+          # Safe to ignore
         else
           # Check the top class and do some type-specific processing
           tc = top_class(clazz, global)
@@ -95,24 +97,29 @@ module MODL
 
       # If the new_value has nested class references then process those recursively as well.
       def self.process_nested_classes(global, new_value)
-        return unless new_value.is_a? Hash
+        if new_value.is_a?(Hash)
 
-        new_value.keys.each do |nk|
-          clazz = global.classs(nk)
-          nv = new_value[nk]
-          next unless clazz # skip it if it doesn't refer to a class
+          new_value.keys.each do |nk|
+            clazz = global.classs(nk)
+            nv = new_value[nk]
+            next unless clazz # skip it if it doesn't refer to a class
 
-          if !nv.nil? && !nv.is_a?(String) && !nv.is_a?(Numeric)
-            new_k, new_v = process_class global, nk, nv
-          else
-            new_k = clazz.name_or_id
-            new_v = nv
+            if !nv.nil? && !nv.is_a?(String) && !nv.is_a?(Numeric)
+              new_k, new_v = process_class global, nk, nv
+            else
+              new_k = clazz.name_or_id
+              new_v = nv
+            end
+
+            # Replace the value for this key if we've changed anything.
+            if new_value[new_k] != new_v
+              new_value.delete nk
+              new_value[new_k] = new_v
+            end
           end
-
-          # Replace the value for this key if we've changed anything.
-          if new_value[new_k] != new_v
-            new_value.delete nk
-            new_value[new_k] = new_v
+        elsif new_value.is_a?(Array)
+          new_value.each do |nk|
+            process_nested_classes(global, nk)
           end
         end
       end
@@ -125,11 +132,14 @@ module MODL
         # Process the key list if we found one otherwise raise an error
         # Slightly different processing for hashes and arrays
         if v.is_a? Hash
-          keys = clazz.keylist_of_length(v.length)
+          keys = key_list(global, clazz, v.length)
           lam = ->(i) {v[v.keys[i]]}
         elsif v.is_a? Array
-          keys = clazz.keylist_of_length(v.length)
+          keys = key_list(global, clazz, v.length)
           lam = ->(i) {v[i]}
+        else
+          keys = key_list(global, clazz, 1)
+          lam = ->(i) {v}
         end
 
         keys&.each_index do |i|
@@ -141,6 +151,14 @@ module MODL
         end
 
         clazz.merge_content(new_value)
+      end
+
+      def self.key_list(global, clazz, len)
+        return [] if clazz.nil?
+        list = clazz.keylist_of_length(len)
+        return list if list.length > 0
+        superclass = global.classs(clazz.superclass)
+        key_list(global, superclass, len)
       end
 
       # Get the top level class for the supplied class
