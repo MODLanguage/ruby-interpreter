@@ -1,3 +1,7 @@
+0.3.6
+===
+- Use latest ANTLR4 Ruby.stg updated by Cameron Dutro.
+
 0.3.5
 ===
 - Fixed another bug with class handling to expand classes properly.
