@@ -103,4 +103,4 @@ g(
 
 XXXXXXXX
 
-puts Modl::Interpreter.interpret(a, true)
+puts MODL::Interpreter.interpret(a, true)

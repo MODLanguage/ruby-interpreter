@@ -1,4 +1,4 @@
-module Modl
+module MODL
   module Parser
     # This class handles the conversion of objects that refer to classes into instances of those classes.
     # It works recursively since class usage can be nested.

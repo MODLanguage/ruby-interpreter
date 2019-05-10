@@ -1,6 +1,6 @@
 require 'modl/parser/ref_processor'
 
-RSpec.describe Modl::Parser do
+RSpec.describe MODL::Parser do
   it "can run Sutil.after correctly" do
     expect(Sutil.after(nil, nil)).to be(nil)
     expect(Sutil.after('test', nil)).to eq('test')

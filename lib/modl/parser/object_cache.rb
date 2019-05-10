@@ -1,5 +1,5 @@
 
-module Modl
+module MODL
   module Parser
     # Store any files for up to 1 hour by default.
     class ObjectCache

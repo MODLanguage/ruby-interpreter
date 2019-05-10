@@ -1,11 +1,11 @@
-module Modl
+module MODL
   module Parser
     # This class handles the conversion of objects that refer to classes into instances of those classes.
     # It works recursively since class usage can be nested.
     class ClassProcessor
       # How deep can the class structure be?
       MAX_RECURSION_DEPTH = 20
-      # global is a GlobalParseContext and obj is the extracted Array or Hash from Modl::Parser::Parsed.extract_json
+      # global is a GlobalParseContext and obj is the extracted Array or Hash from MODL::Parser::Parsed.extract_json
       def self.process(global, obj)
         # Process each object in the array or just process the object if its a hash.
         # Any other object is ignored.

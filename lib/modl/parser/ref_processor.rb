@@ -4,7 +4,7 @@ require 'modl/parser/parsed'
 require 'punycode'
 require 'modl/parser/sutil'
 
-module Modl
+module MODL
   module Parser
     # Convert MODL reference to the replacement value
     class RefProcessor
@@ -59,7 +59,7 @@ module Modl
                     str.sub(ref, nv_text.to_s)
                   end
             new_value = nil
-          elsif new_value.is_a?(Modl::Parser::MODLParserBaseListener)
+          elsif new_value.is_a?(MODL::Parser::MODLParserBaseListener)
             if new_value.text
               str = if ref == str
                       new_value.text
@@ -92,7 +92,7 @@ module Modl
           parts.each do |p|
             if p.include?('%')
               p, _ignore = expand(global, p)
-              if p.is_a?(Modl::Parser::MODLParserBaseListener)
+              if p.is_a?(MODL::Parser::MODLParserBaseListener)
                 p = p.text
               end
             end

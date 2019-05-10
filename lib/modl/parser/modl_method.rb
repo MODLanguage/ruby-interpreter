@@ -1,4 +1,4 @@
-module Modl
+module MODL
   module Parser
     # Represents a *method defined by a MODL document.
     class MODLMethod

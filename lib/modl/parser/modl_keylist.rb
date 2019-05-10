@@ -1,4 +1,4 @@
-module Modl
+module MODL
   module Parser
     # Extracts an index definition from a ParsedPair
     class KeylistExtractor

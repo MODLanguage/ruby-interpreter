@@ -1,4 +1,4 @@
-module Modl
+module MODL
   module Parser
     # Represents a *class defined, or loaded by, a MODL document.
     class MODLClass

@@ -16,7 +16,7 @@ def mangle(str)
   Sutil.replace(str, ', ', ',')
 end
 
-RSpec.describe Modl::Parser do
+RSpec.describe MODL::Parser do
   it "can run the success tests" do
     file = File.open("./grammar_tests/base_tests.json", "r:UTF-8")
     data = JSON.parse(file.read)
@@ -34,7 +34,7 @@ RSpec.describe Modl::Parser do
 
         puts 'Test Input: ' + test_case['input']
 
-        result = Modl::Interpreter.interpret test_case['input']
+        result = MODL::Interpreter.interpret test_case['input']
 
         expected = test_case['expected_output']
 

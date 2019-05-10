@@ -5,7 +5,7 @@ require "modl/parser/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "modl"
-  spec.version       = Modl::Parser::VERSION
+  spec.version       = MODL::Parser::VERSION
   spec.authors       = ["Tony Walmsley"]
   spec.email         = ["tony@aosd.co.uk"]
 

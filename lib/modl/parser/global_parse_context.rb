@@ -1,8 +1,8 @@
-module Modl
+module MODL
   module Parser
     # Each time we run the parser on a MODL file we need to keep track of a few things so they can be made available
     # to other areas of the code. This class is the container for that contextual information, which is gathered
-    # as the Modl::Parser:Parsed object processes the parse tree.
+    # as the MODL::Parser:Parsed object processes the parse tree.
     class GlobalParseContext
 
       attr_accessor :syntax_version

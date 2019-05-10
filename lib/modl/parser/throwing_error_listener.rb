@@ -1,6 +1,6 @@
 require 'antlr4/runtime/parse_cancellation_exception'
 
-module Modl::Parser
+module MODL::Parser
   class ThrowingErrorListener
     include Singleton
 

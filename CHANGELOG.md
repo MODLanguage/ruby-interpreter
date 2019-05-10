@@ -1,6 +1,7 @@
 0.3.3
 ===
 - Update to latest ANTLR4 Runtime - v0.2.2
+- Change module name to MODL from Modl.
 
 0.3.2
 ===

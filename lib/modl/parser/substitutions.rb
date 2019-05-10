@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Modl
+module MODL
   module Parser
     # Escape-sequence replacements for MODL files.
     class Substitutions

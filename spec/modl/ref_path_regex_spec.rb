@@ -1,6 +1,6 @@
 require 'modl/parser/ref_processor'
 
-RSpec.describe Modl::Parser do
+RSpec.describe MODL::Parser do
   it "can detect ref paths correctly" do
     tests = []
     tests << {'ref' => 'xxx`80aafnhi4ae`.trim(abc,def);yyy', 'result' => '`80aafnhi4ae`.trim(abc,def)'}
@@ -15,7 +15,7 @@ RSpec.describe Modl::Parser do
     tests << {'ref' => '`%string.replace(this,that).upcase`', 'result' => '`%string.replace(this,that).upcase`'}
 
     tests.each do |test|
-      result = Modl::Parser::RefProcessor::MATCHER.match(test['ref'])
+      result = MODL::Parser::RefProcessor::MATCHER.match(test['ref'])
       expect(result).not_to be nil
       expect(result[0]).to eq(test['result'])
     end

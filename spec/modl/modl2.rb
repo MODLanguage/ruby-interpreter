@@ -864,5 +864,5 @@ trans=%*transform;
 allow=%*allow
 XXXXXXXX
 
-puts Modl::Interpreter.interpret(a, true)
+puts MODL::Interpreter.interpret(a, true)
 

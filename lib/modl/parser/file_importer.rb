@@ -1,7 +1,7 @@
 require 'modl/parser/object_cache'
 require 'modl/parser/sutil'
 
-module Modl
+module MODL
   module Parser
 
     # This class handled file loading from local or remote file systems.
@@ -49,7 +49,7 @@ module Modl
             global.loaded_file(file_name)
 
             # Parse the downloaded file ands extract the classes
-            parsed = Modl::Parser::Parser.parse txt, global
+            parsed = MODL::Parser::Parser.parse txt, global
             # Save it for next time
             @cache.put(file_name, parsed)
           end
