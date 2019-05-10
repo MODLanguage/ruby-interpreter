@@ -23,13 +23,12 @@ module MODL
 
         file_names.each do |file_name|
           force = file_name.end_with?('!')
-          file_name = file_name.slice(0, file_name.rindex('!')) if force
+          file_name = Sutil.head(file_name) if force
           file_name << '.modl' unless file_name.end_with?('.txt', '.modl')
           file_name, new_val = RefProcessor.deref file_name, global if file_name.include?('%')
           if force
             # Don't use the cache if we're forcing a reload.
             @cache.evict(file_name)
-            file_name = Sutil.head(file_name)
             parsed = nil
           else
             # Do we have a cached version?

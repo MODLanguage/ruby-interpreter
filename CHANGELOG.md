@@ -1,11 +1,11 @@
 0.3.3
 ===
-- Update to latest ANTLR4 Runtime - v0.2.2
 - Change module name to MODL from Modl.
 - Support simpler usage, i.e. `x = MODL.parse(str)`. README.md updated accordingly.
 - Ignore *allow and *expect for now, except when used as `x=%*allow` or `x=%*expect`. Proper implementation will follow later.
 - Fixed a NilClass exception.
 - Disabled file caching due to garbage collection and other issues. See issue#1.
+- Grammar update to catch errors from unparsed MODL input.
 
 0.3.2
 ===

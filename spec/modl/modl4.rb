@@ -4,10 +4,9 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-  a=b
-  c
-  d
-  e
+  _var=2;
+  *L="https://s3-eu-west-1.amazonaws.com/modltestfiles/testing.txt!";
+  print=%update_date
 
 XXXXXXXX
 
