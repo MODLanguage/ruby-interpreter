@@ -3,10 +3,15 @@
 require 'modl'
 
 a = <<XXXXXXXX
-*l=grammar_tests/test_import_dir/nested_import1.txt;
-*l=grammar_tests/test_import_dir/nested_import1.txt;
-*l=grammar_tests/test_import_dir/nested_import1.txt;
-files=%*load
+
+*class(
+  *id=root;
+  *name=root;
+  *superclass=arr;
+  *allow=[entity]
+);
+
+x=%*expect
 XXXXXXXX
 
 result = MODL.parse(a)

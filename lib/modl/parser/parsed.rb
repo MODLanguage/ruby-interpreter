@@ -259,6 +259,7 @@ module MODL
           return if @type == 'method'
           return if @type == 'import'
           return if @type == 'allow'
+          return if @type == 'expect'
 
           {@key => @text}
         end
@@ -443,6 +444,7 @@ module MODL
           @type = 'index' if @key == '?'
           @type = 'hidden' if @key.start_with? '_'
           @type = 'allow' if @key.downcase == '*allow'
+          @type = 'expect' if @key.downcase == '*expect'
         end
       end
 
