@@ -182,7 +182,7 @@ module MODL
           @global = global
           @needs_defref = true
           @final = false
-          @file_importer = FileImporter.new
+          @file_importer = FileImporter.instance
         end
 
         def find_property(key)

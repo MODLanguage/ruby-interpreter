@@ -1,3 +1,4 @@
+require 'singleton'
 require 'modl/parser/object_cache'
 require 'modl/parser/sutil'
 
@@ -6,6 +7,9 @@ module MODL
 
     # This class handled file loading from local or remote file systems.
     class FileImporter
+      include Singleton
+
+      CACHE_DISABLED = true
 
       def initialize
         @cache = ObjectCache.new
@@ -19,6 +23,9 @@ module MODL
 
         file_names.each do |file_name|
           force = file_name.end_with?('!')
+          file_name = file_name.slice(0, file_name.rindex('!')) if force
+          file_name << '.modl' unless file_name.end_with?('.txt', '.modl')
+          file_name, new_val = RefProcessor.deref file_name, global if file_name.include?('%')
           if force
             # Don't use the cache if we're forcing a reload.
             @cache.evict(file_name)
@@ -30,10 +37,8 @@ module MODL
           end
 
           # Did we hit the cache?
-          unless parsed
+          if (parsed.nil? && CACHE_DISABLED) || (CACHE_DISABLED)
             # No.
-            file_name << '.modl' unless file_name.end_with?('.txt', '.modl')
-            file_name, new_val = RefProcessor.deref file_name, global if file_name.include?('%')
 
             begin
               uri = URI(file_name)

@@ -183,7 +183,11 @@ module MODL
       end
 
       def all_pairs
-        @pairs
+        result = {}
+        @pairs.keys.each do |k|
+          result[k] = @pairs[k] unless k.start_with?('*')
+        end
+        result
       end
 
       private
