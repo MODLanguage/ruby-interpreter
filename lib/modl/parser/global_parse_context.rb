@@ -210,6 +210,11 @@ module MODL
           map['allow'] = clazz.allow.extract_hash
         end
 
+        # expect
+        if clazz.expect
+          map['expect'] = clazz.expect.extract_hash
+        end
+
         # content
         if clazz.content.length.positive?
           clazz.content.each do |item|

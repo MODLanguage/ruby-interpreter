@@ -1,6 +1,7 @@
 0.3.4
 ===
 - Fixed a bug with class handling to expand classes properly.
+- Add `*expect` to the output for the `%*class` instruction.
 
 0.3.3
 ===

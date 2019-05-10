@@ -16,7 +16,7 @@ module MODL
 
       # Find a keylist of the right length from the *assign array of arrays.
       def keylist_of_length(len)
-        return [] if @assign.nil?
+        return nil if @assign.nil?
 
         @assign.each do |kl|
           return kl if kl.length == len

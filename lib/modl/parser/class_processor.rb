@@ -131,13 +131,10 @@ module MODL
 
         # Process the key list if we found one otherwise raise an error
         # Slightly different processing for hashes and arrays
-        if v.is_a? Hash
-          keys = key_list(global, clazz, v.length)
-          lam = ->(i) {v[v.keys[i]]}
-        elsif v.is_a? Array
+        if v.is_a? Array
           keys = key_list(global, clazz, v.length)
           lam = ->(i) {v[i]}
-        else
+        elsif !v.is_a?(Hash)
           keys = key_list(global, clazz, 1)
           lam = ->(i) {v}
         end
@@ -154,10 +151,13 @@ module MODL
       end
 
       def self.key_list(global, clazz, len)
-        return [] if clazz.nil?
         list = clazz.keylist_of_length(len)
-        return list if list.length > 0
+        return list if !list.nil? && list.length > 0
         superclass = global.classs(clazz.superclass)
+        if superclass.nil?
+          raise InterpreterError,
+                'No key list of the correct length in class ' + clazz.name_or_id + ' - looking for one of length ' + len.to_s
+        end
         key_list(global, superclass, len)
       end
 
