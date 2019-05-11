@@ -33,9 +33,6 @@ module MODL
           return value
         when 'str'
           return value.to_s
-#          unless value.is_a?(String)
-#            raise InterpreterError, 'String value expected, but found: ' + value.to_s + ' of type ' + value.class.to_s
-#          end
         end
         value
       end
@@ -78,7 +75,15 @@ module MODL
       # Convert the supplied object val into an instance of the class with key k
       def self.process_class(global, k, v)
         clazz = global.classs(k)
-        return [clazz.name_or_id, v] if clazz && !(v.is_a?(Array) || v.is_a?(Hash))
+
+        if k == clazz.name && !(v.is_a?(Array) || v.is_a?(Hash))
+          new_value = transform_to_class(clazz, global, [v])
+          if new_value.is_a?(Array) && new_value.length == 1
+            return [clazz.name_or_id, new_value[0]]
+          else
+            return [clazz.name_or_id, new_value]
+          end
+        end
 
         new_value = transform_to_class(clazz, global, v)
 
@@ -171,20 +176,14 @@ module MODL
         if v.is_a? Array
           keys = key_list(global, clazz, v.length)
           if keys.empty?
-            i = 0
-            while i < v.length
-              if v[i].is_a?(Hash)
-                clazz_id = v[i].keys[0]
-                keys << clazz_id
-              end
-              i += 1
-            end
+            return v
+          else
+            lam = ->(i) {v[i]}
           end
-          lam = ->(i) {v[i]}
         elsif !v.is_a?(Hash)
           keys = key_list(global, clazz, 1)
           lam = ->(i) {v}
-          keys << clazz.name_or_id if keys.length.zero?
+          return v if keys.length.zero?
         end
 
         keys&.each_index do |i|
