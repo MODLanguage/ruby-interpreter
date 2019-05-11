@@ -170,6 +170,16 @@ module MODL
         # Slightly different processing for hashes and arrays
         if v.is_a? Array
           keys = key_list(global, clazz, v.length)
+          if keys.empty?
+            i = 0
+            while i < v.length
+              if v[i].is_a?(Hash)
+                clazz_id = v[i].keys[0]
+                keys << clazz_id
+              end
+              i += 1
+            end
+          end
           lam = ->(i) {v[i]}
         elsif !v.is_a?(Hash)
           keys = key_list(global, clazz, 1)
