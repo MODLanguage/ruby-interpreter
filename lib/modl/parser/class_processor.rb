@@ -22,8 +22,32 @@ module MODL
 
       private
 
+      def self.check_class_type(global, key, value)
+        clazz = global.classs(key)
+        top = top_class(clazz, global)
+        case top
+        when 'num'
+          unless value.is_a?(Numeric)
+            raise InterpreterError, 'Numeric value expected, but found: ' + value.to_s + ' of type ' + value.class.to_s
+          end
+          return value
+        when 'str'
+          return value.to_s
+#          unless value.is_a?(String)
+#            raise InterpreterError, 'String value expected, but found: ' + value.to_s + ' of type ' + value.class.to_s
+#          end
+        end
+        value
+      end
+
       # Process the contents of the supplied hash obj
       def self.process_obj(global, obj)
+        if obj.length == 1
+          k = obj.keys[0]
+          nv = check_class_type(global, k, obj[k])
+          obj[k] = nv
+        end
+
         obj.keys.each do |k|
           value = obj[k]
           # Does the key refer to a class that we have parsed or loaded?
@@ -32,17 +56,30 @@ module MODL
             # Yes so convert this value to an instance of that class
             new_k, new_v = process_class global, k, value
             # Replace the existing object with the new class instance and a new key
-            obj.delete k
-            obj[new_k] = new_v
+            # We need to keep the same key order, hence this method below
+            tmp = obj.dup
+            obj.clear
+            tmp.keys.each do |tmpk|
+              tmpv = tmp[tmpk]
+              if tmpk == k
+                obj[new_k] = new_v
+              else
+                obj[tmpk] = tmpv
+              end
+            end
+          else
+            new_v = value
           end
           # Recurse into the value in case it has contents that also refer to classes.
-          process global, value
+          process global, new_v
         end
       end
 
       # Convert the supplied object val into an instance of the class with key k
       def self.process_class(global, k, v)
         clazz = global.classs(k)
+        return [clazz.name_or_id, v] if clazz && !(v.is_a?(Array) || v.is_a?(Hash))
+
         new_value = transform_to_class(clazz, global, v)
 
         if v.is_a?(Array)
@@ -68,7 +105,6 @@ module MODL
           end
         end
 
-        process_nested_classes(global, new_value)
         [clazz.name_or_id, new_value]
       end
 
@@ -128,6 +164,7 @@ module MODL
       # The id, name, and superclass can be ignored here.
       def self.transform_to_class(clazz, global, v)
         new_value = {} # the replacement for val after conversion to a class instance
+        process_nested_classes(global, v)
 
         # Process the key list if we found one otherwise raise an error
         # Slightly different processing for hashes and arrays
@@ -137,6 +174,7 @@ module MODL
         elsif !v.is_a?(Hash)
           keys = key_list(global, clazz, 1)
           lam = ->(i) {v}
+          keys << clazz.name_or_id if keys.length.zero?
         end
 
         keys&.each_index do |i|
@@ -162,6 +200,7 @@ module MODL
       def self.top_class(clazz, global, depth = 0)
         # Check for self-referential classes that cause infinite recursion
         return if depth > MAX_RECURSION_DEPTH
+        return nil? if clazz.nil?
 
         superclass = clazz.superclass
         c = global.classs(superclass)

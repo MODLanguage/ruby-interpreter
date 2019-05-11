@@ -344,10 +344,8 @@ module MODL
             IndexExtractor.extract(self, @global)
           when 'hidden'
             extract_value
-            invoke_deref
           else
             extract_value
-            invoke_deref
           end
 
           return if @global.in_condition? # Don't store pairs in conditionals until we evaluate the conditions

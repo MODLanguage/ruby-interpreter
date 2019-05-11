@@ -4,7 +4,7 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-*class(*id=n;*name=name;*superclass=num);n=Elliott
+*class(*id=n;*name=name;*superclass=str);n=00;n=01;n=000;n=999;n=Elliott
 
 XXXXXXXX
 
