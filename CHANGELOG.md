@@ -3,6 +3,7 @@
 - Use latest ANTLR4 Ruby.stg updated by Cameron Dutro.
 - Use antrl4-runtime v0.2.2 which fixes some issues around Array2DHashSet
 - Fixed a failing error test due to incorrect value type for a `*class` with supertype `num`.
+- Corrected the ordering of fields within a class.
 
 0.3.5
 ===

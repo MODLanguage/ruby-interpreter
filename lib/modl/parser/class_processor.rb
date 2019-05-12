@@ -81,7 +81,7 @@ module MODL
         clazz = global.classs(k)
 
         if k == clazz.name && !(v.is_a?(Array) || v.is_a?(Hash))
-          new_value = transform_to_class(clazz, global, [v])
+          new_value = transform_to_class(clazz, global, [v], true)
           if new_value.is_a?(Array) && new_value.length == 1
             return [clazz.name_or_id, new_value[0]]
           else
@@ -170,23 +170,25 @@ module MODL
 
       # Process the *assign lists ('keylist' in this code) and any extra pairs defined by the class.
       # The id, name, and superclass can be ignored here.
-      def self.transform_to_class(clazz, global, v)
+      def self.transform_to_class(clazz, global, v, ignore_assign = false)
         new_value = {} # the replacement for val after conversion to a class instance
         process_nested_classes(global, v)
 
         # Process the key list if we found one otherwise raise an error
         # Slightly different processing for hashes and arrays
-        if v.is_a? Array
-          keys = key_list(global, clazz, v.length)
-          if keys.empty?
-            return v
-          else
-            lam = ->(i) {v[i]}
+        unless ignore_assign
+          if v.is_a? Array
+            keys = key_list(global, clazz, v.length)
+            if keys.empty?
+              return v
+            else
+              lam = ->(i) {v[i]}
+            end
+          elsif !v.is_a?(Hash)
+            keys = key_list(global, clazz, 1)
+            lam = ->(i) {v}
+            return v if keys.length.zero?
           end
-        elsif !v.is_a?(Hash)
-          keys = key_list(global, clazz, 1)
-          lam = ->(i) {v}
-          return v if keys.length.zero?
         end
 
         keys&.each_index do |i|
