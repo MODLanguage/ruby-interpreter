@@ -23,18 +23,24 @@ module MODL
           parsed = Parsed.new(global)
           parser.modl.enter_rule(parsed)
           parsed
+        rescue Antlr4::Runtime::ParseCancellationException => e
+          check_modl_version(global)
+          raise ParserError, 'Parser Error: ' + e.message
         rescue StandardError => e
-          puts e.message
-          puts e.backtrace
+          check_modl_version(global)
+          raise InterpreterError, 'Interpreter Error: ' + e.message
+        rescue InterpreterError => e
+          check_modl_version(global)
+          raise InterpreterError, 'Interpreter Error: ' + e.message
+        end
+      end
 
-          if global.syntax_version > global.interpreter_syntax_version
-            raise InterpreterError, 'MODL Version ' +
-                global.interpreter_syntax_version.to_s +
-                ' interpreter cannot process this MODL Version ' +
-                global.syntax_version.to_s + ' file.'
-          end
-
-          raise InterpreterError, 'Parser Error: ' + e.message
+      def self.check_modl_version(global)
+        if global.syntax_version > global.interpreter_syntax_version
+          raise InterpreterError, 'Interpreter Error: MODL Version ' +
+              global.interpreter_syntax_version.to_s +
+              ' interpreter cannot process this MODL Version ' +
+              global.syntax_version.to_s + ' file.'
         end
       end
     end

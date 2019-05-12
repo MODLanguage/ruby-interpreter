@@ -22,7 +22,7 @@ module MODL
           return kl if kl.length == len
         end
         raise InterpreterError,
-              'No key list of the correct length in class ' + @id + ' - looking for one of length ' + len.to_s
+              'Interpreter Error: No key list of the correct length in class ' + @id + ' - looking for one of length ' + len.to_s
       end
 
       def merge_content(new_value)

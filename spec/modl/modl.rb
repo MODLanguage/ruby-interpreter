@@ -4,21 +4,15 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-_L=en;
-{
- C=ca?
-    o(
-      n=Tesco Canada;
-      s={L=fr?
-        Chaque Petite Contribution
-      /?
-        Every Little Helps
-      }
-    )
-}
+x=y
 
 XXXXXXXX
 
-result = MODL.parse(a)
-str = JSON.pretty_generate(result)
-puts str
+begin
+  str = MODL::Interpreter.interpret(a, true)
+  puts str
+rescue MODL::InterpreterError => e
+  puts e.to_s
+rescue MODL::ParserError => e
+  puts e.to_s
+end

@@ -5,6 +5,7 @@
 - Fixed a failing error test due to incorrect value type for a `*class` with supertype `num`.
 - Corrected the ordering of fields within a class.
 - Return `null` for empty output rather than `""`
+- Fixed GitHub issue#4 - improved error reporting.
 
 0.3.5
 ===

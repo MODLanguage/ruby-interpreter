@@ -28,7 +28,7 @@ module MODL
         case top
         when 'num'
           unless value.is_a?(Numeric)
-            raise InterpreterError, 'Numeric value expected, but found: ' + value.to_s + ' of type ' + value.class.to_s
+            raise InterpreterError, 'Interpreter Error: Numeric value expected, but found: ' + value.to_s + ' of type ' + value.class.to_s
           end
           return value
         when 'str'

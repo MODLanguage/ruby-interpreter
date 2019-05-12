@@ -11,7 +11,7 @@ RSpec.describe MODL::Parser do
     success = 0
     failed = 0
 
-    exit_on_fail = true
+    exit_on_fail = false
 
     data.each_index do |i|
       #next if i <= 45
@@ -25,6 +25,9 @@ RSpec.describe MODL::Parser do
         puts 'Result                               : ' + result
         break if exit_on_fail
       rescue MODL::InterpreterError => e
+        success += 1
+        puts e.to_s
+      rescue MODL::ParserError => e
         success += 1
         puts e.to_s
       end
