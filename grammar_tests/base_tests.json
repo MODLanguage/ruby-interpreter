@@ -590,7 +590,7 @@
 }, {
   "input": "_L=en;\n{\n C=ca?\n    o(\n      n=Tesco Canada;\n      s={L=fr?\n        Chaque Petite Contribution\n      /?\n        Every Little Helps\n      }\n    )\n}",
   "minimised_modl": "_L=en;{C=ca?o(n=Tesco Canada;s={L=fr?Chaque Petite Contribution/?Every Little Helps})}",
-  "expected_output": "\n"
+  "expected_output": "null"
 }, {
   "input": "_letter=a;\n{\n letter=a?\n   word=Apple\n /letter=b?\n   word=Bee\n /?\n   word=Other\n}",
   "minimised_modl": "_letter=a;{letter=a?word=Apple/letter=b?word=Bee/?word=Other}",
@@ -634,7 +634,7 @@
 }, {
   "input": "_test = 123;\n_test2 = abc",
   "minimised_modl": "_test=123;_test2=abc",
-  "expected_output": "\n"
+  "expected_output": "null"
 }, {
   "input": "_co=gb;\ntest=123",
   "minimised_modl": "_co=gb;test=123",
@@ -698,7 +698,7 @@
 }, {
   "input": "_T=grammar_tests/demo;\n*L=`%T`_config",
   "minimised_modl": "_T=grammar_tests/demo;*L=`%T`_config",
-  "expected_output": "\n"
+  "expected_output": "null"
 }, {
   "input": "*l=grammar_tests/1;*L=grammar_tests/1;a=1",
   "minimised_modl": "*l=grammar_tests/1;*L=grammar_tests/1;a=1",

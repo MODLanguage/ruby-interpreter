@@ -1,6 +1,24 @@
 #!/usr/bin/ruby
 
-require 'modl/interpreter'
+require 'modl'
 
-ARGV.each {|a| puts MODL::Interpreter.interpret(a, true)}
+a = <<~XXXXXXXX
 
+_L=en;
+{
+ C=ca?
+    o(
+      n=Tesco Canada;
+      s={L=fr?
+        Chaque Petite Contribution
+      /?
+        Every Little Helps
+      }
+    )
+}
+
+XXXXXXXX
+
+result = MODL.parse(a)
+str = JSON.pretty_generate(result)
+puts str

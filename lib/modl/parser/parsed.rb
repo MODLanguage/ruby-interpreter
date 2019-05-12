@@ -1399,7 +1399,7 @@ module MODL
         end
         case result.length
         when 0
-          return ''
+          return nil
         when 1
           return result[0]
         end
