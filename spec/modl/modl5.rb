@@ -3,8 +3,7 @@
 require 'modl'
 
 a = <<~XXXXXXXX
-
-  ab=ISO 8879\:1986;
+*class(*id=t;*name=test;*assign=[[a;b]]);test=1:2:3
 
 XXXXXXXX
 

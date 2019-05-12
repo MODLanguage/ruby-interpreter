@@ -79,6 +79,9 @@ module MODL
       # Convert the supplied object val into an instance of the class with key k
       def self.process_class(global, k, v)
         clazz = global.classs(k)
+        if k != clazz.id && !(v.is_a?(Hash) || v.is_a?(Array))
+          return [k, v]
+        end
 
         if k == clazz.name && !(v.is_a?(Array) || v.is_a?(Hash))
           new_value = transform_to_class(clazz, global, [v], true)
