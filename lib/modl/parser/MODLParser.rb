@@ -307,7 +307,7 @@ class MODLParser < Antlr4::Runtime::Parser
 				@_state_number = 69
 				modl_pair()
 			else
-				raise Antlr4::Runtime::NoViableAltException self
+				raise Antlr4::Runtime::NoViableAltException, self
 			end
 		rescue Antlr4::Runtime::RecognitionException => re
 			_localctx.exception = re
@@ -621,7 +621,7 @@ class MODLParser < Antlr4::Runtime::Parser
 							match(COLON)
 
 						else
-							raise Antlr4::Runtime::NoViableAltException self
+							raise Antlr4::Runtime::NoViableAltException, self
 						end
 						@_state_number = 118 
 						@_err_handler.sync(self)
@@ -630,7 +630,7 @@ class MODLParser < Antlr4::Runtime::Parser
 					end
 
 				else
-					raise Antlr4::Runtime::NoViableAltException self
+					raise Antlr4::Runtime::NoViableAltException, self
 				end
 				@_state_number = 122 
 				@_err_handler.sync(self)
@@ -1240,7 +1240,7 @@ class MODLParser < Antlr4::Runtime::Parser
 				@_state_number = 192
 				modl_map_conditional()
 			else
-				raise Antlr4::Runtime::NoViableAltException self
+				raise Antlr4::Runtime::NoViableAltException, self
 			end
 		rescue Antlr4::Runtime::RecognitionException => re
 			_localctx.exception = re
@@ -1476,7 +1476,7 @@ class MODLParser < Antlr4::Runtime::Parser
 				@_state_number = 218
 				modl_array_conditional()
 			else
-				raise Antlr4::Runtime::NoViableAltException self
+				raise Antlr4::Runtime::NoViableAltException, self
 			end
 		rescue Antlr4::Runtime::RecognitionException => re
 			_localctx.exception = re
