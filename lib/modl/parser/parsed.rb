@@ -914,8 +914,7 @@ module MODL
         end
 
         def extract_hash
-          result = @conditionTests[0].evaluate
-          return @mapConditionalReturns[0].extract_hash if result
+          return @mapConditionalReturns[0].extract_hash if @result
 
           @mapConditionalReturns[1].extract_hash if @mapConditionalReturns.length > 1
         end
@@ -942,6 +941,7 @@ module MODL
             end
             i += 1
           end
+          @result = @conditionTests[0].evaluate
         end
       end
 
@@ -1147,10 +1147,8 @@ module MODL
         end
 
         def extract_hash
-          result = @conditionTests[0].evaluate
-
-          return result if @valueConditionalReturns.length == 0
-          return @valueConditionalReturns[0].extract_hash if result
+          return @result if @valueConditionalReturns.length == 0
+          return @valueConditionalReturns[0].extract_hash if @result
           return @valueConditionalReturns[1].extract_hash
         end
 
@@ -1165,7 +1163,7 @@ module MODL
 
             @conditionTests[i] = condition_test
 
-            return if ctx.modl_value_conditional_return_i(i).nil?
+            break if ctx.modl_value_conditional_return_i(i).nil?
 
             conditional_return = ParsedValueConditionalReturn.new @global
 
@@ -1183,6 +1181,7 @@ module MODL
 
             i += 1
           end
+          @result = @conditionTests[0].evaluate
         end
       end
 
