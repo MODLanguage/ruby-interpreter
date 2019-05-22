@@ -44,7 +44,6 @@ module MODL
       end
 
       def self.additional_string_processing(text)
-        text = Substitutions.process text
         # Special case for a possibly empty graved string ``
         unless text.nil?
           match_data = /^`([^`]*)`$/.match text
@@ -636,7 +635,7 @@ module MODL
         def extract_hash
           result, _ignore = RefProcessor.deref(@text, @global) unless @constant
           result = @text if @constant
-          result
+          Substitutions.process result
         end
 
         def evaluate
@@ -706,7 +705,7 @@ module MODL
         end
 
         def extract_hash
-          @string
+          @string = Substitutions.process @string
         end
       end
 

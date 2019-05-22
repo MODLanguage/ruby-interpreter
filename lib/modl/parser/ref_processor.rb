@@ -42,8 +42,20 @@ module MODL
       def self.process_tokens(global, original, str, text)
         new_value = nil
         loop do
-          match = MATCHER.match(text.to_s)
+          text_s = text.to_s
+          match = MATCHER.match(text_s)
           break if match.nil?
+
+          match_index = text_s.index(match[0])
+          if match_index > 0
+            if text_s[match_index - 1] == '~' || text_s[match_index - 1] == '\\'
+              break
+            end
+            if text_s[match_index + match.length] == '~' || text_s[match_index + match.length] == '\\'
+              break
+            end
+          end
+
 
           ref = match[0]
           text = Sutil.after(text, ref)

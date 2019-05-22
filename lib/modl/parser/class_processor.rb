@@ -4,7 +4,7 @@ module MODL
     # It works recursively since class usage can be nested.
     class ClassProcessor
       # How deep can the class structure be?
-      MAX_RECURSION_DEPTH = 20
+      MAX_RECURSION_DEPTH = 50
       # global is a GlobalParseContext and obj is the extracted Array or Hash from MODL::Parser::Parsed.extract_json
       def self.process(global, obj)
         # Process each object in the array or just process the object if its a hash.
@@ -22,29 +22,8 @@ module MODL
 
       private
 
-      def self.check_class_type(global, key, value)
-        clazz = global.classs(key)
-        top = top_class(clazz, global)
-        case top
-        when 'num'
-          unless value.is_a?(Numeric)
-            raise InterpreterError, 'Interpreter Error: Numeric value expected, but found: ' + value.to_s + ' of type ' + value.class.to_s
-          end
-          return value
-        when 'str'
-          return value.to_s
-        end
-        value
-      end
-
       # Process the contents of the supplied hash obj
       def self.process_obj(global, obj)
-        if obj.length == 1
-          k = obj.keys[0]
-          nv = check_class_type(global, k, obj[k])
-          obj[k] = nv
-        end
-
         obj.keys.each do |k|
           value = obj[k]
           # Does the key refer to a class that we have parsed or loaded?
@@ -76,7 +55,32 @@ module MODL
         end
       end
 
-      # Convert the supplied object val into an instance of the class with key k
+      def self.has_assign_statement?(clazz, global, depth = 0)
+        # Check for *assign statements
+        return if depth > MAX_RECURSION_DEPTH
+        return nil? if clazz.nil?
+        return true unless clazz.assign.nil?
+
+        superclass = clazz.superclass
+        c = global.classs(superclass)
+        return has_assign_statement?(c, global, depth + 1) if c
+
+        false
+      end
+
+      def self.has_inherited_pairs?(clazz, global, depth = 0)
+        # Check for *assign statements
+        return if depth > MAX_RECURSION_DEPTH
+        return nil? if clazz.nil?
+        return true unless clazz.content.empty?
+
+        superclass = clazz.superclass
+        c = global.classs(superclass)
+        return has_inherited_pairs?(c, global, depth + 1) if c
+
+        false
+      end
+
       def self.process_class(global, k, v)
         clazz = global.classs(k)
         if k != clazz.id && !(v.is_a?(Hash) || v.is_a?(Array))
@@ -99,22 +103,78 @@ module MODL
         elsif v.is_a?(String)
           # Safe to ignore
         else
-          # Check the top class and do some type-specific processing
-          tc = top_class(clazz, global)
-          if tc == 'str'
-            new_value = v.to_s
-          elsif tc == 'num' && !v.is_a?(Numeric)
-            raise InterpreterError, 'Superclass of "' + clazz.id + '" is num - cannot assign String value "' + v.to_s + '"'
-          elsif tc == 'map'
-            if v.is_a? Hash
-              # Bring down values from the superclass hierarchy
-              new_value = copy_from_superclasses(clazz, global, new_value, v)
-            else
-              new_value[k] = v
-            end
+          # Safe to ignore
+        end
+
+        # Check the top class and do some type-specific processing
+        tc = top_class(clazz, global)
+        if tc.nil?
+          # There is no defined top class so we need to infer it base on the value
+          # and the rules defined here: https://github.com/MODLanguage/grammar/wiki/Class-Supertype-Processing
+          #
+          if has_assign_statement?(clazz, global)
+            tc = 'map'
           else
-            new_value = v
+            if has_inherited_pairs?(clazz, global)
+              tc = 'map'
+            else
+              if v.is_a? String
+                tc = 'str'
+              elsif v.is_a? Numeric
+                tc = 'num'
+              elsif (v.is_a? TrueClass) || (v.is_a? FalseClass)
+                tc = 'bool'
+              elsif v.nil?
+                tc = 'null'
+              elsif v.is_a? Array
+                tc = 'arr'
+              elsif v.is_a? Hash
+                tc = 'map'
+              end
+            end
           end
+        end
+        if tc == 'str'
+          raise InterpreterError, "Interpreter Error: Cannot convert null value to string." if v.nil?
+          new_value = v.to_s
+        elsif tc == 'num'
+          if (v.is_a? String) && (v.to_i.to_s == v.to_s)
+            new_value = v.to_i
+          elsif v.is_a? TrueClass
+            new_value = 1
+          elsif v.is_a? FalseClass
+            new_value = 0
+          elsif v.is_a? Numeric
+            new_value = v
+          else
+            raise InterpreterError, 'Superclass of "' + clazz.id + '" is num - cannot assign value "' + v.to_s + '"'
+          end
+        elsif tc == 'bool'
+          new_value = v
+        elsif tc == 'null'
+          new_value = nil
+        elsif tc == 'arr'
+          if v.is_a? Array
+            new_value = v
+          elsif v.is_a? Hash
+            raise InterpreterError, 'Interpreter Error: Cannot convert map to array: ' + v.to_s
+          else
+            new_value = [v]
+          end
+        elsif tc == 'map'
+          if new_value.is_a? Hash
+            # Bring down values from the superclass hierarchy
+            new_value = copy_from_superclasses(clazz, global, new_value, v)
+          elsif v.is_a? Array
+            raise InterpreterError, 'Interpreter Error: Cannot convert array to map: ' + v.to_s
+          else
+            new_value = {}
+            new_value['value'] = v
+            # Bring down values from the superclass hierarchy
+            new_value = copy_from_superclasses(clazz, global, new_value, v)
+          end
+        elsif tc.nil? && (v.is_a? Hash)
+          new_value = v
         end
 
         [clazz.name_or_id, new_value]
@@ -122,7 +182,12 @@ module MODL
 
       # Bring down values from the superclass hierarchy
       def self.copy_from_superclasses(clazz, global, new_value, v)
-        new_value = v.merge(new_value)
+        if v.is_a? Hash
+          new_value = v.merge(new_value)
+        end
+
+        clazz.merge_content(new_value)
+
         depth = 0
         loop do
           clazz = global.classs(clazz.superclass)

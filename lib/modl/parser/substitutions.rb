@@ -53,6 +53,7 @@ module MODL
 
       # Replace all escape sequences in the supplied string and return the new value.
       def self.process(str)
+        return str unless str.is_a? String
         @@subs.each do |s|
           loop do
             prev = str
