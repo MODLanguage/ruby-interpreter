@@ -1,3 +1,9 @@
+0.3.7
+===
+- Update to latest antlr4-ruby-runtime for performance improvements
+- Fixed some failing base_tests
+- Fixed processing of superclass type conversions.
+
 0.3.6
 ===
 - Use latest ANTLR4 Ruby.stg updated by Cameron Dutro.
