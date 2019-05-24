@@ -5,6 +5,7 @@
 - Fixed processing of superclass type conversions.
 - Fixed file caching issue - GitHub issue#1
 - Fixed GitHub issue#15 unicode problem.
+- Fixed GitHub issue#9 *LOAD problem
 
 0.3.6
 ===

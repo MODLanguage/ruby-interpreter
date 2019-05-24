@@ -14,7 +14,7 @@ RSpec.describe MODL::Parser do
     exit_on_fail = false
 
     data.each_index do |i|
-      #next if i <= 45
+      #next if i < 45
 
       begin
         test_case = data[i]

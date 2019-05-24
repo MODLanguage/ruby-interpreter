@@ -288,10 +288,6 @@ module MODL
 
           @final = true if @key.upcase == @key
 
-          set_pair_type
-
-          raise InterpreterError, 'Invalid keyword: ' + @key if @type == 'pair' && @key.start_with?('*')
-
           modl_array = ctx.modl_array
           modl_map = ctx.modl_map
           modl_value_item = ctx.modl_value_item
@@ -306,6 +302,9 @@ module MODL
             @valueItem = ParsedValueItem.new @global
             modl_value_item.enter_rule(@valueItem)
           end
+
+          set_pair_type
+          raise InterpreterError, 'Invalid keyword: ' + @key if @type == 'pair' && @key.start_with?('*')
 
           validate_key if @type == 'pair' || @type == 'hidden'
 
@@ -436,6 +435,15 @@ module MODL
           if @key == '*L' || @key == '*LOAD'
             @key = @key.downcase
             @type = 'import'
+            if @array
+              @global.freeze_max_files(@array.abstractArrayItems.length)
+            elsif @valueItem&.value&.array
+              @global.freeze_max_files(@valueItem&.value&.array.abstractArrayItems.length)
+            elsif @valueItem&.value&.nbArray
+              @global.freeze_max_files(@valueItem&.value&.nbArray.arrayItems.length)
+            else
+              @global.freeze_max_files(1)
+            end
           end
           if @key == '*l' || @key == '*load'
             @type = 'import'

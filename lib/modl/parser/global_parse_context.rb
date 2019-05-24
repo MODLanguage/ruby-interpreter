@@ -6,10 +6,13 @@ module MODL
     class GlobalParseContext
 
       attr_accessor :syntax_version
+      attr_accessor :max_files_allowed
       attr_reader :interpreter_syntax_version
       attr_reader :loaded_files
 
       def initialize
+        # This is set to true if we encounter a *L[OAD] instruction
+        @max_files_allowed = 2147483647
         # Holds the index array from a MODL file, e.g. '?=a:b:c:d'
         @index = []
         # Contains all pairs as they are encountered in the parsing process.
@@ -30,6 +33,8 @@ module MODL
 
       def loaded_file(str)
         @loaded_files << str unless str.nil?
+        raise InterpreterError, 'Cannot load multiple files after *LOAD instruction' if @loaded_files.length > @max_files_allowed
+
       end
 
       def index_value(n, default)
@@ -40,6 +45,10 @@ module MODL
 
       def in_condition?
         @conditional.positive?
+      end
+
+      def freeze_max_files(plus)
+        @max_files_allowed = @loaded_files.length + plus
       end
 
       def enter_condition
@@ -78,6 +87,7 @@ module MODL
 
       def merge_loaded_files(other)
         @loaded_files.concat(other.loaded_files)
+        raise InterpreterError, 'Cannot load multiple files after *LOAD instruction' if @loaded_files.length > @max_files_allowed
       end
 
       def has_pairs?

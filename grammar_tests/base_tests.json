@@ -1339,5 +1339,15 @@
     "minimised_modl": "*class(*id=a;*name=alpha;*superclass=arr);a=[1;2;3]",
     "expected_output": "{\n    \"alpha\": [\n        1,\n        2,\n        3\n    ]\n}",
     "tested_features":["class", "superclass"]
+  },
+  { "input": "*L=[grammar_tests/1;grammar_tests/1];a=1",
+    "minimised_modl": "*L=[grammar_tests/1;grammar_tests/1];a=1",
+    "expected_output": "{\"a\":1}",
+    "tested_features":["load"]
+  },
+  { "input": "*L=grammar_tests/1:grammar_tests/1;a=1",
+    "minimised_modl": "*L=grammar_tests/1:grammar_tests/1;a=1",
+    "expected_output": "{\"a\":1}",
+    "tested_features":["load"]
   }
 ]
