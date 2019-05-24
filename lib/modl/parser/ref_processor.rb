@@ -71,6 +71,8 @@ module MODL
                     str.sub(ref, nv_text.to_s)
                   end
             new_value = nil
+          elsif new_value.is_a?(Parsed::ParsedMapItem)
+            raise InterpreterError, 'Interpreter Error: Found a map when expecting an array'
           elsif new_value.is_a?(MODL::Parser::MODLParserBaseListener)
             if new_value.text
               str = if ref == str
@@ -111,6 +113,9 @@ module MODL
             n = p.to_i
             result = if n.to_s == p
                        # Numeric ref
+                       if !result.nil? && !result.respond_to?(:find_property)
+                         raise InterpreterError, 'Interpreter Error: Invalid obejct reference: ' + degraved
+                       end
                        result.nil? ? global.index_value(n, degraved) : result.find_property(n)
                      else
                        # String ref
@@ -119,6 +124,9 @@ module MODL
                        elsif result.is_a? Array
                          nil
                        else
+                         if !result.nil? && !result.respond_to?(:find_property)
+                           raise InterpreterError, 'Interpreter Error: Invalid obejct reference: ' + degraved
+                         end
                          result.nil? ? global.pair(p) : result.find_property(p)
                        end
                      end

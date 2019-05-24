@@ -6,6 +6,7 @@
 - Fixed file caching issue - GitHub issue#1
 - Fixed GitHub issue#15 unicode problem.
 - Fixed GitHub issue#9 *LOAD problem
+- Fixed bug in error tests handling
 
 0.3.6
 ===
