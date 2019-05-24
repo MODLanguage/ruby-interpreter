@@ -4,7 +4,8 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-x=y
+ref=123;
+key=%ref%
 
 XXXXXXXX
 

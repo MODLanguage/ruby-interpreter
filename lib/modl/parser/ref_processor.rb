@@ -58,6 +58,7 @@ module MODL
 
 
           ref = match[0]
+          ref = Sutil.head(ref) if ref.end_with?('%')
           text = Sutil.after(text, ref)
           new_value, remainder = expand(global, ref)
           ref = Sutil.until(ref, remainder)

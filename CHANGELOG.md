@@ -7,6 +7,7 @@
 - Fixed GitHub issue#15 unicode problem.
 - Fixed GitHub issue#9 *LOAD problem
 - Fixed bug in error tests handling
+- Fixed stack too deep error for rafs such as `%ref%`
 
 0.3.6
 ===
