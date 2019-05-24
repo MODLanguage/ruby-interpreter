@@ -7,10 +7,13 @@ module MODL
 
       attr_accessor :syntax_version
       attr_accessor :max_files_allowed
+      attr_accessor :structures
       attr_reader :interpreter_syntax_version
       attr_reader :loaded_files
 
       def initialize
+        # This keeps track of all loaded structures from parsed files.
+        @structures = []
         # This is set to true if we encounter a *L[OAD] instruction
         @max_files_allowed = 2147483647
         # Holds the index array from a MODL file, e.g. '?=a:b:c:d'

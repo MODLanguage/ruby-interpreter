@@ -65,6 +65,7 @@ module MODL
           global.merge_classes(parsed.global)
           global.merge_pairs(parsed.global)
           global.merge_loaded_files(parsed.global)
+          global.structures.concat(parsed.structures)
         end
       end
     end

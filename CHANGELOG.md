@@ -8,6 +8,7 @@
 - Fixed GitHub issue#9 *LOAD problem
 - Fixed bug in error tests handling
 - Fixed stack too deep error for rafs such as `%ref%`
+- Fixed GitHub issue#13 No output from objects in loaded file.
 
 0.3.6
 ===
