@@ -3,6 +3,8 @@
 - Update to latest antlr4-ruby-runtime for performance improvements
 - Fixed some failing base_tests
 - Fixed processing of superclass type conversions.
+- Fixed file caching issue - GitHub issue#1
+- Fixed GitHub issue#15 unicode problem.
 
 0.3.6
 ===

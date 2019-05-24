@@ -276,6 +276,8 @@ module MODL
             @key = Sutil.toptail(@key) # remove the quotes
           end
 
+          raise InterpreterError, 'Invalid key - "' + @key + '" - non UTF-8 keys are not allowed: ' + @key unless @key.ascii_only?
+
           if @key.include?('%') || @key.include?('`')
             @key, new_value = RefProcessor.deref @key, @global
             unless @key.is_a?(String)
@@ -669,6 +671,8 @@ module MODL
             @text = @number.num
           elsif !ctx_string.nil?
             @text = ctx_string.text
+            raise InterpreterError, 'Invalid input - "' + @text + '" - non UTF-8 strings are not allowed: ' + @text unless @text.ascii_only?
+
             @constant = @text.start_with?('`') && !@text.include?('%') && !@text.include?('`.')
             @text = Parsed.additional_string_processing(@text)
             @string = ParsedString.new(@text)
