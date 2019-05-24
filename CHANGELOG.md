@@ -10,6 +10,7 @@
 - Fixed stack too deep error for rafs such as `%ref%`
 - Fixed GitHub issue#13 No output from objects in loaded file.
 - Fixed GitHub issue#14 method chaining problem.
+- Correct handling of invalid pair keys.
 
 0.3.6
 ===

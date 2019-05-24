@@ -3,7 +3,9 @@
 require 'modl'
 
 a = <<~XXXXXXXX
-a = `example`.u.nonsense.s
+
+  £x=y
+
 XXXXXXXX
 
 begin

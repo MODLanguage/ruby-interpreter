@@ -279,7 +279,6 @@ module MODL
           end
 
           raise InterpreterError, 'Invalid key - null, true, or false keys are not allowed.' if @key.nil?
-          raise InterpreterError, 'Invalid key - "' + @key + '" - non UTF-8 keys are not allowed: ' + @key unless @key.ascii_only?
 
           if @key.include?('%') || @key.include?('`')
             @key, new_value = RefProcessor.deref @key, @global
@@ -380,7 +379,7 @@ module MODL
         end
 
         def validate_key
-          invalid_chars = "!$@-+'*#^&"
+          invalid_chars = "£!$@-+'*#^&"
           invalid_chars.each_char do |c|
             next unless @key.include?(c)
 
@@ -682,7 +681,6 @@ module MODL
             @text = @number.num
           elsif !ctx_string.nil?
             @text = ctx_string.text
-            raise InterpreterError, 'Invalid input - "' + @text + '" - non UTF-8 strings are not allowed: ' + @text if !@text.nil? && !@text.ascii_only?
 
             @constant = @text.start_with?('`') && !@text.include?('%') && !@text.include?('`.')
             @text = Parsed.additional_string_processing(@text)
