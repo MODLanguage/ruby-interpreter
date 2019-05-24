@@ -147,8 +147,16 @@ module MODL
           # Remove the graves if there are any.
           result = parts[0]
           i = 1
+          stalled = false
           while i < parts.length
-            result = StandardMethods.run_method(parts[i], result)
+            stalled |= StandardMethods.valid_method?(parts[i]) ? false : true
+
+            if stalled
+              result << '.'
+              result << parts[i]
+            else
+              result = StandardMethods.run_method(parts[i], result)
+            end
             i += 1
           end
           [result, '']

@@ -3,10 +3,7 @@
 require 'modl'
 
 a = <<~XXXXXXXX
-
-ref=123;
-key=%ref%
-
+a = `example`.u.nonsense.s
 XXXXXXXX
 
 begin

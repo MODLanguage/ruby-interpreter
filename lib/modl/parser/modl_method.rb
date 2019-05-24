@@ -127,6 +127,10 @@ module MODL
         # should be of the form .r(s1,s2)
         Sutil.between(str, '(', ')')
       end
+
+      def self.valid_method?(mthd)
+        return 'udisertp'.include?(mthd)
+      end
     end
   end
 end
