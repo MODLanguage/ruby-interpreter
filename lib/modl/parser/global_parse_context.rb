@@ -7,6 +7,7 @@ module MODL
 
       attr_accessor :syntax_version
       attr_reader :interpreter_syntax_version
+      attr_reader :loaded_files
 
       def initialize
         # Holds the index array from a MODL file, e.g. '?=a:b:c:d'
@@ -73,6 +74,10 @@ module MODL
       def merge_classes(other)
         @classes_by_id.merge!(other.all_classes_by_id)
         @classes_by_name.merge!(other.all_classes_by_name)
+      end
+
+      def merge_loaded_files(other)
+        @loaded_files.concat(other.loaded_files)
       end
 
       def has_pairs?

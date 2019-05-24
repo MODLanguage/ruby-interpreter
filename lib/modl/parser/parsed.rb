@@ -245,7 +245,7 @@ module MODL
           value = @valueItem.extract_hash if @valueItem
           value = @map.extract_hash if @map
 
-          if value.is_a?(String) && (value.start_with?('%') || value.start_with?('`'))
+          if value.is_a?(String) && (value.include?('%') || value.start_with?('`'))
             @text, _ignore = RefProcessor.deref(@text, @global)
           else
             @text = value

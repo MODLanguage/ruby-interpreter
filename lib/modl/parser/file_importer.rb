@@ -9,7 +9,7 @@ module MODL
     class FileImporter
       include Singleton
 
-      CACHE_DISABLED = true
+      CACHE_DISABLED = false
 
       def initialize
         @cache = ObjectCache.new
@@ -36,31 +36,35 @@ module MODL
           end
 
           # Did we hit the cache?
-          if (parsed.nil? && CACHE_DISABLED) || (CACHE_DISABLED)
+          if parsed.nil? || CACHE_DISABLED
             # No.
 
             begin
-              uri = URI(file_name)
-              txt = Net::HTTP.get(uri)
-            rescue
-              begin
+              if file_name.start_with?('http')
+                uri = URI(file_name)
+                txt = Net::HTTP.get(uri)
+              else
                 txt = File.readlines(file_name).join
-              rescue
-                raise InterpreterError, 'File not found: ' + file_name
               end
+            rescue
+              raise InterpreterError, 'File not found: ' + file_name
             end
-
             global.loaded_file(file_name)
 
             # Parse the downloaded file ands extract the classes
-            parsed = MODL::Parser::Parser.parse txt, global
+            new_parse_context = GlobalParseContext.new
+            new_parse_context.merge_pairs(global)
+            parsed = MODL::Parser::Parser.parse txt, new_parse_context
             # Save it for next time
             @cache.put(file_name, parsed) unless CACHE_DISABLED
+          else
+            global.loaded_file(file_name)
           end
           # Extract the JSON content and add the classes and pairs to the existing GlobalParseContext hashes.
           parsed.extract_hash
           global.merge_classes(parsed.global)
           global.merge_pairs(parsed.global)
+          global.merge_loaded_files(parsed.global)
         end
       end
     end
