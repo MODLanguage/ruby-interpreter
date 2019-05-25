@@ -1,6 +1,6 @@
 0.3.8
 ===
-- Use latest ANTLR4 Ruby runtime - previous version didn't build on AWS.
+- Add MIT license to all non-auto-generated Ruby files.
 
 0.3.7
 ===
