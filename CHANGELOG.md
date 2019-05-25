@@ -1,3 +1,7 @@
+0.3.8
+===
+- Use latest ANTLR4 Ruby runtime - previous version didn't build on AWS.
+
 0.3.7
 ===
 - Update to latest antlr4-ruby-runtime for performance improvements
