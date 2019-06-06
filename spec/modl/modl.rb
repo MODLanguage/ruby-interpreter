@@ -28,8 +28,8 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-_country=gb;_language=en;
-x="%country-%language.txt"
+_country=GREAT BRITAIN;
+x="%country.replace(a,e).trim(BRIT)"
 
 XXXXXXXX
 

@@ -112,26 +112,26 @@ module MODL
       def self.run_method(mthd, str)
         m = mthd.match(/\w*/)[0]
         case m
-        when 'u'
+        when 'u', 'upcase'
           str.upcase
-        when 'd'
+        when 'd', 'downcase'
           str.downcase
-        when 'i'
+        when 'i', 'initcap'
           str.split.map(&:capitalize) * ' '
-        when 's'
+        when 's', 'sentence'
           split = str.split
           split[0].capitalize!
           split.join(' ')
-        when 'e'
+        when 'e', 'urlencode'
           CGI.escape(str)
-        when 'r'
+        when 'r', 'replace'
           s1, s2 = get_subst_parts mthd
           str.sub(s1, s2)
-        when 't'
+        when 't', 'trim'
           s1 = extract_params mthd
           i = str.index(s1)
           Sutil.head(str, i)
-        when 'p'
+        when 'p', 'punydecode'
           Punycode.decode(str)
         else
           str + '.' + mthd
