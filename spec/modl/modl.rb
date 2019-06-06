@@ -28,7 +28,8 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-  £x=y
+_country=gb;_language=en;
+x="%country-%language.txt"
 
 XXXXXXXX
 

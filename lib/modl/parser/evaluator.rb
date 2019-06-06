@@ -63,7 +63,7 @@ module MODL
           when '='
             wild = value2.is_a?(String) && value2.include?('*') ? true : false
             if wild
-              regex = '^'
+              regex = '^'.dup
               value2.each_char do |c|
                 regex << (c == '*' ? '.*' : c)
               end

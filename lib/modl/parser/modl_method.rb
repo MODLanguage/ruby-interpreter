@@ -109,8 +109,9 @@ module MODL
     end
 
     class StandardMethods
-      def self.run_method(m, str)
-        case m[0]
+      def self.run_method(mthd, str)
+        m = mthd.match(/\w*/)[0]
+        case m
         when 'u'
           str.upcase
         when 'd'
@@ -124,16 +125,16 @@ module MODL
         when 'e'
           CGI.escape(str)
         when 'r'
-          s1, s2 = get_subst_parts m
+          s1, s2 = get_subst_parts mthd
           str.sub(s1, s2)
         when 't'
-          s1 = extract_params m
+          s1 = extract_params mthd
           i = str.index(s1)
           Sutil.head(str, i)
         when 'p'
           Punycode.decode(str)
         else
-          str + '.' + m
+          str + '.' + mthd
         end
       end
 
