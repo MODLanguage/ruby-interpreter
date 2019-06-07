@@ -1,3 +1,7 @@
+0.3.11
+===
+- 
+
 0.3.10
 ===
 - Fix GitHub issue #19 - Checking value of object reference in conditional
