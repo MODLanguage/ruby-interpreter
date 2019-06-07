@@ -28,8 +28,17 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-_country=GREAT BRITAIN;
-x="%country.replace(a,e).trim(BRIT)"
+  *method(
+   *id=rt;
+   *name=remove_two;
+   *transform=`replace(two,)`
+  );
+
+  _numbers = one two three;
+  name = %numbers.rt;
+
+  _foo="example";
+  "test" = %foo.u;
 
 XXXXXXXX
 

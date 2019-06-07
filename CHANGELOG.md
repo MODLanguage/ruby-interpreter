@@ -1,3 +1,7 @@
+0.3.9
+===
+- Fix GitHub Issue #18 - Quoted strings not handled correctly in references
+
 0.3.8
 ===
 - Add MIT license to all non-auto-generated Ruby files.

@@ -137,20 +137,48 @@ module MODL
             result = if n.to_s == p
                        # Numeric ref
                        if !result.nil? && !result.respond_to?(:find_property)
-                         raise InterpreterError, 'Interpreter Error: Invalid obejct reference: ' + degraved
+                         raise InterpreterError, 'Interpreter Error: Invalid object reference: ' + degraved
                        end
                        result.nil? ? global.index_value(n, degraved) : result.find_property(n)
                      else
                        # String ref
                        if result.is_a? String
-                         StandardMethods.run_method(p, result)
+                         if StandardMethods.valid_method?(p)
+                           StandardMethods.run_method(p, result)
+                         else
+                           mthd = global.user_method(p)
+                           if !mthd.nil?
+                             mthd.run(result)
+                           else
+                             mthd
+                           end
+                         end
+                       elsif result.is_a? Parsed::ParsedPair
+                         if result.text
+                           if StandardMethods.valid_method?(p)
+                             StandardMethods.run_method(p, result.text)
+                           else
+                             mthd = global.user_method(p)
+                             if !mthd.nil?
+                               mthd.run(result.text)
+                             else
+                               mthd
+                             end
+                           end
+                         else
+                           result.find_property(p)
+                         end
                        elsif result.is_a? Array
                          nil
                        else
                          if !result.nil? && !result.respond_to?(:find_property)
-                           raise InterpreterError, 'Interpreter Error: Invalid obejct reference: ' + degraved
+                           raise InterpreterError, 'Interpreter Error: Invalid object reference: ' + degraved
                          end
-                         result.nil? ? global.pair(p) : result.find_property(p)
+                         if result.nil?
+                           global.pair(p)
+                         else
+                           result.find_property(p)
+                         end
                        end
                      end
             break if result.nil?

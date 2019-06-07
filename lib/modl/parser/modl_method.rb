@@ -109,6 +109,9 @@ module MODL
     end
 
     class StandardMethods
+
+      @@mthd_names = %w(u d i s e r t p upcase downcase initcap sentence urlencode replace trim punydecode)
+
       def self.run_method(mthd, str)
         m = mthd.match(/\w*/)[0]
         case m
@@ -125,7 +128,7 @@ module MODL
         when 'e', 'urlencode'
           CGI.escape(str)
         when 'r', 'replace'
-          s1, s2 = get_subst_parts mthd
+          s1, s2 = get_subst_parts(mthd)
           str.sub(s1, s2)
         when 't', 'trim'
           s1 = extract_params mthd
@@ -134,7 +137,7 @@ module MODL
         when 'p', 'punydecode'
           Punycode.decode(str)
         else
-          str + '.' + mthd
+          str.nil? ? '.' + mthd : str.to_s + '.' + mthd
         end
       end
 
@@ -154,7 +157,7 @@ module MODL
       end
 
       def self.valid_method?(mthd)
-        return 'udisertp'.include?(mthd)
+        return @@mthd_names.include?(mthd)
       end
     end
   end
