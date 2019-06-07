@@ -1,3 +1,7 @@
+0.3.10
+===
+- Fix GitHub issue #19 - Checking value of object reference in conditional
+
 0.3.9
 ===
 - Fix GitHub Issue #18 - Quoted strings not handled correctly in references

@@ -1069,6 +1069,7 @@ module MODL
             ctx.modl_top_level_conditional_return_i(ctx_modl_top_level_conditional_return.size - 1).enter_rule(conditional_return)
             @topLevelConditionalReturns[i] = conditional_return
           end
+          extract_hash
           @global.exit_condition
         end
       end

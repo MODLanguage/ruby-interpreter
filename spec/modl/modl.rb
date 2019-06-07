@@ -28,17 +28,11 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-  *method(
-   *id=rt;
-   *name=remove_two;
-   *transform=`replace(two,)`
-  );
-
-  _numbers = one two three;
-  name = %numbers.rt;
-
-  _foo="example";
-  "test" = %foo.u;
+  {
+    !language?
+       _language=en
+  };
+  language=%language
 
 XXXXXXXX
 
