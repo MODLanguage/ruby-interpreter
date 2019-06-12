@@ -154,7 +154,8 @@ module MODL
                            end
                          end
                        elsif result.is_a? Parsed::ParsedPair
-                         if result.text
+                         prop = result.find_property(p)
+                         if result.text && !prop
                            if StandardMethods.valid_method?(p)
                              StandardMethods.run_method(p, result.text)
                            else
@@ -166,7 +167,7 @@ module MODL
                              end
                            end
                          else
-                           result.find_property(p)
+                           prop
                          end
                        elsif result.is_a? Array
                          nil

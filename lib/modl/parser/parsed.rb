@@ -202,12 +202,15 @@ module MODL
         attr_accessor :type # A string set to the type of pair that we have found bases on its key
         attr_accessor :text # The simple text value rather than the object
         attr_accessor :final
+        attr_accessor :loaded # For *load instructions so we don't load twice
+
 
         def initialize(global)
           @global = global
           @needs_defref = true
           @final = false
           @file_importer = FileImporter.instance
+          @loaded = false
         end
 
         def find_property(key)
@@ -365,7 +368,7 @@ module MODL
           when 'import'
             files = @valueItem.extract_hash if @valueItem
             files = @array.extract_hash if @array
-            @file_importer.import_files files, @global
+            @file_importer.import_files files, @global unless @global.in_condition?
           when 'index'
             IndexExtractor.extract(self, @global)
           when 'hidden'
@@ -1023,6 +1026,7 @@ module MODL
           @global = global
           @topLevelConditionalReturns = []
           @conditionTests = []
+          @file_importer = FileImporter.instance
         end
 
         def extract_hash
@@ -1033,7 +1037,17 @@ module MODL
             if item.structures[0].pair
               key = item.structures[0].pair.key
               key = Sutil.tail(key) if key[0] == '_'
-              @global.pair(key, item.structures[0].pair)
+              pair = item.structures[0].pair
+              @global.pair(key, pair)
+
+              if key.downcase.start_with? '*l'
+                files = pair.valueItem.extract_hash if pair.valueItem
+                files = pair.array.extract_hash if pair.array
+                unless pair.loaded
+                  @file_importer.import_files files, @global
+                  pair.loaded = true
+                end
+              end
             end
             return item.extract_hash
           end
@@ -1043,7 +1057,17 @@ module MODL
           if last_item.structures[0].pair
             key = last_item.structures[0].pair.key
             key = Sutil.tail(key) if key[0] == '_'
-            @global.pair(key, last_item.structures[0].pair)
+            pair = last_item.structures[0].pair
+            @global.pair(key, pair)
+
+            if key.downcase.start_with? '*l'
+              files = pair.valueItem.extract_hash if pair.valueItem
+              files = pair.array.extract_hash if pair.array
+              unless pair.loaded
+                @file_importer.import_files files, @global
+                pair.loaded = true
+              end
+            end
           end
           last_item.extract_hash
         end

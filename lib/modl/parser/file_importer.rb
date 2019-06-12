@@ -70,8 +70,8 @@ module MODL
               else
                 txt = File.readlines(file_name).join
               end
-            rescue
-              raise InterpreterError, 'File not found: ' + file_name
+            rescue StandardError => e
+              raise InterpreterError, 'File not found: ' + file_name + ', error: ' + e.message
             end
             global.loaded_file(file_name)
 

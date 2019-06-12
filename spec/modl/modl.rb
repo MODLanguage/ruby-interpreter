@@ -28,11 +28,7 @@ require 'modl'
 
 a = <<~XXXXXXXX
 
-  {
-    !language?
-       _language=en
-  };
-  language=%language
+  {!one?_one=g};{!two?_two=d};_file = `%one`-`%two`;{file=a-b/c-d/e-f?*LOAD="grammar_tests/files/`%file`.txt!"/?*LOAD="grammar_tests/files/a-b.txt!"};o=%ref.o.name
 
 XXXXXXXX
 

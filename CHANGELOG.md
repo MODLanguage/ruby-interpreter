@@ -1,6 +1,6 @@
 0.3.11
 ===
-- 
+- Support conditional file loading.
 
 0.3.10
 ===
