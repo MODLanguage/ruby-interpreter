@@ -76,14 +76,28 @@ module MODL
       # Replace all escape sequences in the supplied string and return the new value.
       def self.process(str)
         return str unless str.is_a? String
-        @@subs.each do |s|
-          loop do
-            prev = str
-            str = str.sub(s[0], s[1])
-            break unless str && str != prev
+
+        # Remove unescaped graves and double quotes
+        new_str = ''.dup
+        prev_c = ''
+        str.each_char do |c|
+          if (c == '`' || c == '"') && !(prev_c == '~' || prev_c == '\\')
+            # skip it
+          else
+            new_str << c
+            prev_c = c
           end
         end
-        str
+
+        # Handle escape sequences
+        @@subs.each do |s|
+          loop do
+            prev = new_str
+            new_str = new_str.sub(s[0], s[1])
+            break unless new_str && new_str != prev
+          end
+        end
+        new_str
       end
     end
   end

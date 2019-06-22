@@ -47,6 +47,7 @@ RSpec.describe MODL::Parser do
 
     success = 0
     failed = 0
+    deleted_count = 0
 
     exit_on_fail = false
 
@@ -55,6 +56,10 @@ RSpec.describe MODL::Parser do
         #next if i < 97
 
         test_case = data[i]
+        if test_case['input'] == 'DELETED'
+          deleted_count += 1
+          next
+        end
 
         puts 'Test Input: ' + test_case['input']
 
@@ -85,7 +90,7 @@ RSpec.describe MODL::Parser do
       end
     end
 
-    puts success.to_s + ' tests PASSED and ' + failed.to_s + ' tests FAILED out of a total of ' + data.length.to_s + ' tests.'
+    puts success.to_s + ' tests PASSED and ' + failed.to_s + ' tests FAILED out of a total of ' + data.length.to_s + ' tests.(' + deleted_count.to_s + ' were DELETED)'
     raise Bailout if failed > 0
   end
 end

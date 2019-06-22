@@ -274,11 +274,7 @@ module MODL
           value = @valueItem.extract_hash if @valueItem
           value = @map.extract_hash if @map
 
-          if value.is_a?(String) && (value.include?('%') || value.start_with?('`'))
-            @text, _ignore = RefProcessor.deref(@text, @global)
-          else
-            @text = value
-          end
+          @text = value
 
           return if @type == 'index'
           return if @type == 'hidden'
@@ -667,7 +663,7 @@ module MODL
             if user_method
               return user_method.run(@string.string)
             end
-            return StandardMethods.run_method(key, @string.string)
+            return StandardMethods.run_method(key, Substitutions.process(@string.string))
           end
         end
 
@@ -710,13 +706,11 @@ module MODL
             @text = ctx_string.text
 
             @constant = @text.start_with?('`') && !@text.include?('%') && !@text.include?('`.')
-            @text = Parsed.additional_string_processing(@text)
             @string = ParsedString.new(@text)
             @text = @string.string
           elsif !ctx_quoted.nil?
             @constant = true
-            @text = Sutil.toptail(ctx_quoted.text) # remove the quotes
-            @text = Parsed.additional_string_processing(@text)
+            @text = ctx_quoted.text
             @quoted = ParsedQuoted.new(@text)
           elsif !ctx_null.nil?
             @nilVal = ParsedNull.instance

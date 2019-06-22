@@ -30,6 +30,7 @@ def process_modl(a)
   begin
     str = MODL::Interpreter.interpret(a, true)
     puts str
+    return str
   rescue MODL::InterpreterError => e
     puts e.to_s
   rescue MODL::ParserError => e
@@ -40,17 +41,14 @@ end
 
 a = <<~XXXXXXXX
 
-  _C=gb;
-  _L=en;
-  _Q=numexample.com;
-  _D=numexample.com;
-  _DV=iPhone 7;
-  _TZ=GMT;
-  _GPS=53.473997,-2.237334;
-  *load="https://s3.eu-west-2.amazonaws.com/modules.num.uk/1/rcf.txt";
-  o=NUM Example Co:Example Strapline:[t=Call us:441270123456;fb=examplefacebook;tw=exampletwitter;in=exampleinstagram]
+  _test=(
+    first=("v1"=[one]);
+    second=("v2"=two:three)
+  );
+   
+  testing1 = "%test.first.v1.0%%test.second.v2.0%%test.second.v2.1";
+  testing2 = %test.first.v1.0%%test.second.v2.0%%test.second.v2.1
 
 XXXXXXXX
 
-process_modl(a)
 process_modl(a)

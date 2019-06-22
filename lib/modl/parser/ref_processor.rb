@@ -32,18 +32,19 @@ module MODL
     class RefProcessor
 
       NESTED_SEPARATOR = '.'
-      MATCHER = Regexp.new('((`?\%[0-9][0-9.][a-zA-Z0-9.(),]*`?)|(`?\%[0-9][0-9]*`?)|(`?\%[_a-zA-Z][_a-zA-Z0-9.%(),]*`?)|(`.*`\.[_a-zA-Z0-9.(),%]+)|(`.*`))')
+      MATCHER = Regexp.new('((%` ?[\w-]+`[\w.]*%?)|(%\*?[\w]+(\.%?[\w<>,]+)*%?))')
+      MAX_RECURSE_DEPTH = 10
 
       def self.trivial_reject(str)
         # do a fast check to see if we need to deref - save processing the regex if we don't have to.
-        str.is_a?(String) && (str.nil? || str.include?('%') || str.include?('`'))
+        !(str.is_a?(String) && !str.start_with?('%*') && (str.nil? || str.include?('%') || str.include?('`')))
       end
 
       # Check str for references and process them.
       # Return the processed string and a new_value if there is one.
       def self.deref(str, global)
         obj = str
-        obj, new_value = split_by_ref_tokens str, global if trivial_reject(str)
+        obj, new_value = split_by_ref_tokens str, global unless trivial_reject(str)
         [obj, new_value]
       end
 
@@ -80,42 +81,58 @@ module MODL
 
 
           ref = match[0]
-          ref = Sutil.head(ref) if ref.end_with?('%')
           text = Sutil.after(text, ref)
-          new_value, remainder = expand(global, ref)
-          ref = Sutil.until(ref, remainder)
-          if new_value.is_a?(String)
-            str = str.sub(ref, new_value)
-          elsif new_value.is_a?(Parsed::ParsedArrayItem)
-            nv_text = new_value.arrayValueItem.text
-            str = if ref == str
-                    nv_text
-                  else
-                    str.sub(ref, nv_text.to_s)
-                  end
-            new_value = nil
-          elsif new_value.is_a?(Parsed::ParsedMapItem)
-            raise InterpreterError, 'Interpreter Error: Found a map when expecting an array'
-          elsif new_value.is_a?(MODL::Parser::MODLParserBaseListener)
-            if new_value.text
+
+          if original.include?('`' + ref + '`')
+            # We leave graved references as-is and just remove the graves.
+            text = Sutil.tail(text) if text.start_with?('`')
+            str = str.sub('`' + ref + '`', ref)
+          elsif original.include?('"' + ref + '"')
+            # We leave quoted references as-is and just remove the quotes.
+            text = Sutil.tail(text) if text.start_with?('"')
+            str = str.sub('"' + ref + '"', ref)
+          elsif (original[0] == '`' && original[-1] == '`') || (original[0] == '"' && original[-1] == '"')
+            str = original
+            text = ""
+          else
+            new_value, remainder = expand(0, global, ref)
+            ref = Sutil.until(ref, remainder)
+            if new_value.is_a?(String)
+              str = str.sub(ref, new_value)
+            elsif new_value.is_a?(Parsed::ParsedArrayItem)
+              nv_text = new_value.arrayValueItem.text
               str = if ref == str
-                      new_value.text
+                      nv_text
                     else
-                      str.sub(ref, new_value.text.to_s)
+                      str.sub(ref, nv_text.to_s)
                     end
               new_value = nil
+            elsif new_value.is_a?(Parsed::ParsedMapItem)
+              raise InterpreterError, 'Interpreter Error: Found a map when expecting an array'
+            elsif new_value.is_a?(MODL::Parser::MODLParserBaseListener)
+              if new_value.text
+                str = if ref == str
+                        new_value.text
+                      else
+                        str.sub(ref, new_value.text.to_s)
+                      end
+                new_value = nil
+              else
+                str = nil
+              end
             else
-              str = nil
+              new_value = nil
+              raise InterpreterError, 'Cannot resolve reference in : "' + str + '"' if str == original
             end
-          else
-            new_value = nil
-            raise InterpreterError, 'Cannot resolve reference in : "' + str + '"' if str == original
           end
         end
         return new_value, str
       end
 
-      def self.expand(global, ref)
+      def self.expand(depth, global, ref)
+        if depth > MAX_RECURSE_DEPTH
+          raise InterpreterError, 'Recursing too deep to resolve: "' + ref + '"'
+        end
         result = nil
         prev = nil
 
@@ -123,12 +140,13 @@ module MODL
 
         parts = Sutil.tail(degraved).split('.') if degraved[0] == '%'
         parts = degraved.split('.') unless degraved[0] == '%'
+        parts[-1] = Sutil.head(parts[-1]) if parts[-1].end_with?('%')
 
         if degraved.include?('%')
           resolved = 0
           parts.each do |p|
             if p.include?('%')
-              p, _ignore = expand(global, p)
+              p, _ignore = expand(depth + 1, global, p)
               if p.is_a?(MODL::Parser::MODLParserBaseListener)
                 p = p.text
               end
@@ -169,6 +187,22 @@ module MODL
                          else
                            prop
                          end
+                       elsif result.is_a? Parsed::ParsedArrayValueItem
+                         prop = result.find_property(p)
+                         if result.text && !prop
+                           if StandardMethods.valid_method?(p)
+                             StandardMethods.run_method(p, result.text)
+                           else
+                             mthd = global.user_method(p)
+                             if !mthd.nil?
+                               mthd.run(result.text)
+                             else
+                               mthd
+                             end
+                           end
+                         else
+                           prop
+                         end
                        elsif result.is_a? Array
                          nil
                        else
@@ -176,7 +210,12 @@ module MODL
                            raise InterpreterError, 'Interpreter Error: Invalid object reference: ' + degraved
                          end
                          if result.nil?
-                           global.pair(p)
+                           a_pair = global.pair(p)
+                           if a_pair.nil?
+                             p
+                           else
+                             a_pair
+                           end
                          else
                            result.find_property(p)
                          end
@@ -192,6 +231,9 @@ module MODL
             prev = degraved
           else
             remainder = resolved < parts.length ? '.' + parts[resolved..parts.length].join('.') : ''
+          end
+          if (prev == Sutil.between(ref, '%', '%')) || (ref.start_with?('%') && prev == Sutil.tail(ref))
+            prev = ref
           end
           [prev, remainder]
         else

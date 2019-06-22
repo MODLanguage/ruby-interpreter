@@ -40,18 +40,18 @@ module MODL
         transform = @transform
         while transform && transform.length > 0
           if transform.start_with? 'replace'
-            close_bracket = transform.index(')')
+            close_bracket = transform.index('>')
             m = Sutil.head(transform, close_bracket + 1).sub!('replace', 'r')
             str = StandardMethods.run_method(m, str)
             # Consume the subst clause
-            close_bracket = transform.index(')')
+            close_bracket = transform.index('>')
             transform = Sutil.tail(transform, close_bracket + 2)
           elsif transform.start_with? 'trim'
-            close_bracket = transform.index(')')
+            close_bracket = transform.index('>')
             m = Sutil.head(transform, close_bracket + 1).sub!('trim', 't')
             str = StandardMethods.run_method(m, str)
             # Consume the trunc clause
-            close_bracket = transform.index(')')
+            close_bracket = transform.index('>')
             transform = Sutil.tail(transform, close_bracket + 2)
           elsif transform.start_with? 'initcap'
             str = str.split.map(&:capitalize) * ' '
@@ -153,7 +153,7 @@ module MODL
       # Extract the method parameter
       def self.extract_params(str)
         # should be of the form .r(s1,s2)
-        Sutil.between(str, '(', ')')
+        Sutil.between(str, '<', '>')
       end
 
       def self.valid_method?(mthd)

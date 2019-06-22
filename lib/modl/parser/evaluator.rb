@@ -54,7 +54,7 @@ module MODL
         while i < condition.values.length
           item = condition.values[i]
           if item.primitive.constant
-            value2 = item.text
+            value2 = Substitutions.process(item.text)
           else
             value2, success = value(global, item.text)
           end
@@ -105,11 +105,12 @@ module MODL
           if ikey.to_s == key
             index_val = global.index[ikey]
             value1 = index_val.respond_to?(:text) ? index_val.text : nil
+            value1 = Substitutions.process(value1)
           else
             pair = global.pair(key)
-            return k unless pair
+            return Substitutions.process(k) unless pair
 
-            value1 = pair.text
+            value1 = Substitutions.process(pair.text)
           end
           success = true
         end
