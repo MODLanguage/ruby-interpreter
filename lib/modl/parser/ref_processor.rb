@@ -32,7 +32,7 @@ module MODL
     class RefProcessor
 
       NESTED_SEPARATOR = '.'
-      MATCHER = Regexp.new('((%` ?[\w-]+`[\w.]*%?)|(%\*?[\w]+(\.%?[\w<>,]+)*%?))')
+      MATCHER = Regexp.new('((%` ?[\w-]+`[\w.<>,]*%?)|(%\*?[\w]+(\.%?[\w<>,]+)*%?))')
       MAX_RECURSE_DEPTH = 10
 
       def self.trivial_reject(str)
