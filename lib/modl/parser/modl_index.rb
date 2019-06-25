@@ -33,7 +33,7 @@ module MODL
         # collect all values from the object
         if item.is_a? Parsed::ParsedValueItem
           if item&.value&.text
-            global.index << item.value.text
+            global.add_to_index(item.value.text)
           elsif item&.value&.array
             item.value.array.abstractArrayItems.each do |avi|
               global.add_to_index(avi.arrayValueItem)

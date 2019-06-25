@@ -41,13 +41,8 @@ end
 
 a = <<~XXXXXXXX
 
-  _test=(
-    first=("v1"=[one]);
-    second=("v2"=two:three)
-  );
-   
-  testing1 = "%test.first.v1.0%%test.second.v2.0%%test.second.v2.1";
-  testing2 = %test.first.v1.0%%test.second.v2.0%%test.second.v2.1
+  _test=replace the word this in this string;
+  testing=%test.replace<this,``>
 
 XXXXXXXX
 

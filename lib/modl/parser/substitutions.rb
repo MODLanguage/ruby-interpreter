@@ -78,16 +78,7 @@ module MODL
         return str unless str.is_a? String
 
         # Remove unescaped graves and double quotes
-        new_str = ''.dup
-        prev_c = ''
-        str.each_char do |c|
-          if (c == '`' || c == '"') && !(prev_c == '~' || prev_c == '\\')
-            # skip it
-          else
-            new_str << c
-            prev_c = c
-          end
-        end
+        new_str = Sutil.unquote(str)
 
         # Handle escape sequences
         @@subs.each do |s|

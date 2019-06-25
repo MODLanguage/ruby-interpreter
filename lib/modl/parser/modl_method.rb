@@ -129,7 +129,7 @@ module MODL
           CGI.escape(str)
         when 'r', 'replace'
           s1, s2 = get_subst_parts(mthd)
-          str.sub(s1, s2)
+          str.gsub(s1, s2)
         when 't', 'trim'
           s1 = extract_params mthd
           i = str.index(s1)
@@ -157,7 +157,11 @@ module MODL
       end
 
       def self.valid_method?(mthd)
-        return @@mthd_names.include?(mthd)
+        m = mthd
+        if m.include?('<')
+          m = Sutil.until(m, '<')
+        end
+        return @@mthd_names.include?(m)
       end
     end
   end

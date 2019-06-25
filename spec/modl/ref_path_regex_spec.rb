@@ -37,6 +37,7 @@ RSpec.describe MODL::Parser do
     tests << {'ref' => '%0', 'result' => '%0'}
     tests << {'ref' => 'xxx%0%yyy', 'result' => '%0%'}
     tests << {'ref' => '%string.replace<this,that>.upcase', 'result' => '%string.replace<this,that>.upcase'}
+    tests << {'ref' => '%test.replace<`this`,`that`>', 'result' => '%test.replace<`this`,`that`>'}
 
     tests.each do |test|
       result = MODL::Parser::RefProcessor::MATCHER.match(test['ref'])

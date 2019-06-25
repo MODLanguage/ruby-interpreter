@@ -1,6 +1,7 @@
 0.3.11
 ===
 - Support conditional file loading.
+- Updated to latest grammar.
 
 0.3.10
 ===

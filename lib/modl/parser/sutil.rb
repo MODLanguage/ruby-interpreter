@@ -97,4 +97,12 @@ module Sutil
     end
     result
   end
+
+  def self.unquote(str)
+    new_str = str
+    if (str.start_with?('`') && str.end_with?('`')) || (str.start_with?('"') && str.end_with?('"'))
+      new_str = Sutil.toptail(str)
+    end
+    new_str
+  end
 end

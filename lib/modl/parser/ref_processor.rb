@@ -32,7 +32,7 @@ module MODL
     class RefProcessor
 
       NESTED_SEPARATOR = '.'
-      MATCHER = Regexp.new('((%` ?[\w-]+`[\w.<>,]*%?)|(%\*?[\w]+(\.%?[\w<>,]+)*%?))')
+      MATCHER = Regexp.new('((%\w+)(\.\w*<`?\w*`?,`\w*`>)+|(%` ?[\w-]+`[\w.<>,]*%?)|(%\*?[\w]+(\.%?\w*<?[\w,]*>?)*%?))')
       MAX_RECURSE_DEPTH = 10
 
       def self.trivial_reject(str)
@@ -83,47 +83,34 @@ module MODL
           ref = match[0]
           text = Sutil.after(text, ref)
 
-          if original.include?('`' + ref + '`')
-            # We leave graved references as-is and just remove the graves.
-            text = Sutil.tail(text) if text.start_with?('`')
-            str = str.sub('`' + ref + '`', ref)
-          elsif original.include?('"' + ref + '"')
-            # We leave quoted references as-is and just remove the quotes.
-            text = Sutil.tail(text) if text.start_with?('"')
-            str = str.sub('"' + ref + '"', ref)
-          elsif (original[0] == '`' && original[-1] == '`') || (original[0] == '"' && original[-1] == '"')
-            str = original
-            text = ""
-          else
-            new_value, remainder = expand(0, global, ref)
-            ref = Sutil.until(ref, remainder)
-            if new_value.is_a?(String)
-              str = str.sub(ref, new_value)
-            elsif new_value.is_a?(Parsed::ParsedArrayItem)
-              nv_text = new_value.arrayValueItem.text
+          new_value, remainder = expand(0, global, ref)
+          ref = Sutil.until(ref, remainder)
+          if new_value.is_a?(String)
+            str = str.sub(ref, new_value)
+          elsif new_value.is_a?(Parsed::ParsedArrayItem)
+            nv_text = new_value.arrayValueItem.text
+            str = if ref == str
+                    nv_text
+                  else
+                    str.sub(ref, nv_text.to_s)
+                  end
+            new_value = nil
+          elsif new_value.is_a?(Parsed::ParsedMapItem)
+            raise InterpreterError, 'Interpreter Error: Found a map when expecting an array'
+          elsif new_value.is_a?(MODL::Parser::MODLParserBaseListener)
+            if new_value.text
               str = if ref == str
-                      nv_text
+                      new_value.text
                     else
-                      str.sub(ref, nv_text.to_s)
+                      str.sub(ref, Sutil.unquote(new_value.text.to_s))
                     end
               new_value = nil
-            elsif new_value.is_a?(Parsed::ParsedMapItem)
-              raise InterpreterError, 'Interpreter Error: Found a map when expecting an array'
-            elsif new_value.is_a?(MODL::Parser::MODLParserBaseListener)
-              if new_value.text
-                str = if ref == str
-                        new_value.text
-                      else
-                        str.sub(ref, new_value.text.to_s)
-                      end
-                new_value = nil
-              else
-                str = nil
-              end
             else
-              new_value = nil
-              raise InterpreterError, 'Cannot resolve reference in : "' + str + '"' if str == original
+              str = nil
             end
+          else
+            new_value = nil
+            raise InterpreterError, 'Cannot resolve reference in : "' + str + '"' if str == original
           end
         end
         return new_value, str
@@ -191,7 +178,11 @@ module MODL
                          prop = result.find_property(p)
                          if result.text && !prop
                            if StandardMethods.valid_method?(p)
-                             StandardMethods.run_method(p, result.text)
+                             result_text = result.text
+                             if result_text.start_with?('`') && result_text.end_with?('`')
+                               result_text = Sutil.toptail(result_text)
+                             end
+                             StandardMethods.run_method(p, result_text)
                            else
                              mthd = global.user_method(p)
                              if !mthd.nil?
@@ -210,7 +201,9 @@ module MODL
                            raise InterpreterError, 'Interpreter Error: Invalid object reference: ' + degraved
                          end
                          if result.nil?
-                           a_pair = global.pair(p)
+                           unless ref.start_with?('%`')
+                             a_pair = global.pair(p)
+                           end
                            if a_pair.nil?
                              p
                            else
