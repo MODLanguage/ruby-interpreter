@@ -41,8 +41,8 @@ end
 
 a = <<~XXXXXXXX
 
-  _test=replace the word this in this string;
-  testing=%test.replace<this,``>
+  *class(*id=n;*name=name;*superclass=num);
+  n="123.1"
 
 XXXXXXXX
 

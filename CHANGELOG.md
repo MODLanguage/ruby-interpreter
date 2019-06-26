@@ -1,6 +1,7 @@
 0.3.12
 ===
 - Use file cache on load error - GitHub issue #20
+- Error converting value to number - GitHub issue #21
 
 0.3.11
 ===

@@ -164,6 +164,8 @@ module MODL
         elsif tc == 'num'
           if (v.is_a? String) && (v.to_i.to_s == v.to_s)
             new_value = v.to_i
+          elsif (v.is_a? String) && (v.to_f.to_s == v.to_s)
+            new_value = v.to_f
           elsif v.is_a? TrueClass
             new_value = 1
           elsif v.is_a? FalseClass
