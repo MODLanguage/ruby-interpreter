@@ -71,7 +71,11 @@ module MODL
                 txt = File.readlines(file_name).join
               end
             rescue StandardError => e
-              raise InterpreterError, 'File not found: ' + file_name + ', error: ' + e.message
+              # Force load from the cache if possible
+              parsed = @cache.force_get(file_name)
+              if parsed.nil?
+                raise InterpreterError, 'File not found: ' + file_name + ', error: ' + e.message
+              end
             end
             global.loaded_file(file_name)
 

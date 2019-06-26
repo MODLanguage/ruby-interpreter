@@ -70,6 +70,17 @@ module MODL
         return if entry.expired?
 
         # Otherwise return the cached object.
+        # We don't delete the cached entry because we might need to force its use if its expired and offline
+        entry.object
+      end
+
+      # If the file is offline this can be used to retrieve the cached version if we have one.
+      def force_get(key)
+        # Return nothing if not in the cache or it has expired.
+        return if key.nil?
+
+        entry = @cache[key]
+        return unless entry
         entry.object
       end
     end

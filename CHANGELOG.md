@@ -1,3 +1,7 @@
+0.3.12
+===
+- Use file cache on load error - GitHub issue #20
+
 0.3.11
 ===
 - Support conditional file loading.
