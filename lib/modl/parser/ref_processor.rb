@@ -162,7 +162,7 @@ module MODL
                          prop = result.find_property(p)
                          if result.text && !prop
                            if StandardMethods.valid_method?(p)
-                             StandardMethods.run_method(p, result.text)
+                             StandardMethods.run_method(p, Sutil.unquote(result.text))
                            else
                              mthd = global.user_method(p)
                              if !mthd.nil?

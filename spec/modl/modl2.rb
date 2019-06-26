@@ -41,8 +41,14 @@ end
 
 a = <<~XXXXXXXX
 
-  *class(*id=n;*name=name;*superclass=num);
-  n="123.1"
+  _test1=e1afmkfd;
+  russian1=%test1.p;
+
+  _test2="e1afmkfd";
+  russian2=%test2.p;
+
+  _test3=`e1afmkfd`;
+  russian3=%test3.p;
 
 XXXXXXXX
 
