@@ -41,17 +41,17 @@ module MODL
       # Look for any orphan pairs at the top level and adopt them into a map
       # Its an error if there are duplicate keys or mixed types at the top.
       #
-      def self.adopt(global, parsed)
+      def self.adopt(global, structures)
         #
         # Separate out any top-level pairs into a separate hash, checking for duplicates on the way.
         #
-        if parsed&.structures
+        if structures
           pairs = Hash.new
 
           # This will replace the existing structures array
           new_structures = []
 
-          parsed.structures.each do |s|
+          structures.each do |s|
             if s.pair
               # skip hidden pairs and instructions
               if s.pair.key.start_with?('*') || s.pair.key.start_with?('_') || s.pair.key == '?'
@@ -90,10 +90,10 @@ module MODL
             new_structures.unshift(new_struct)
 
             # Replace the existing structures with the new structures.
-            parsed.structures = new_structures
+            return new_structures
           end
         end
-        parsed
+        structures
       end
     end
   end

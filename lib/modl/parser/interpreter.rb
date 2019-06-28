@@ -61,7 +61,7 @@ module MODL
     parsed = MODL::Parser::Parser.parse(string)
 
     # Check for orphan pairs and adopt them.
-    MODL::Parser::OrphanHandler.adopt(parsed.global, parsed)
+    parsed.structures = MODL::Parser::OrphanHandler.adopt(parsed.global, parsed.structures)
 
     # Convert the Parsed object into a simpler structure of and Array or Hash
     interpreted = parsed.extract_hash

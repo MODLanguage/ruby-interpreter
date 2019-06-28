@@ -1041,6 +1041,7 @@ module MODL
                 end
               end
             end
+            item.structures = OrphanHandler.adopt(@global, item.structures)
             return item.extract_hash
           end
           return unless @topLevelConditionalReturns.length > @conditionTests.length
