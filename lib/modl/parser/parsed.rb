@@ -64,7 +64,7 @@ module MODL
           @structures << structure
         end
 
-        @structures = global.structures + structures
+        @structures = @global.structures + @structures
 
         @global
       end

@@ -27,6 +27,7 @@ require 'modl/parser/MODLParserVisitor'
 require 'modl/parser/MODLLexer'
 require 'modl/parser/MODLParser'
 require 'modl/parser/class_processor'
+require 'modl/parser/orphan_handler'
 require 'modl/parser/parser'
 require 'json'
 
@@ -58,6 +59,9 @@ module MODL
   def self.parse(string)
     # Parse the MODL string into a MODL::Parser::Parsed object.
     parsed = MODL::Parser::Parser.parse(string)
+
+    # Check for orphan pairs and adopt them.
+    MODL::Parser::OrphanHandler.adopt(parsed.global, parsed)
 
     # Convert the Parsed object into a simpler structure of and Array or Hash
     interpreted = parsed.extract_hash
