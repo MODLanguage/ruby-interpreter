@@ -60,15 +60,13 @@ module MODL
               end
 
               if pairs.has_key?(s.pair.key)
-                # TODO: raise an exception
-                puts 'Duplicate top level key.'
+                raise InterpreterError, 'Duplicate top level keys are not allowed.'
               else
                 pairs[s.pair.key] = s
               end
             else
-              if pairs.length > 0 && !all_hidden(pairs.keys)
-                # TODO: raise an exception
-                puts 'Mixed top-level types.'
+              if pairs.length > 0 && !all_hidden(pairs.keys) && !s.top_level_conditional
+                raise InterpreterError, 'Mixed top-level types are not allowed.'
               else
                 new_structures.push(s)
               end

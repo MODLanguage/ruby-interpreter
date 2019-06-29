@@ -41,21 +41,14 @@ end
 
 a = <<~XXXXXXXX
 
-  _co=at;
-  _l=de;
+  _C=ca;
+  _L=en;
   {
-   co=at?
-     country=Austria
-     language={
-       l=fr?
-         French
-       /l=de?
-         German
-       /?
-         Other
-     }
-   /?
-     country=Other
+   C=ca?
+    n=Tesco Canada
+    {L=fr?
+      s=Chaque Petite Contribution
+    }
   }
 
 XXXXXXXX

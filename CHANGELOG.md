@@ -1,6 +1,6 @@
 0.3.13
 ===
-- TBD
+- Added missing exceptions for Orphan Pairs
 
 0.3.12
 ===
