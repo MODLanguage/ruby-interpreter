@@ -1,3 +1,7 @@
+0.3.14
+===
+- MODL Syntax Versioning errors update. GitHub issue #11
+
 0.3.13
 ===
 - Added missing exceptions for Orphan Pairs

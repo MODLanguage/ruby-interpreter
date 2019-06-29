@@ -96,7 +96,7 @@ module MODL
                   end
             new_value = nil
           elsif new_value.is_a?(Parsed::ParsedMapItem)
-            raise InterpreterError, 'Interpreter Error: Found a map when expecting an array'
+            raise InterpreterError, 'Found a map when expecting an array'
           elsif new_value.is_a?(MODL::Parser::MODLParserBaseListener)
             if new_value.text
               str = if ref == str
@@ -142,7 +142,7 @@ module MODL
             result = if n.to_s == p
                        # Numeric ref
                        if !result.nil? && !result.respond_to?(:find_property)
-                         raise InterpreterError, 'Interpreter Error: Invalid object reference: ' + degraved
+                         raise InterpreterError, 'Invalid object reference: ' + degraved
                        end
                        result.nil? ? global.index_value(n, degraved) : result.find_property(n)
                      else
@@ -198,7 +198,7 @@ module MODL
                          nil
                        else
                          if !result.nil? && !result.respond_to?(:find_property)
-                           raise InterpreterError, 'Interpreter Error: Invalid object reference: ' + degraved
+                           raise InterpreterError, 'Invalid object reference: ' + degraved
                          end
                          if result.nil?
                            unless ref.start_with?('%`')

@@ -48,20 +48,20 @@ module MODL
           parser.modl.enter_rule(parsed)
           parsed
         rescue Antlr4::Runtime::ParseCancellationException => e
-          check_modl_version(global)
+          check_modl_version(global, e)
           raise ParserError, 'Parser Error: ' + e.message
         rescue StandardError => e
-          check_modl_version(global)
+          check_modl_version(global, e)
           raise InterpreterError, 'Interpreter Error: ' + e.message
         rescue InterpreterError => e
-          check_modl_version(global)
+          check_modl_version(global, e)
           raise InterpreterError, 'Interpreter Error: ' + e.message
         end
       end
 
-      def self.check_modl_version(global)
+      def self.check_modl_version(global, e)
         if global.syntax_version > global.interpreter_syntax_version
-          raise InterpreterError, 'Interpreter Error: MODL Version ' +
+          raise InterpreterError, e.message + ' - MODL Version ' +
               global.interpreter_syntax_version.to_s +
               ' interpreter cannot process this MODL Version ' +
               global.syntax_version.to_s + ' file.'
