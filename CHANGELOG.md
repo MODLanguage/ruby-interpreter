@@ -1,6 +1,7 @@
 0.3.14
 ===
 - MODL Syntax Versioning errors update. GitHub issue #11
+- Support for escpaed % characters - GitHub issue #43
 
 0.3.13
 ===
