@@ -39,31 +39,35 @@ module MODL
         # Consume the elements of the transform spec until there are none left.
         transform = @transform
         while transform && transform.length > 0
-          if transform.start_with? 'replace'
+          if transform.start_with?('replace<') || transform.start_with?('r<')
             close_bracket = transform.index('>')
             m = Sutil.head(transform, close_bracket + 1).sub!('replace', 'r')
             str = StandardMethods.run_method(m, str)
             # Consume the subst clause
             close_bracket = transform.index('>')
             transform = Sutil.tail(transform, close_bracket + 2)
-          elsif transform.start_with? 'trim'
+          elsif transform.start_with?('trim') || transform.start_with?('t<')
             close_bracket = transform.index('>')
             m = Sutil.head(transform, close_bracket + 1).sub!('trim', 't')
             str = StandardMethods.run_method(m, str)
             # Consume the trunc clause
             close_bracket = transform.index('>')
             transform = Sutil.tail(transform, close_bracket + 2)
-          elsif transform.start_with? 'initcap'
-            str = str.split.map(&:capitalize) * ' '
-            transform = Sutil.tail(transform, 8)
-          elsif transform.start_with? 'upcase'
-            raise InterpreterError, 'NOT IMPLEMENTED'
-          elsif transform.start_with? 'downcase'
-            raise InterpreterError, 'NOT IMPLEMENTED'
-          elsif transform.start_with? 'sentence'
-            raise InterpreterError, 'NOT IMPLEMENTED'
-          elsif transform.start_with? 'urlencode'
-            raise InterpreterError, 'NOT IMPLEMENTED'
+          elsif transform.start_with?('initcap') || transform.start_with?('i')
+            str = StandardMethods.run_method('i', str)
+            transform = Sutil.after(transform, '.')
+          elsif transform.start_with?('upcase') || transform.start_with?('u')
+            str = StandardMethods.run_method('u', str)
+            transform = Sutil.after(transform, '.')
+          elsif transform.start_with?('downcase') || transform.start_with?('d')
+            str = StandardMethods.run_method('d', str)
+            transform = Sutil.after(transform, '.')
+          elsif transform.start_with?('sentence') || transform.start_with?('s')
+            str = StandardMethods.run_method('s', str)
+            transform = Sutil.after(transform, '.')
+          elsif transform.start_with?('urlencode') || transform.start_with?('e')
+            str = StandardMethods.run_method('e', str)
+            transform = Sutil.after(transform, '.')
           else
             raise InterpreterError, 'NOT IMPLEMENTED'
           end

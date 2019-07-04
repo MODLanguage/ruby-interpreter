@@ -41,8 +41,13 @@ end
 
 a = <<~XXXXXXXX
 
-  a=x;
-  %a=2
+  *m=(
+  *id=m1;
+  *n=method1;
+  *t=u.d.u
+  );
+  _x=abc;
+  str=%x.m1
 
 XXXXXXXX
 

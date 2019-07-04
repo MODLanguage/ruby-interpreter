@@ -1,6 +1,7 @@
 0.3.15
 ===
 - Interpreter Error: undefined method `text' for nil:NilClass. GitHub issue #23
+- Fixed some NOT IMPLEMENTED sections for *method interpretation. GitHub issue #25
 
 0.3.14
 ===
