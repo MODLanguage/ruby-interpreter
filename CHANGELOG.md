@@ -1,3 +1,7 @@
+0.3.15
+===
+- Interpreter Error: undefined method `text' for nil:NilClass. GitHub issue #23
+
 0.3.14
 ===
 - MODL Syntax Versioning errors update. GitHub issue #11

@@ -41,15 +41,8 @@ end
 
 a = <<~XXXXXXXX
 
-  _C=ca;
-  _L=en;
-  {
-   C=ca?
-    n=Tesco Canada
-    {L=fr?
-      s=Chaque Petite Contribution
-    }
-  }
+  a=x;
+  %a=2
 
 XXXXXXXX
 

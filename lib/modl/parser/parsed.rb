@@ -304,6 +304,7 @@ module MODL
           if @key.include?('%') || @key.include?('`')
             @key, new_value = RefProcessor.deref @key, @global
             unless @key.is_a?(String)
+              raise InterpreterError, "Error: '" + @key.to_s + "' is an invalid key." if new_value.nil?
               @key = new_value.is_a?(String) ? new_value : new_value.text
             end
             raise InterpreterError, "Error: '" + @key.to_s + "' should de-ref to a string." unless key.is_a?(String)
