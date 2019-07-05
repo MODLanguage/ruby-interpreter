@@ -61,7 +61,7 @@ module MODL
 
       def self.check_modl_version(global, e)
         if global.syntax_version > global.interpreter_syntax_version
-          raise InterpreterError, e.message + ' - MODL Version ' +
+          raise InterpreterError, 'Interpreter Error: ' + e.message + ' - MODL Version ' +
               global.interpreter_syntax_version.to_s +
               ' interpreter cannot process this MODL Version ' +
               global.syntax_version.to_s + ' file.'

@@ -2,6 +2,7 @@
 ===
 - Interpreter Error: undefined method `text' for nil:NilClass. GitHub issue #23
 - Fixed some NOT IMPLEMENTED sections for *method interpretation. GitHub issue #25
+- Standardise the error messages to match the Java interpreter.
 
 0.3.14
 ===

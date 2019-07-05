@@ -103,8 +103,8 @@ module MODL
 
         raise InterpreterError, 'Missing id for method' if mthd.id.nil?
         raise InterpreterError, 'Missing name for method' if mthd.name.nil?
-        raise InterpreterError, 'Duplicate method name: ' + mthd.name if global.has_user_method?(mthd.name)
-        raise InterpreterError, 'Duplicate method id: ' + mthd.id if global.has_user_method?(mthd.id)
+        raise InterpreterError, 'Duplicate method name or id: ' + mthd.name if global.has_user_method?(mthd.name)
+        raise InterpreterError, 'Duplicate method name or id: ' + mthd.id if global.has_user_method?(mthd.id)
 
         # store the methods by id and name to make them easier to find later
         global.user_method_id(mthd.id, mthd)

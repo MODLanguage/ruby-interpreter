@@ -40,55 +40,112 @@ def mangle(str)
   Sutil.replace(str, ', ', ',')
 end
 
-RSpec.describe MODL::Parser do
-  it "can run the success tests" do
-    file = File.open("./grammar_tests/base_tests.json", "r:UTF-8")
-    data = JSON.parse(file.read)
+def success_tests(data)
+  success = 0
+  failed = 0
+  deleted_count = 0
 
-    success = 0
-    failed = 0
-    deleted_count = 0
+  exit_on_fail = false
 
-    exit_on_fail = false
+  data.each_index do |i|
+    begin
+      #next if i < 97
 
-    data.each_index do |i|
-      begin
-        #next if i < 97
+      test_case = data[i]
+      if test_case['input'] == 'DELETED'
+        deleted_count += 1
+        next
+      end
 
-        test_case = data[i]
-        if test_case['input'] == 'DELETED'
-          deleted_count += 1
-          next
-        end
+      puts 'Test ID: ' + test_case['id'].to_s
+      puts 'Test Input: ' + test_case['input']
 
-        puts 'Test Input: ' + test_case['input']
+      result = MODL::Interpreter.interpret test_case['input']
 
-        result = MODL::Interpreter.interpret test_case['input']
+      expected = test_case['expected_output']
 
-        expected = test_case['expected_output']
-
-        result = mangle(result)
-        expected = mangle(expected)
-        puts 'Expected  : ' + expected
-        puts 'Found     : ' + result
-        if result == expected
-          puts 'Test ' + i.to_s + ' passed.'
-          success += 1
-        else
-          puts 'Test ' + i.to_s + ' failed.'
-          failed += 1
-          break if exit_on_fail
-        end
-      rescue StandardError => e
-        puts e.to_s
-        puts e.backtrace
-        puts 'Expected  : ' + expected.to_s
-        puts 'Found     : ' + result.to_s
+      result = mangle(result)
+      expected = mangle(expected)
+      puts 'Expected  : ' + expected
+      puts 'Found     : ' + result
+      if result == expected
+        puts 'Test ' + i.to_s + ' passed.'
+        success += 1
+      else
         puts 'Test ' + i.to_s + ' failed.'
         failed += 1
         break if exit_on_fail
       end
+    rescue StandardError => e
+      puts e.to_s
+      puts e.backtrace
+      puts 'Expected  : ' + expected.to_s
+      puts 'Found     : ' + result.to_s
+      puts 'Test ' + i.to_s + ' failed.'
+      failed += 1
+      break if exit_on_fail
     end
+  end
+  [deleted_count, failed, success]
+end
+
+def failure_tests(data)
+  success = 0
+  failed = 0
+  deleted_count = 0
+
+  exit_on_fail = false
+
+  data.each_index do |i|
+    begin
+      #next if i < 97
+
+      test_case = data[i]
+      if test_case['input'] == 'DELETED'
+        deleted_count += 1
+        next
+      end
+
+      puts 'Test ID: ' + test_case['id'].to_s
+      puts 'Test Input: ' + test_case['input']
+      expected = test_case['expected_output']
+
+      result = MODL::Interpreter.interpret test_case['input']
+      puts 'Expected  : ' + expected
+      puts 'Found     : ' + result
+      failed += 1
+      puts 'Test ' + test_case['id'].to_s + ' failed.'
+      break if exit_on_fail
+    rescue StandardError => e
+      if expected.to_s == e.message
+        success += 1
+      else
+        failed += 1
+        puts 'Test ' + test_case['id'].to_s + ' failed.'
+      end
+      puts 'Expected  : ' + expected.to_s
+      puts 'Found     : ' + e.message
+    end
+  end
+  [deleted_count, failed, success]
+end
+
+RSpec.describe MODL::Parser do
+  it "can run the error tests" do
+    file = File.open("./grammar_tests/error_tests.json", "r:UTF-8")
+    data = JSON.parse(file.read)
+
+    deleted_count, failed, success = failure_tests(data)
+
+    puts success.to_s + ' tests PASSED and ' + failed.to_s + ' tests FAILED out of a total of ' + data.length.to_s + ' tests.(' + deleted_count.to_s + ' were DELETED)'
+    raise Bailout if failed > 0
+  end
+
+  it "can run the success tests" do
+    file = File.open("./grammar_tests/base_tests.json", "r:UTF-8")
+    data = JSON.parse(file.read)
+
+    deleted_count, failed, success = success_tests(data)
 
     puts success.to_s + ' tests PASSED and ' + failed.to_s + ' tests FAILED out of a total of ' + data.length.to_s + ' tests.(' + deleted_count.to_s + ' were DELETED)'
     raise Bailout if failed > 0

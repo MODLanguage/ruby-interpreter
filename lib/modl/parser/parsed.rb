@@ -350,7 +350,7 @@ module MODL
           when 'version'
             extract_value
 
-            raise InterpreterError, 'Invalid MODL version: nil' if @valueItem.value.primitive.number.nil?
+            raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.primitive.text if @valueItem.value.primitive.number.nil?
             raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.primitive.number.num.to_s if @valueItem.value.primitive.number.num.is_a? Float
             raise InterpreterError, 'Invalid MODL version: ' + @valueItem.value.primitive.number.num.to_s if @valueItem.value.primitive.number.num.zero?
             raise InterpreterError, 'MODL version should be on the first line if specified.' if @global.has_pairs?
@@ -377,12 +377,14 @@ module MODL
           if @key.start_with? '_'
             k = Sutil.tail(@key)
             existing = @global.pair(k)
-            raise InterpreterError, 'Already defined ' + k + ' as final.' if existing&.final
+            raise InterpreterError, 'Already defined ' + k + ' as final.' if existing&.final && @type != "import"
+            raise InterpreterError, 'Cannot load multiple files after *LOAD instruction' if existing&.final && @type == "import"
 
             @global.pair(k, self)
           end
           existing = @global.pair(@key)
-          raise InterpreterError, 'Already defined ' + @key + ' as final.' if existing&.final
+          raise InterpreterError, 'Already defined ' + @key + ' as final.' if existing&.final && @type != "import"
+          raise InterpreterError, 'Cannot load multiple files after *LOAD instruction' if existing&.final && @type == "import"
 
           @global.pair(@key, self)
         end

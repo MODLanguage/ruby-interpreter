@@ -41,14 +41,14 @@ end
 
 a = <<~XXXXXXXX
 
-  *m=(
-  *id=m1;
-  *n=method1;
-  *t=u.d.u
+  _test=(
+    first=("v1"=(one=(two=three)))
   );
-  _x=abc;
-  str=%x.m1
+   
+  testing = %test.first.v1.0.0
 
 XXXXXXXX
 
 process_modl(a)
+puts
+puts 'Expected: Interpreter Error: Found a map when expecting an array'

@@ -110,7 +110,7 @@ module MODL
             end
           else
             new_value = nil
-            raise InterpreterError, 'Cannot resolve reference in : "' + str + '"' if str == original
+            raise InterpreterError, 'Invalid object reference: "' + str + '"' if str == original
           end
         end
         return new_value, str
@@ -142,7 +142,12 @@ module MODL
             result = if n.to_s == p
                        # Numeric ref
                        if !result.nil? && !result.respond_to?(:find_property)
-                         raise InterpreterError, 'Invalid object reference: ' + degraved
+                         if !result.is_a?(Parsed::ParsedArrayValueItem)
+                           t = result.class
+                           t = 'map' if result.is_a? Parsed::ParsedMapItem
+                           raise InterpreterError, 'Found a ' + t + ' when expecting an array'
+                         end
+                         raise InterpreterError, 'Invalid object reference: "' + degraved + '"'
                        end
                        result.nil? ? global.index_value(n, degraved) : result.find_property(n)
                      else
@@ -198,7 +203,7 @@ module MODL
                          nil
                        else
                          if !result.nil? && !result.respond_to?(:find_property)
-                           raise InterpreterError, 'Invalid object reference: ' + degraved
+                           raise InterpreterError, 'Invalid object reference: "' + degraved + '"'
                          end
                          if result.nil?
                            unless ref.start_with?('%`')
