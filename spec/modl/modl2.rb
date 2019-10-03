@@ -67,7 +67,9 @@ a = <<~XXXXXXXX
   data(
     p[[John;18];[Jane;20]];
     person=[Fred;21]
-  )
+  );
+  p[[Mary;18];[Mungo;19];[Midge;20]];
+  person=[Rod;23]
 
 XXXXXXXX
 

@@ -46,7 +46,7 @@ module MODL
 
       private
 
-      # Process the contents of the supplied hash obj
+      # Process the contents of the supplied array
       def self.process_array(global, the_array, k, value)
 
         return [k, value] if value.length.zero?
@@ -78,7 +78,7 @@ module MODL
           result << object
         end
 
-        return [the_array.of, result]
+        return [the_array.name_or_id, result]
       end
 
       # Replace the existing object with the new array instance and a new key
