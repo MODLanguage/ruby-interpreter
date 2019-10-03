@@ -1,3 +1,8 @@
+0.3.16
+===
+- Use latest ruby runtime.
+- Add support for `*array` keyword.
+
 0.3.15
 ===
 - Interpreter Error: undefined method `text' for nil:NilClass. GitHub issue #23

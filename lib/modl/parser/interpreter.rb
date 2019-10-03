@@ -27,6 +27,7 @@ require 'modl/parser/MODLParserVisitor'
 require 'modl/parser/MODLLexer'
 require 'modl/parser/MODLParser'
 require 'modl/parser/class_processor'
+require 'modl/parser/array_processor'
 require 'modl/parser/orphan_handler'
 require 'modl/parser/parser'
 require 'json'
@@ -68,6 +69,7 @@ module MODL
 
     # Process any class definitions used by the MODL file.
     MODL::Parser::ClassProcessor.process(parsed.global, interpreted)
+    MODL::Parser::ArrayProcessor.process(parsed.global, interpreted)
     MODL::Parser::InstructionProcessor.process(parsed.global, interpreted)
     # If the result is a simple string then just return it.
     interpreted

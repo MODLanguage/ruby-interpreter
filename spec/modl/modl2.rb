@@ -41,14 +41,34 @@ end
 
 a = <<~XXXXXXXX
 
-  _test=(
-    first=("v1"=(one=(two=three)))
+  *array(
+      *id=p;
+      *name=people;
+      *of=person
   );
-   
-  testing = %test.first.v1.0.0
+
+  *class(
+    *id=n;
+    *name=name
+  );
+
+  *class(
+    *id=a;
+    *name=age
+  );
+
+  *class(
+    *id=person;
+    *assign=[
+      [n;a]
+    ]
+  );
+
+  data(
+    p[[John;18];[Jane;20]];
+    person=[Fred;21]
+  )
 
 XXXXXXXX
 
 process_modl(a)
-puts
-puts 'Expected: Interpreter Error: Found a map when expecting an array'

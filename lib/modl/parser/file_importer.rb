@@ -49,7 +49,7 @@ module MODL
           force = file_name.end_with?('!')
           file_name = Sutil.head(file_name) if force
           file_name << '.modl' unless file_name.end_with?('.txt', '.modl')
-          file_name, new_val = RefProcessor.deref file_name, global if file_name.include?('%')
+          file_name, _new_val = RefProcessor.deref file_name, global if file_name.include?('%')
           if force
             # Don't use the cache if we're forcing a reload.
             @cache.evict(file_name)

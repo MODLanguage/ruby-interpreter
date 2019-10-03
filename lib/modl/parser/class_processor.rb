@@ -57,7 +57,7 @@ module MODL
             new_k, new_v = process_class global, k, value
             # Replace the existing object with the new class instance and a new key
             # We need to keep the same key order, hence this method below
-            replaceValue(obj, k, new_k, new_v)
+            replace_value(obj, k, new_k, new_v)
           else
             new_v = value
           end
@@ -66,7 +66,7 @@ module MODL
         end
       end
 
-      def self.replaceValue(obj, old_k, new_k, new_v)
+      def self.replace_value(obj, old_k, new_k, new_v)
         tmp = obj.dup
         obj.clear
         tmp.keys.each do |tmpk|
@@ -252,7 +252,7 @@ module MODL
 
             # Replace the value for this key if we've changed anything.
             if new_value[new_k] != new_v
-              replaceValue(new_value, new_k, new_k, new_v)
+              replace_value(new_value, new_k, new_k, new_v)
             end
           end
         elsif new_value.is_a?(Array)

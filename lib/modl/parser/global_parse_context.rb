@@ -56,6 +56,9 @@ module MODL
         @syntax_version = 1
         @interpreter_syntax_version = 1
         @loaded_files = []
+        # Arrays
+        @arrays_by_id = {}
+        @arrays_by_name = {}
       end
 
       def loaded_file(str)
@@ -103,6 +106,17 @@ module MODL
         end
       end
 
+      def arrays(key)
+        if key.is_a? String
+          result = @arrays_by_id[key]
+          result = @arrays_by_name[key] if result.nil?
+          result
+        elsif key.is_a? MODLArray
+          @arrays_by_id[key.id] = key if key.id
+          @arrays_by_name[key.name] = key if key.name
+        end
+      end
+
       def merge_pairs(other)
         @pairs.merge!(other.all_pairs)
       end
@@ -123,6 +137,10 @@ module MODL
 
       def has_class?(key)
         @classes_by_id.keys.include?(key) || @classes_by_name.keys.include?(key)
+      end
+
+      def has_array?(key)
+        @arrays_by_id.keys.include?(key) || @arrays_by_name.keys.include?(key)
       end
 
       def has_user_method?(key)
