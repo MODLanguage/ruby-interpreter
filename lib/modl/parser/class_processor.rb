@@ -299,6 +299,9 @@ module MODL
             keys = key_list(global, clazz, 1)
             lam = ->(i) { v }
             return v if keys.length.zero?
+          else
+            # TODO: make sure there is a *assign!
+            raise StandardError, 'cannot use "*assign" to populate a map'
           end
         end
 
