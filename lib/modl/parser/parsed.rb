@@ -30,7 +30,6 @@ require 'modl/parser/file_importer'
 require 'antlr4/runtime/parse_cancellation_exception'
 require 'modl/parser/sutil'
 require 'modl/parser/modl_class'
-require 'modl/parser/modl_array'
 require 'modl/parser/modl_method'
 require 'modl/parser/modl_index'
 require 'modl/parser/modl_keylist'
@@ -287,7 +286,6 @@ module MODL
           return if @type == 'import'
           return if @type == 'allow'
           return if @type == 'expect'
-          return if @type == 'array'
 
           {@key => @text}
         end
@@ -340,8 +338,6 @@ module MODL
           case @type
           when 'class'
             ClassExtractor.extract(self, @global)
-          when 'array'
-            ArrayExtractor.extract(self, @global)
           when 'id'
             extract_value
           when 'name'
@@ -484,8 +480,6 @@ module MODL
           @type = 'hidden' if @key.start_with? '_'
           @type = 'allow' if @key.downcase == '*allow'
           @type = 'expect' if @key.downcase == '*expect'
-          @type = 'of' if @key.downcase == '*of'
-          @type = 'array' if @key.downcase == '*array'
         end
       end
 
