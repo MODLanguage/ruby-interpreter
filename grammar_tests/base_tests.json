@@ -3011,5 +3011,14 @@
       "escape"
     ],
     "minimised_modl": "_letters=abc;key=\"\\%letters\""
+  },
+  {
+    "id": "316",
+    "input": "*class(\n  *id=numbers;\n  *assign=[[one;two;three]]\n);\n*class(\n  *id=letters;\n  *assign=[[a;b;c]]\n);\n*class(\n  *id=myArray;\n  *assign=[[letters;numbers]]\n);\nmyArray=[[a;b;c];[1;2;3]]",
+    "expected_output": "{\n  \"myArray\": [\n    {\n      \"a\": \"a\",\n      \"b\": \"b\",\n      \"c\": \"c\"\n    },\n    {\n      \"one\": 1,\n      \"two\": 2,\n      \"three\": 3\n    }\n  ]\n}",
+    "tested_features": [
+      "class"
+    ],
+    "minimised_modl": "*class(*id=numbers;*assign=[[one;two;three]]);*class(*id=letters;*assign=[[a;b;c]]);*class(*id=myArray;*assign=[[letters;numbers]]);myArray=[[a;b;c];[1;2;3]]"
   }
 ]

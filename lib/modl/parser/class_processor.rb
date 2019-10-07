@@ -137,7 +137,11 @@ module MODL
           # and the rules defined here: https://github.com/MODLanguage/grammar/wiki/Class-Supertype-Processing
           #
           if has_assign_statement?(clazz, global)
-            tc = 'map'
+            if all_assignment_keys_are_classes(clazz, global)
+              tc = 'arr'
+            else
+              tc = 'map'
+            end
           else
             if has_inherited_pairs?(clazz, global)
               tc = 'map'
@@ -181,7 +185,9 @@ module MODL
           new_value = nil
         elsif tc == 'arr'
           if v.is_a? Array
-            new_value = v
+            if new_value.is_a? Hash
+              new_value = new_value.values
+            end
           elsif v.is_a? Hash
             raise InterpreterError, 'Interpreter Error: Cannot convert map to array: ' + v.to_s
           else
@@ -204,6 +210,17 @@ module MODL
         end
 
         [clazz.name_or_id, new_value]
+      end
+
+      def self.all_assignment_keys_are_classes clazz, global
+        lists = key_lists global, clazz
+        result = true
+        lists.each do |list|
+          list.each do |item|
+            result &= !global.classs(item).nil?
+          end
+        end
+        result
       end
 
       # Bring down values from the superclass hierarchy
@@ -276,11 +293,11 @@ module MODL
             if keys.empty?
               return v
             else
-              lam = ->(i) {v[i]}
+              lam = ->(i) { v[i] }
             end
           elsif !v.is_a?(Hash)
             keys = key_list(global, clazz, 1)
-            lam = ->(i) {v}
+            lam = ->(i) { v }
             return v if keys.length.zero?
           end
         end
@@ -293,15 +310,25 @@ module MODL
           process_obj global, new_value[nk]
         end
 
+        process_nested_classes(global, new_value)
         clazz.merge_content(new_value)
       end
 
+      # Find a *assign key list of a specific length
       def self.key_list(global, clazz, len)
         return [] if clazz.nil?
         list = clazz.keylist_of_length(len)
         return list if !list.nil? && list.length > 0
         superclass = global.classs(clazz.superclass)
         key_list(global, superclass, len)
+      end
+
+      # Find all *assign key lists
+      def self.key_lists(global, clazz)
+        return [] if clazz.nil?
+        list = clazz.assign
+        superclass = global.classs(clazz.superclass)
+        return list + key_lists(global, superclass)
       end
 
       # Get the top level class for the supplied class

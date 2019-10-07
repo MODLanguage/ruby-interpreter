@@ -41,35 +41,19 @@ end
 
 a = <<~XXXXXXXX
 
-  *array(
-      *id=p;
-      *name=people;
-      *of=person
-  );
-
   *class(
-    *id=n;
-    *name=name
+    *id=numbers;
+    *assign=[[one;two;three]]
   );
-
   *class(
-    *id=a;
-    *name=age
+    *id=letters;
+    *assign=[[a;b;c]]
   );
-
   *class(
-    *id=person;
-    *assign=[
-      [n;a]
-    ]
+    *id=myArray;
+    *assign=[[letters;numbers]]
   );
-
-  data(
-    p[[John;18];[Jane;20]];
-    person=[Fred;21]
-  );
-  p[[Mary;18];[Mungo;19];[Midge;20]];
-  person=[Rod;23]
+  myArray=[[a;b;c];[1;2;3]]
 
 XXXXXXXX
 
