@@ -90,7 +90,17 @@ module MODL
             break unless new_str && new_str != prev
           end
         end
-        new_str
+        convert_unicode new_str
+      end
+
+      def self.convert_unicode(s)
+        uni_str_idx = s.index('\u')
+        return s if uni_str_idx.nil?
+        value = s.slice(uni_str_idx + 2, 4).to_i(16)
+        uni_str = s.slice(uni_str_idx, 6)
+        uni_val = value.chr(Encoding::UTF_8)
+        result = s.sub(uni_str, uni_val)
+        return convert_unicode result
       end
     end
   end

@@ -39,38 +39,6 @@ def process_modl(a)
 
 end
 
-a = <<~XXXXXXXX
-
-  *array(
-      *id=p;
-      *name=people;
-      *of=person
-  );
-
-  *class(
-    *id=n;
-    *name=name
-  );
-
-  *class(
-    *id=a;
-    *name=age
-  );
-
-  *class(
-    *id=person;
-    *assign=[
-      [n;a]
-    ]
-  );
-
-  data(
-    p[[John;18];[Jane;20]];
-    person=[Fred;21]
-  );
-  p[[Mary;18];[Mungo;19];[Midge;20]];
-  person=[Rod;23]
-
-XXXXXXXX
+a = 'We\\u2019re=We\\u2019re'
 
 process_modl(a)
