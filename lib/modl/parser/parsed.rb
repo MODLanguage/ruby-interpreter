@@ -289,7 +289,8 @@ module MODL
           return if @type == 'expect'
           return if @type == 'array'
 
-          {@key => @text}
+          formatted_key = Substitutions.process @key
+          {formatted_key => @text}
         end
 
         def enterModl_pair(ctx)
