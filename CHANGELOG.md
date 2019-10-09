@@ -1,3 +1,8 @@
+0.3.17
+===
+- Remove support for `*array`.
+- Add support for unicode escape sequences.
+
 0.3.16
 ===
 - Use latest ruby runtime.
