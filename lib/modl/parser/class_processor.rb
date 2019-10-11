@@ -111,8 +111,8 @@ module MODL
           return [k, v]
         end
 
-        if k == clazz.name && !(v.is_a?(Array) || v.is_a?(Hash))
-          new_value = transform_to_class(clazz, global, [v], true)
+        if k == clazz.name && !v.is_a?(Array)
+          new_value = transform_to_class(clazz, global, [v], v.is_a?(Hash))
           if new_value.is_a?(Array) && new_value.length == 1
             return [clazz.name_or_id, new_value[0]]
           else
@@ -120,7 +120,7 @@ module MODL
           end
         end
 
-        new_value = transform_to_class(clazz, global, v)
+        new_value = transform_to_class(clazz, global, v, v.is_a?(Hash))
 
         if v.is_a?(Array)
           new_value = v if new_value.empty?
@@ -137,7 +137,7 @@ module MODL
           # and the rules defined here: https://github.com/MODLanguage/grammar/wiki/Class-Supertype-Processing
           #
           if has_assign_statement?(clazz, global)
-            if all_assignment_keys_are_classes(clazz, global)
+            if all_assignment_keys_are_classes?(clazz, global)
               tc = 'arr'
             else
               tc = 'map'
@@ -212,12 +212,13 @@ module MODL
         [clazz.name_or_id, new_value]
       end
 
-      def self.all_assignment_keys_are_classes clazz, global
+      def self.all_assignment_keys_are_classes? clazz, global
         lists = key_lists global, clazz
         result = true
         lists.each do |list|
           list.each do |item|
-            result &= !global.classs(item).nil?
+            global_class = global.classs(item)
+            result &= (!global_class.nil? && has_assign_statement?(global_class, global))
           end
         end
         result
@@ -288,6 +289,7 @@ module MODL
         # Process the key list if we found one otherwise raise an error
         # Slightly different processing for hashes and arrays
         unless ignore_assign
+          raise StandardError, 'cannot use "*assign" to populate a map: ' + clazz.id if has_assign_statement?(clazz, global) && clazz.superclass == 'map' && !v.is_a?(Array)
           if v.is_a? Array
             keys = key_list(global, clazz, v.length)
             if keys.empty?
@@ -300,13 +302,24 @@ module MODL
             lam = ->(i) { v }
             return v if keys.length.zero?
           else
-            # TODO: make sure there is a *assign!
-            raise StandardError, 'cannot use "*assign" to populate a map'
+            raise StandardError, 'cannot use "*assign" to populate a map: ' + clazz.id if has_assign_statement?(clazz, global)
           end
         end
 
-        keys&.each_index do |i|
-          new_value[keys[i]] = lam.call(i)
+        if keys.nil?
+          if v.is_a?(Hash)
+            new_value.merge v
+          elsif v.is_a?(Array) && v.length > 0
+            v.each do |item|
+              if item.is_a?(Hash)
+                new_value.merge! item
+              end
+            end
+          end
+        else
+          keys.each_index do |i|
+            new_value[keys[i]] = lam.call(i)
+          end
         end
 
         new_value.keys do |nk|
