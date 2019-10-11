@@ -2,6 +2,7 @@
 ===
 - Remove support for `*array`.
 - Add support for unicode escape sequences including `~unnnn` and `\unnnn`
+- Update `*assign` processing to support a more compact form
 
 0.3.16
 ===
