@@ -3014,6 +3014,15 @@
   },
   {
     "id": "316",
+    "input": "We\\\\u2019re=We\\\\u2019re;You~u2019re=We~u2019re",
+    "expected_output": "{\n  \"We’re\": \"We’re\",\n  \"You’re\": \"We’re\"\n}",
+    "tested_features": [
+      "unicode"
+    ],
+    "minimised_modl": "We\\\\u2019re=We\\\\u2019re;You~u2019re=We~u2019re"
+  },
+  {
+    "id": "317",
     "input": "*class(\n  *id=numbers;\n  *assign=[[one;two;three]]\n);\n*class(\n  *id=letters;\n  *assign=[[a;b;c]]\n);\n*class(\n  *id=myArray;\n  *assign=[[letters;numbers]]\n);\nmyArray=[[a;b;c];[1;2;3]]",
     "expected_output": "{\n  \"myArray\": [\n    {\n      \"a\": \"a\",\n      \"b\": \"b\",\n      \"c\": \"c\"\n    },\n    {\n      \"one\": 1,\n      \"two\": 2,\n      \"three\": 3\n    }\n  ]\n}",
     "tested_features": [

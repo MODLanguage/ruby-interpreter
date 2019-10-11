@@ -287,7 +287,8 @@ module MODL
           return if @type == 'allow'
           return if @type == 'expect'
 
-          {@key => @text}
+          formatted_key = Substitutions.process @key
+          {formatted_key => @text}
         end
 
         def enterModl_pair(ctx)

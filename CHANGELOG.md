@@ -1,3 +1,8 @@
+0.3.17
+===
+- Remove support for `*array`.
+- Add support for unicode escape sequences including `~unnnn` and `\unnnn`
+
 0.3.16
 ===
 - Use latest ruby runtime.
@@ -12,7 +17,7 @@
 0.3.14
 ===
 - MODL Syntax Versioning errors update. GitHub issue #11
-- Support for escpaed % characters - GitHub issue #43
+- Support for escaped % characters - GitHub issue #43
 
 0.3.13
 ===
