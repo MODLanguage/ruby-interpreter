@@ -1,7 +1,7 @@
 0.3.17
 ===
 - Remove support for `*array`.
-- Add support for unicode escape sequences.
+- Add support for unicode escape sequences including `~unnnn` and `\unnnn`
 
 0.3.16
 ===

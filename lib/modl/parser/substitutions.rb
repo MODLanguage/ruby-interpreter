@@ -95,7 +95,9 @@ module MODL
 
       def self.convert_unicode(s)
         uni_str_idx = s.index('\u')
+        uni_str_idx = s.index('~u') if uni_str_idx.nil?
         return s if uni_str_idx.nil?
+
         value = s.slice(uni_str_idx + 2, 4).to_i(16)
         uni_str = s.slice(uni_str_idx, 6)
         uni_val = value.chr(Encoding::UTF_8)

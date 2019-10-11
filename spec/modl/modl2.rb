@@ -39,6 +39,6 @@ def process_modl(a)
 
 end
 
-a = 'We\\u2019re=We\\u2019re'
+a = 'We\\u2019re=We\\u2019re;You~u2019re=We~u2019re'
 
 process_modl(a)
