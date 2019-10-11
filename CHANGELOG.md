@@ -1,3 +1,7 @@
+0.3.19
+===
+- Fix bug with `*assign` when there is only 1 item in the array.
+
 0.3.18
 ===
 - Fix problems with `*assign`.
