@@ -67,7 +67,7 @@ module MODL
     interpreted = parsed.extract_hash
 
     # Process any class definitions used by the MODL file.
-    MODL::Parser::ClassProcessor.process(parsed.global, interpreted)
+    interpreted = MODL::Parser::ClassProcessor.process(parsed.global, interpreted)
     MODL::Parser::InstructionProcessor.process(parsed.global, interpreted)
     # If the result is a simple string then just return it.
     interpreted

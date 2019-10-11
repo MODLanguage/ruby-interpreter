@@ -36,6 +36,21 @@ module MODL
         raise StandardError, 'parameter "global" should be a GlobalParseContext' unless global.is_a?(GlobalParseContext)
 
         if obj.is_a? Array
+          root_class = global.classs 'root'
+          unless root_class.nil?
+            root_class_assign = root_class.assign[0][0]
+            new_obj = {root_class_assign => obj}
+            obj = new_obj
+          end
+        end
+        process_recursive global, obj
+        return obj
+      end
+
+      private
+
+      def self.process_recursive(global, obj)
+        if obj.is_a? Array
           obj.each do |o|
             process_obj global, o if o.is_a? Hash
           end
@@ -43,8 +58,6 @@ module MODL
           process_obj global, obj
         end
       end
-
-      private
 
       # Process the contents of the supplied hash obj
       def self.process_obj(global, obj)
@@ -62,7 +75,7 @@ module MODL
             new_v = value
           end
           # Recurse into the value in case it has contents that also refer to classes.
-          process global, new_v
+          process_recursive global, new_v
         end
       end
 
