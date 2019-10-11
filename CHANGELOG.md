@@ -1,3 +1,7 @@
+0.3.18
+===
+- Fix problems with `*assign`.
+
 0.3.17
 ===
 - Remove support for `*array`.

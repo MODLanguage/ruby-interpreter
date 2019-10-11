@@ -41,8 +41,30 @@ module MODL
             raise StandardError, 'root class has no *assign statement.' if root_class.assign.nil?
             raise StandardError, 'root class *assign statement should be of the form "*assign=[[class_name]]".' if root_class.assign.length > 1 || root_class.assign[0].length > 1
             root_class_assign = root_class.assign[0][0]
-            new_obj = {root_class_assign => obj}
+
+            array_class = global.classs root_class_assign
+            classes = array_class.keylist_of_length obj.length
+            new_obj = []
+
+            # The top level array can be an array of arrays or an array of hashes, so we need to handle both.
+            obj.each_index do |i|
+              item = obj[i]
+              if item.is_a? Array
+                new_obj << {classes[i] => item}
+              elsif item.is_a? Hash
+                new_obj << item
+              end
+            end
+
             obj = new_obj
+            process_recursive global, obj
+
+            result = []
+            obj.each_index do |i|
+              result << obj[i][global.classs(classes[i]).name_or_id]
+            end
+
+            return result
           end
         end
         process_recursive global, obj

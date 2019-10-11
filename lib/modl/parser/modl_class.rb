@@ -45,6 +45,13 @@ module MODL
         @assign.each do |kl|
           return kl if kl.length == len
         end
+
+        # *assign can support iteration, e.g. *assign=[[person*]]
+        # so return a list of the right length in this case
+        if @assign.length == 1 && @assign[0].length == 1 && @assign[0][0].end_with?('*')
+          key = Sutil.head @assign[0][0]
+          return Array.new(len, key)
+        end
         raise InterpreterError,
               'Interpreter Error: No key list of the correct length in class ' + @id + ' - looking for one of length ' + len.to_s
       end
