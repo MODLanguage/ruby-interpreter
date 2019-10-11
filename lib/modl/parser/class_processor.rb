@@ -38,6 +38,8 @@ module MODL
         if obj.is_a? Array
           root_class = global.classs 'root'
           unless root_class.nil?
+            raise StandardError, 'root class has no *assign statement.' if root_class.assign.nil?
+            raise StandardError, 'root class *assign statement should be of the form "*assign=[[class_name]]".' if root_class.assign.length > 1 || root_class.assign[0].length > 1
             root_class_assign = root_class.assign[0][0]
             new_obj = {root_class_assign => obj}
             obj = new_obj
