@@ -57,7 +57,8 @@ def success_tests(data)
         next
       end
 
-      puts 'Test ID: ' + test_case['id'].to_s
+      id = test_case['id'].to_s
+      puts 'Test ID: ' + id
       puts 'Test Input: ' + test_case['input']
 
       result = MODL::Interpreter.interpret test_case['input']
@@ -69,10 +70,10 @@ def success_tests(data)
       puts 'Expected  : ' + expected
       puts 'Found     : ' + result
       if result == expected
-        puts 'Test ' + i.to_s + ' passed.'
+        puts 'Test ' + id + ' passed.'
         success += 1
       else
-        puts 'Test ' + i.to_s + ' failed.'
+        puts 'Test ' + id + ' failed.'
         failed += 1
         break if exit_on_fail
       end
@@ -81,7 +82,7 @@ def success_tests(data)
       puts e.backtrace
       puts 'Expected  : ' + expected.to_s
       puts 'Found     : ' + result.to_s
-      puts 'Test ' + i.to_s + ' failed.'
+      puts 'Test ' + id + ' failed.'
       failed += 1
       break if exit_on_fail
     end
@@ -106,7 +107,8 @@ def failure_tests(data)
         next
       end
 
-      puts 'Test ID: ' + test_case['id'].to_s
+      id = test_case['id'].to_s
+      puts 'Test ID: ' + id
       puts 'Test Input: ' + test_case['input']
       expected = test_case['expected_output']
 
@@ -114,14 +116,14 @@ def failure_tests(data)
       puts 'Expected  : ' + expected
       puts 'Found     : ' + result
       failed += 1
-      puts 'Test ' + test_case['id'].to_s + ' failed.'
+      puts 'Test ' + id + ' failed.'
       break if exit_on_fail
     rescue StandardError => e
       if expected.to_s == e.message
         success += 1
       else
         failed += 1
-        puts 'Test ' + test_case['id'].to_s + ' failed.'
+        puts 'Test ' + id + ' failed.'
       end
       puts 'Expected  : ' + expected.to_s
       puts 'Found     : ' + e.message

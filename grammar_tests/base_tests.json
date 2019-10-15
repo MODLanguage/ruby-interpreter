@@ -3014,12 +3014,12 @@
   },
   {
     "id": "316",
-    "input": "We\\\\u2019re=We\\\\u2019re;You~u2019re=We~u2019re",
+    "input": "We\\u2019re=We\\u2019re;You~u2019re=We~u2019re",
     "expected_output": "{\n  \"We’re\": \"We’re\",\n  \"You’re\": \"We’re\"\n}",
     "tested_features": [
       "unicode"
     ],
-    "minimised_modl": "We\\\\u2019re=We\\\\u2019re;You~u2019re=We~u2019re"
+    "minimised_modl": "We\\u2019re=We\\u2019re;You~u2019re=We~u2019re"
   },
   {
     "id": "317",
@@ -3056,5 +3056,35 @@
       "class"
     ],
     "minimised_modl": "*class(*id=m;*name=message;*superclass=map;*assign=[[direction;date_time;message]];method=sms);[m=out:2018-03-22 15\\:25:Hi;m=in:2018-03-22 15\\:26:Hello, how are you?;m=out:2018-03-22 15\\:25:Hi, good thanks;m=out:2018-03-22 15\\:26:How about you?;m=in:2018-03-22 1\\:26:Yes, fine thanks. What are you up to?;m=out:2018-03-22 15\\:25:Just testing out MODL;m=in:2018-03-22 15\\:26:Cool!]"
+  },
+  {
+    "id": "321",
+    "input": "test=\\~u2019",
+    "expected_output": "{\n    \"test\": \"~u2019\"\n}",
+    "tested_features": [
+      "unicode",
+      "escapes"
+    ],
+    "minimised_modl": "test=\\~u2019"
+  },
+  {
+    "id": "322",
+    "input": "test=\\\\u2019",
+    "expected_output": "{\n    \"test\": \"\\\\u2019\"\n}",
+    "tested_features": [
+      "unicode",
+      "escapes"
+    ],
+    "minimised_modl": "test=\\\\u2019"
+  },
+  {
+    "id": "323",
+    "input": "test=\\\\~u2019\\\\u2019~u2019\\\\u2019",
+    "expected_output": "{\n    \"test\": \"~u2019\\\\u2019\u2019\\\\u2019\"\n}",
+    "tested_features": [
+      "unicode",
+      "escapes"
+    ],
+    "minimised_modl": "test=\\\\~u2019\\\\u2019~u2019\\\\u2019"
   }
 ]

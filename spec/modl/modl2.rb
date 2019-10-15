@@ -41,19 +41,7 @@ end
 
 a = <<~XXXXXXXX
 
-  *class(
-    *id=numbers;
-    *assign=[[one;two;three]]
-  );
-  *class(
-    *id=letters;
-    *assign=[[a;b;c]]
-  );
-  *class(
-    *id=myArray;
-    *assign=[[letters;numbers]]
-  );
-  myArray=[[a;b;c];[1;2;3]]
+  test=\\\\u2019
 
 XXXXXXXX
 

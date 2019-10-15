@@ -1,3 +1,7 @@
+0.3.20
+===
+- Support escaping unicode escape sequences so they are not replaced by unicode characters.
+
 0.3.19
 ===
 - Fix bug with `*assign` when there is only 1 item in the array.

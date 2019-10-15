@@ -22,8 +22,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-module MODL
-  module Parser
-    VERSION = "0.3.20"
+require 'modl/parser/substitutions'
+
+RSpec.describe MODL::Parser::Substitutions do
+  it "can substitute escape sequences correctly" do
+
+    test = "~% \\% ~\\ \\\\ ~~ \\~ ~( \\( ~) \\) ~[ \\[ ~] \\] ~{ \\{ ~} \\} ~; \\; ~: \\: ~` \\` ~\" \\\" ~= \\= ~/ \\/ < \\< ~> \\> ~& \\& ! \\! ~| \\| \\t \\n \\b \\f \\r"
+
+    result = MODL::Parser::Substitutions.process test
+    expect(result).to eq "% % \\ \\ ~ ~ ( ( ) ) [ [ ] ] { { } } ; ; : : ` ` \" \" = = / / < < > > & & ! ! | | \t \n \b \f \r"
   end
 end
