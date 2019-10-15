@@ -23,30 +23,36 @@
 # THE SOFTWARE.
 
 require 'modl/parser/substitutions'
+require 'modl/parser/unicode_escapes'
 
-RSpec.describe MODL::Parser::Substitutions do
+RSpec.describe MODL::Parser::UnicodeEscapes do
   it "can replace a single escape sequence when backslash syntax is used" do
-    result = MODL::Parser::Substitutions.convert_unicode "\\u2019"
+    result = MODL::Parser::UnicodeEscapes.process "\\u2019"
     expect(result).to eq "\u2019"
   end
   it "can replace multiple escape sequences when backslash syntax is used" do
-    result = MODL::Parser::Substitutions.convert_unicode "\\u2019\\u2019"
+    result = MODL::Parser::UnicodeEscapes.process "\\u2019\\u2019"
     expect(result).to eq "\u2019\u2019"
   end
   it "can replace a single escape sequence when tilde syntax is used" do
-    result = MODL::Parser::Substitutions.convert_unicode "~u2019"
+    result = MODL::Parser::UnicodeEscapes.process "~u2019"
     expect(result).to eq "\u2019"
   end
   it "can replace multiple escape sequences when tilde syntax is used" do
-    result = MODL::Parser::Substitutions.convert_unicode "~u2019~u2019"
+    result = MODL::Parser::UnicodeEscapes.process "~u2019~u2019"
     expect(result).to eq "\u2019\u2019"
   end
   it "can replace multiple escape sequences when mixed backslash and tilde syntax is used" do
-    result = MODL::Parser::Substitutions.convert_unicode "~u2019\\u2019"
+    result = MODL::Parser::UnicodeEscapes.process "~u2019\\u2019"
     expect(result).to eq "\u2019\u2019"
   end
+end
+
+RSpec.describe MODL::Parser::Substitutions do
   it "can prevent replacement of multiple escape sequences when mixed backslash and tilde syntax is used, by escaping the escapes" do
-    result = MODL::Parser::Substitutions.process "\\~u2019\\\\u2019, ~u2019\\u2019"
+    text = "\\~u2019\\\\u2019, ~u2019\\u2019"
+    text = MODL::Parser::UnicodeEscapes.process text
+    result = MODL::Parser::Substitutions.process text
     expect(result).to eq "~u2019\\u2019, \u2019\u2019"
   end
 end

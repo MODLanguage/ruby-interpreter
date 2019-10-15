@@ -82,8 +82,6 @@ module MODL
         # Remove unescaped graves and double quotes
         new_str = Sutil.unquote(str)
 
-        new_str = convert_unicode new_str
-
         # Handle escape sequences
         @@subs.each do |s|
           loop do
@@ -93,41 +91,6 @@ module MODL
           end
         end
         new_str
-      end
-
-      def self.convert_unicode(s)
-        start = 0
-        result = s
-        loop do
-
-          backslash_u = result.index('\u', start)
-          tilde_u = result.index('~u', start)
-
-          break if tilde_u.nil? && backslash_u.nil?
-
-          if tilde_u.nil?
-            uni_str_idx = backslash_u
-          elsif backslash_u.nil?
-            uni_str_idx = tilde_u
-          else
-            uni_str_idx = [backslash_u, tilde_u].min
-          end
-
-          break if uni_str_idx + 6 > result.length
-
-          start = uni_str_idx + 1
-
-          next if uni_str_idx > 0 && result[uni_str_idx - 1] == '~'
-          next if uni_str_idx > 0 && result[uni_str_idx - 1] == '\\'
-
-          value = result.slice(uni_str_idx + 2, 4).to_i(16)
-          uni_val = value.chr(Encoding::UTF_8)
-          left = result.slice(0, uni_str_idx)
-          right = result.slice(uni_str_idx + 6, result.length)
-          result = left + uni_val + right unless right.nil?
-          result = left + uni_val if right.nil?
-        end
-        result
       end
     end
   end
