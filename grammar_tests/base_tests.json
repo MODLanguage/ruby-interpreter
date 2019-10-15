@@ -3086,5 +3086,25 @@
       "escapes"
     ],
     "minimised_modl": "test=\\\\~u2019\\\\u2019~u2019\\\\u2019"
+  },
+  {
+    "id": "324",
+    "input": "test=~~u2019",
+    "expected_output": "{\n    \"test\": \"~u2019\"\n}",
+    "tested_features": [
+      "unicode",
+      "escapes"
+    ],
+    "minimised_modl": "test=~~u2019"
+  },
+  {
+    "id": "325",
+    "input": "test=\\~u2019",
+    "expected_output": "{\n    \"test\": \"~u2019\"\n}",
+    "tested_features": [
+      "unicode",
+      "escapes"
+    ],
+    "minimised_modl": "test=\\~u2019"
   }
 ]
