@@ -354,18 +354,24 @@ module MODL
               end
             end
           end
+          new_value.keys do |nk|
+            process_obj global, new_value[nk]
+          end
+
+          process_nested_classes(global, new_value)
+          clazz.merge_content(new_value)
         else
           keys.each_index do |i|
-            new_value[keys[i]] = lam.call(i)
+            tmp_value = {keys[i] => v[i]}
+            process_obj global, tmp_value
+            if !global.classs(keys[i]).nil? && !tmp_value[keys[i]].nil? && (tmp_value[keys[i]].is_a?(Hash) || tmp_value[keys[i]].is_a?(Array))
+              new_value[i] = tmp_value[keys[i]]
+            else
+              new_value.merge! tmp_value
+            end
           end
+          new_value
         end
-
-        new_value.keys do |nk|
-          process_obj global, new_value[nk]
-        end
-
-        process_nested_classes(global, new_value)
-        clazz.merge_content(new_value)
       end
 
       # Find a *assign key list of a specific length
