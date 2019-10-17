@@ -254,6 +254,7 @@ module MODL
         result = true
         lists.each do |list|
           list.each do |item|
+            item = Sutil.head(item) if item.end_with? '*'
             global_class = global.classs(item)
             result &= (!global_class.nil? && has_assign_statement?(global_class, global))
           end
