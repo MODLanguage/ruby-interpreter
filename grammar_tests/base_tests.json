@@ -3123,6 +3123,6 @@
     "tested_features": [
       "class"
     ],
-    "minimised_modl": "*class(*id=v;*name=variants;*assign=[[variant*]]);*class(*id=variant;*assign=[[key1;key2;key3]]);v[one:two:three]"
+    "minimised_modl": "*class(*id=v;*name=variants;*assign=[[variant*]]);*class(*id=variant;*assign=[[key1;key2;key3]]);v[[one;two;three];[four;five;six]]"
   }
 ]

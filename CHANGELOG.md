@@ -1,3 +1,7 @@
+0.3.21
+===
+- Bugfix for `*assign` processing.
+
 0.3.20
 ===
 - Support escaping unicode escape sequences so they are not replaced by unicode characters.

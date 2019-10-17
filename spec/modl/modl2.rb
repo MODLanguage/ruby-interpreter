@@ -41,7 +41,18 @@ end
 
 a = <<~XXXXXXXX
 
-  test=\\\\u2019
+  *class(
+    *id=v;
+    *name=variants;
+    *assign=[[variant*]]
+  );
+
+  *class(
+    *id=variant;
+    *assign=[[key1;key2;key3]]
+  );
+
+  v[[one;two;three];[four;five;six]]
 
 XXXXXXXX
 
