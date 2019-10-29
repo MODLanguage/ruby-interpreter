@@ -1,3 +1,7 @@
+0.3.22
+===
+- Two bug fixes - quoted strings, and incomplete strings for certain output situations.
+
 0.3.21
 ===
 - Bugfix for `*assign` processing.
