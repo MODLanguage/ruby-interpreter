@@ -346,7 +346,7 @@ module MODL
 
         if keys.nil?
           if v.is_a?(Hash)
-            new_value.merge v
+            new_value.merge! v
           elsif v.is_a?(Array) && v.length > 0
             v.each do |item|
               if item.is_a?(Hash)
@@ -360,6 +360,9 @@ module MODL
 
           process_nested_classes(global, new_value)
           clazz.merge_content(new_value)
+        elsif v.is_a? String
+          new_value[keys[0]] = v
+          new_value
         else
           keys.each_index do |i|
             tmp_value = {keys[i] => v[i]}
