@@ -715,7 +715,7 @@ module MODL
             @text = @string.string
           elsif !ctx_quoted.nil?
             @constant = true
-            @text = ctx_quoted.text
+            @text = Sutil.toptail ctx_quoted.text
             @quoted = ParsedQuoted.new(@text)
           elsif !ctx_null.nil?
             @nilVal = ParsedNull.instance
