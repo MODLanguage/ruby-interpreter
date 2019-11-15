@@ -1,3 +1,7 @@
+0.3.23
+===
+- Add support for 5- and 6-digit unicode escape sequences.
+
 0.3.22
 ===
 - Two bug fixes - quoted strings, and incomplete strings for certain output situations.

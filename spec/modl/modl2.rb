@@ -41,18 +41,7 @@ end
 
 a = <<~XXXXXXXX
 
-  *class(
-    *id=v;
-    *name=variants;
-    *assign=[[variant*]]
-  );
-
-  *class(
-    *id=variant;
-    *assign=[[key1;key2;key3]]
-  );
-
-  v[[one;two;three];[four;five;six]]
+  test=\~u1f60000
 
 XXXXXXXX
 

@@ -55,14 +55,57 @@ module MODL
           next if uni_str_idx > 0 && result[uni_str_idx - 1] == '~'
           next if uni_str_idx > 0 && result[uni_str_idx - 1] == '\\'
 
-          value = result.slice(uni_str_idx + 2, 4).to_i(16)
+          (value, len) = try_parse(result, uni_str_idx + 2)
           uni_val = value.chr(Encoding::UTF_8)
           left = result.slice(0, uni_str_idx)
-          right = result.slice(uni_str_idx + 6, result.length)
+          right = result.slice(uni_str_idx + (2 + len), result.length)
           result = left + uni_val + right unless right.nil?
           result = left + uni_val if right.nil?
         end
         result
+      end
+
+      def self.enough_digits?(str, idx, n)
+        i = 0
+        chars = str.chars
+        while i < n && (idx + i) < str.length
+          c = chars[idx + i]
+          unless (('0'..'9').include? c) || (('a'..'f').include? c) || (('A'..'F').include? c)
+            return false
+          end
+          i += 1
+        end
+        (i == n) ? true : false
+      end
+
+      # unicode can be 4 to 6 characters
+      def self.try_parse(str, idx)
+        if enough_digits?(str, idx, 6)
+          value = str.slice(idx, 6).to_i(16)
+          if valid_range? value
+            return [value, 6]
+          end
+        end
+        if enough_digits?(str, idx, 5)
+          value = str.slice(idx, 5).to_i(16)
+          if valid_range? value
+            return [value, 5]
+          end
+        end
+        if enough_digits?(str, idx, 4)
+          value = str.slice(idx, 4).to_i(16)
+          if valid_range? value
+            return [value, 4]
+          end
+          if valid_range? value
+            return [value, 4]
+          end
+        end
+        [0, 4]
+      end
+
+      def self.valid_range?(value)
+        return ((0x100000..0x10ffff).include? value) || ((0x10000..0xfffff).include? value) || ((0..0xd7ff).include? value) || ((0xe000..0xffff).include? value) ? true : false
       end
     end
   end

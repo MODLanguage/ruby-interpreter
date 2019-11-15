@@ -46,6 +46,20 @@ RSpec.describe MODL::Parser::UnicodeEscapes do
     result = MODL::Parser::UnicodeEscapes.process "~u2019\\u2019"
     expect(result).to eq "\u2019\u2019"
   end
+  it "can handle up to 6 characters for the unicode escape" do
+    result = MODL::Parser::UnicodeEscapes.process "~u1f476~u1f476"
+    expect(result).to eq "👶👶"
+    result = MODL::Parser::UnicodeEscapes.process "~u1f476"
+    expect(result).to eq "👶"
+    result = MODL::Parser::UnicodeEscapes.process "~u1f476x"
+    expect(result).to eq "👶x"
+    result = MODL::Parser::UnicodeEscapes.process "~u1f4760x"
+    expect(result).to eq "👶0x"
+    result = MODL::Parser::UnicodeEscapes.process "~u0020ac"
+    expect(result).to eq "€"
+    result = MODL::Parser::UnicodeEscapes.process "~u0020xy"
+    expect(result).to eq " xy"
+  end
 end
 
 RSpec.describe MODL::Parser::Substitutions do
