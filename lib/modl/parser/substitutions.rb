@@ -22,6 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'modl/parser/unicode_escape_replacer'
+
 module MODL
   module Parser
     # Escape-sequence replacements for MODL files.
@@ -82,6 +84,8 @@ module MODL
         # Remove unescaped graves and double quotes
         new_str = Sutil.unquote(str)
 
+        new_str = UnicodeEscapeReplacer.convert_unicode_sequences new_str
+
         # Handle escape sequences
         @@subs.each do |s|
           loop do
@@ -90,19 +94,7 @@ module MODL
             break unless new_str && new_str != prev
           end
         end
-        convert_unicode new_str
-      end
-
-      def self.convert_unicode(s)
-        uni_str_idx = s.index('\u')
-        uni_str_idx = s.index('~u') if uni_str_idx.nil?
-        return s if uni_str_idx.nil?
-
-        value = s.slice(uni_str_idx + 2, 4).to_i(16)
-        uni_str = s.slice(uni_str_idx, 6)
-        uni_val = value.chr(Encoding::UTF_8)
-        result = s.sub(uni_str, uni_val)
-        return convert_unicode result
+        new_str
       end
     end
   end

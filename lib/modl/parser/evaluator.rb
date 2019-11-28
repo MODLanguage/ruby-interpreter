@@ -32,10 +32,10 @@ module MODL
 
         start = 0
         if condition.text
-          value1, success = value(global, condition.text)
+          value1, success = value(global, condition.text, true)
         else
           start = 1
-          value1, success = value(global, condition.values[0].text)
+          value1, success = value(global, condition.values[0].text, true)
         end
 
 
@@ -56,7 +56,7 @@ module MODL
           if item.primitive.constant
             value2 = Substitutions.process(item.text)
           else
-            value2, success = value(global, item.text)
+            value2, success = value(global, item.text, false)
           end
           partial = false
           case condition.operator
@@ -86,7 +86,7 @@ module MODL
         result
       end
 
-      def self.value(global, k)
+      def self.value(global, k, replaceFromPairIfPossible)
         success = false
         if k.is_a?(String) && k.include?('%')
           value1, _ignore = MODL::Parser::RefProcessor.deref(k, global)
@@ -109,8 +109,9 @@ module MODL
           else
             pair = global.pair(key)
             return Substitutions.process(k) unless pair
-
-            value1 = Substitutions.process(pair.text)
+            if replaceFromPairIfPossible
+              value1 = Substitutions.process(pair.text)
+            end
           end
           success = true
         end
