@@ -58,6 +58,20 @@ module MODL
             end
             pair.key_lists << key_list
           end
+        elsif item.is_a?(Parsed::ParsedValueItem) && !item.value.nbArray.nil?
+          item.value.nbArray.arrayItems.each do |avi|
+            key_list = []
+            avi.arrayValueItem.array.abstractArrayItems.each do |key|
+              key_list << key.arrayValueItem.primitive.string.string if key.arrayValueItem.primitive.string
+              key_list << key.arrayValueItem.primitive.number.num if key.arrayValueItem.primitive.number
+            end
+            if key_list.length > last_keylist_len
+              last_keylist_len = key_list.length
+            else
+              raise InterpreterError, 'Error: Key lists in *assign are not in ascending order of list length.'
+            end
+            pair.key_lists << key_list
+          end
         else
           raise InterpreterError, 'Array of arrays expected for: ' + pair.key
         end

@@ -28,7 +28,7 @@ require 'modl'
 
 def process_modl(a)
   begin
-    str = MODL::Interpreter.interpret(a, true)
+    str = MODL::Interpreter.interpret(a, false)
     puts str
     return str
   rescue MODL::InterpreterError => e
@@ -39,22 +39,40 @@ def process_modl(a)
 
 end
 
-a = <<~XXXXXXXX
+a = [
+    "_test1=one;_one=two;{test1=`one`?result=match/?result=nomatch}",
+    "_test1=one;_one=two;{test1=one?result=match/?result=nomatch}",
 
-  *class(
-    *id=numbers;
-    *assign=[[one;two;three]]
-  );
-  *class(
-    *id=letters;
-    *assign=[[a;b;c]]
-  );
-  *class(
-    *id=myArray;
-    *assign=[[letters;numbers]]
-  );
-  myArray=[[a;b;c];[1;2;3]]
+    "_test1=a;_one=a; {test1=one? result=match/?result=nomatch}",
+    "_test1=a;_one=a; {test1=`one`? result=match/?result=nomatch}",
+    "_test1=a;_one=a; {test1='one'? result=match/?result=nomatch}",
+    "_test1=a;_one=a; {test1=\"one\"? result=match/?result=nomatch}",
 
-XXXXXXXX
+    "_test1=a;_one=b; {test1=one? result=match/?result=nomatch}",
+    "_test1=a;_one=b; {test1=`one`? result=match/?result=nomatch}",
+    "_test1=a;_one=b; {test1='one'? result=match/?result=nomatch}",
+    "_test1=a;_one=b; {test1=\"one\"? result=match/?result=nomatch}",
 
-process_modl(a)
+    "_test1=one; {test1=one? result=match/?result=nomatch}",
+    "_test1=one; {test1=`one`? result=match/?result=nomatch}",
+    "_test1=one; {test1='one'? result=match/?result=nomatch}",
+    "_test1=one; {test1=\"one\"? result=match/?result=nomatch}",
+
+    "_test1=x;_one=one; {test1=one? result=match/?result=nomatch}",
+    "_test1=x;_one=one; {test1=`one`? result=match/?result=nomatch}",
+    "_test1=x;_one=one; {test1='one'? result=match/?result=nomatch}",
+    "_test1=x;_one=one; {test1=\"one\"? result=match/?result=nomatch}",
+
+    "_test1=a;_one=a; {test1=a? result=match/?result=nomatch}",
+    "_test1=a;_one=a; {test1=`a`? result=match/?result=nomatch}",
+    "_test1=a;_one=a; {test1='a'? result=match/?result=nomatch}",
+    "_test1=a;_one=a; {test1=\"a\"? result=match/?result=nomatch}",
+
+    "_test1=a;_one=a; {one=a? result=match/?result=nomatch}",
+    "_test1=a;_one=a; {one=`a`? result=match/?result=nomatch}",
+    "_test1=a;_one=a; {one='a'? result=match/?result=nomatch}",
+    "_test1=a;_one=a; {one=\"a\"? result=match/?result=nomatch}",
+
+]
+
+a.each { |m| print m + "\t\t\t"; process_modl(m) }

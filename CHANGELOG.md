@@ -1,3 +1,29 @@
+0.3.24
+===
+- Use base_tests from the grammar repo.
+- Updated grammar to support minified MODL.
+- Bug fixes for handling minified MODL.
+
+0.3.23
+===
+- Add support for 5- and 6-digit unicode escape sequences.
+
+0.3.22
+===
+- Two bug fixes - quoted strings, and incomplete strings for certain output situations.
+
+0.3.21
+===
+- Bugfix for `*assign` processing.
+
+0.3.20
+===
+- Support escaping unicode escape sequences so they are not replaced by unicode characters.
+
+0.3.19
+===
+- Fix bug with `*assign` when there is only 1 item in the array.
+
 0.3.18
 ===
 - Fix problems with `*assign`.
