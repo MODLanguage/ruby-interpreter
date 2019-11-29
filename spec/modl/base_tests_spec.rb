@@ -47,7 +47,7 @@ def success_tests(data)
 
   exit_on_fail = false
 
-  use_minified = true # TODO: be sure to try both values!
+  use_minified = false # TODO: be sure to try both values!
 
   data.each_index do |i|
     begin

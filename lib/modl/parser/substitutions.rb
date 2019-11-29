@@ -22,6 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'modl/parser/unicode_escape_replacer'
+
 module MODL
   module Parser
     # Escape-sequence replacements for MODL files.
@@ -81,6 +83,8 @@ module MODL
 
         # Remove unescaped graves and double quotes
         new_str = Sutil.unquote(str)
+
+        new_str = UnicodeEscapeReplacer.convert_unicode_sequences new_str
 
         # Handle escape sequences
         @@subs.each do |s|

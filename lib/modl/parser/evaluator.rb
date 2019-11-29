@@ -32,10 +32,10 @@ module MODL
 
         start = 0
         if condition.text
-          value1, success = value(global, condition.text)
+          value1, success = value(global, condition.text, true)
         else
           start = 1
-          value1, success = value(global, condition.values[0].text)
+          value1, success = value(global, condition.values[0].text, true)
         end
 
 
@@ -54,9 +54,9 @@ module MODL
         while i < condition.values.length
           item = condition.values[i]
           if item.primitive.constant
-            value2 = Substitutions.process UnicodeEscapes.process(item.text)
+            value2 = Substitutions.process(item.text)
           else
-            value2, success = value(global, item.text)
+            value2, success = value(global, item.text, false)
           end
           partial = false
           case condition.operator
@@ -86,7 +86,7 @@ module MODL
         result
       end
 
-      def self.value(global, k)
+      def self.value(global, k, replaceFromPairIfPossible)
         success = false
         if k.is_a?(String) && k.include?('%')
           value1, _ignore = MODL::Parser::RefProcessor.deref(k, global)
@@ -105,12 +105,15 @@ module MODL
           if ikey.to_s == key
             index_val = global.index[ikey]
             value1 = index_val.respond_to?(:text) ? index_val.text : nil
-            value1 = Substitutions.process UnicodeEscapes.process(value1)
+            value1 = Substitutions.process(value1)
           else
             pair = global.pair(key)
-            return Substitutions.process UnicodeEscapes.process(k) unless pair
-
-            value1 = Substitutions.process UnicodeEscapes.process(pair.text)
+            return Substitutions.process(k) unless pair
+            if replaceFromPairIfPossible
+              value1 = Substitutions.process(pair.text)
+            else
+              value1 = k
+            end
           end
           success = true
         end

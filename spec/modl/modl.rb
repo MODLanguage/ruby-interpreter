@@ -40,7 +40,7 @@ end
 
 a = <<~XXXXXXXX
 
-  test1=one;one=two;{test1=one?result=match/?result=nomatch}
+_test1=one;_one=two;{test1=one?result=match/?result=nomatch}
 
 XXXXXXXX
 
