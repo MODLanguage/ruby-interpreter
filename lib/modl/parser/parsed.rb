@@ -25,6 +25,7 @@
 require 'modl/parser/MODLParserBaseListener'
 require 'modl/parser/global_parse_context'
 require 'modl/parser/ref_processor'
+require 'modl/parser/unicode_escapes'
 require 'modl/parser/substitutions'
 require 'modl/parser/file_importer'
 require 'antlr4/runtime/parse_cancellation_exception'
@@ -287,7 +288,7 @@ module MODL
           return if @type == 'allow'
           return if @type == 'expect'
 
-          formatted_key = Substitutions.process @key
+          formatted_key = Substitutions.process UnicodeEscapes.process @key
           {formatted_key => @text}
         end
 
@@ -667,14 +668,14 @@ module MODL
             if user_method
               return user_method.run(@string.string)
             end
-            return StandardMethods.run_method(key, Substitutions.process(@string.string))
+            StandardMethods.run_method(key, Substitutions.process(UnicodeEscapes.process(@string.string)))
           end
         end
 
         def extract_hash
           result, _ignore = RefProcessor.deref(@text, @global) unless @constant
           result = @text if @constant
-          Substitutions.process result
+          Substitutions.process UnicodeEscapes.process result
         end
 
         def evaluate
@@ -714,7 +715,7 @@ module MODL
             @text = @string.string
           elsif !ctx_quoted.nil?
             @constant = true
-            @text = ctx_quoted.text
+            @text = Sutil.toptail ctx_quoted.text
             @quoted = ParsedQuoted.new(@text)
           elsif !ctx_null.nil?
             @nilVal = ParsedNull.instance
@@ -743,7 +744,7 @@ module MODL
         end
 
         def extract_hash
-          @string = Substitutions.process @string
+          @string = Substitutions.process UnicodeEscapes.process @string
         end
       end
 

@@ -254,6 +254,7 @@ module MODL
         result = true
         lists.each do |list|
           list.each do |item|
+            item = Sutil.head(item) if item.end_with? '*'
             global_class = global.classs(item)
             result &= (!global_class.nil? && has_assign_statement?(global_class, global))
           end
@@ -345,7 +346,7 @@ module MODL
 
         if keys.nil?
           if v.is_a?(Hash)
-            new_value.merge v
+            new_value.merge! v
           elsif v.is_a?(Array) && v.length > 0
             v.each do |item|
               if item.is_a?(Hash)
@@ -353,18 +354,27 @@ module MODL
               end
             end
           end
+          new_value.keys do |nk|
+            process_obj global, new_value[nk]
+          end
+
+          process_nested_classes(global, new_value)
+          clazz.merge_content(new_value)
+        elsif v.is_a? String
+          new_value[keys[0]] = v
+          new_value
         else
           keys.each_index do |i|
-            new_value[keys[i]] = lam.call(i)
+            tmp_value = {keys[i] => v[i]}
+            process_obj global, tmp_value
+            if !global.classs(keys[i]).nil? && !tmp_value[keys[i]].nil? && (tmp_value[keys[i]].is_a?(Hash) || tmp_value[keys[i]].is_a?(Array))
+              new_value[i] = tmp_value[keys[i]]
+            else
+              new_value.merge! tmp_value
+            end
           end
+          new_value
         end
-
-        new_value.keys do |nk|
-          process_obj global, new_value[nk]
-        end
-
-        process_nested_classes(global, new_value)
-        clazz.merge_content(new_value)
       end
 
       # Find a *assign key list of a specific length
