@@ -111,6 +111,8 @@ module MODL
             return Substitutions.process(k) unless pair
             if replaceFromPairIfPossible
               value1 = Substitutions.process(pair.text)
+            else
+              value1 = k
             end
           end
           success = true

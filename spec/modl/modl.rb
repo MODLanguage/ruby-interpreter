@@ -40,7 +40,7 @@ end
 
 a = <<~XXXXXXXX
 
-test=\\~u2019\\u2019~u2019\\u2019
+_test1=one;_one=two;{test1=one?result=match/?result=nomatch}
 
 XXXXXXXX
 
