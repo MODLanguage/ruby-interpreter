@@ -47,6 +47,8 @@ def success_tests(data)
 
   exit_on_fail = false
 
+  use_minified = true # TODO: be sure to try both values!
+
   data.each_index do |i|
     begin
       #next if i < 97
@@ -59,9 +61,11 @@ def success_tests(data)
 
       id = test_case['id'].to_s
       puts 'Test ID: ' + id
-      puts 'Test Input: ' + test_case['input']
+      puts 'Test Input: ' + test_case['minimised_modl'] if use_minified
+      puts 'Test Input: ' + test_case['input'] unless use_minified
 
-      result = MODL::Interpreter.interpret test_case['input']
+      result = MODL::Interpreter.interpret test_case['minimised_modl'] if use_minified
+      result = MODL::Interpreter.interpret test_case['input'] unless use_minified
 
       expected = test_case['expected_output']
 
@@ -134,7 +138,7 @@ end
 
 RSpec.describe MODL::Parser do
   it "can run the error tests" do
-    file = File.open("./grammar_tests/error_tests.json", "r:UTF-8")
+    file = File.open("../grammar/tests/error_tests.json", "r:UTF-8")
     data = JSON.parse(file.read)
 
     deleted_count, failed, success = failure_tests(data)
@@ -144,7 +148,7 @@ RSpec.describe MODL::Parser do
   end
 
   it "can run the success tests" do
-    file = File.open("./grammar_tests/base_tests.json", "r:UTF-8")
+    file = File.open("../grammar/tests/base_tests.json", "r:UTF-8")
     data = JSON.parse(file.read)
 
     deleted_count, failed, success = success_tests(data)

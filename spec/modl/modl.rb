@@ -40,17 +40,8 @@ end
 
 a = <<~XXXXXXXX
 
-  _C=gb;
-  _L=en;
-  _Q=numexample.com;
-  _D=numexample.com;
-  _DV=iPhone 7;
-  _TZ=GMT;
-  _GPS=53.473997,-2.237334;
-  *load="https://s3.eu-west-2.amazonaws.com/modules.num.uk/1/rcf.txt";
-  o=NUM Example Co:Example Strapline:[t=Call us:441270123456;fb=examplefacebook;tw=exampletwitter;in=exampleinstagram]
+  test1=one;one=two;{test1=one?result=match/?result=nomatch}
 
 XXXXXXXX
 
-process_modl(a)
 process_modl(a)

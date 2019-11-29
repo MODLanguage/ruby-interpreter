@@ -1,3 +1,9 @@
+0.3.24
+===
+- Use base_tests from the grammar repo.
+- Updated grammar to support minified MODL.
+- Bug fixes for handling minified MODL.
+
 0.3.23
 ===
 - Add support for 5- and 6-digit unicode escape sequences.
