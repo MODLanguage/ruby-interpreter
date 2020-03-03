@@ -1,3 +1,7 @@
+0.3.25
+===
+- Update Rake due to security advisory.
+
 0.3.24
 ===
 - Use base_tests from the grammar repo.
