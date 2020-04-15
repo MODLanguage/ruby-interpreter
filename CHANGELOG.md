@@ -1,3 +1,8 @@
+0.3.26
+===
+- Remove `*expect`
+- Fix problem with references in classes.
+
 0.3.25
 ===
 - Update Rake due to security advisory.

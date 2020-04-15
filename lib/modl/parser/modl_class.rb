@@ -59,7 +59,7 @@ module MODL
 
       def merge_content(new_value)
         @content.each do |k, v|
-          new_value[k] = v.extract_hash
+          new_value[k] = v.extract_hash unless new_value[k]
         end
         new_value
       end

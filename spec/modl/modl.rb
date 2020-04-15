@@ -40,7 +40,7 @@ end
 
 a = <<~XXXXXXXX
 
-<n=1;r=1>=1
+  _C=gb;_L=en;*load="http://modules.num.uk/1/rcf.txt!";o(c[fb=abc;tw=abc])
 
 XXXXXXXX
 

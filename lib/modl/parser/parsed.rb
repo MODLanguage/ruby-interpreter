@@ -481,7 +481,6 @@ module MODL
           @type = 'index' if @key == '?'
           @type = 'hidden' if @key.start_with? '_'
           @type = 'allow' if @key.downcase == '*allow'
-          @type = 'expect' if @key.downcase == '*expect'
         end
       end
 

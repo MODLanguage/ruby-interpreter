@@ -75,8 +75,6 @@ module MODL
           return global.transform_list
         when '%*allow'
           return global.allow_list
-        when '%*expect'
-          return global.allow_list
         end
       end
     end
